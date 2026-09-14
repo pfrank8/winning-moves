@@ -229,9 +229,10 @@ function makeBoard(id, o){
   }
 
   /* text helpers */
+  const CLS = ['you', 'robo', 'ic-p3c'];
   const splitText = () => {
     const w = W(), c = counts(active(), b.cust);
-    return active().map((p, i) => `<b class="${['you', 'robo', 'ic-p3c'][i]}">${w.names[i]}</b> at ${p}: ${fmt(c[i])}`).join('. ') + ` ${w.thing}.`;
+    return active().map((p, i) => `<b class="${CLS[i]}">${w.names[i]}</b> at ${p} ${i === 0 && b.skin === 'ice' ? 'get' : 'gets'} ${fmt(c[i])}${i === 0 ? ' ' + w.thing : ''}.`).join(' ');
   };
   const middle = i => { const c = active(); return c.length === 3 && c.every((p, j) => j === i || (p !== c[i])) && c[i] > Math.min.apply(null, c) && c[i] < Math.max.apply(null, c); };
 

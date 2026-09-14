@@ -335,7 +335,7 @@ function evAnswer(guess){
     const row = ev.v[t]; let j = 0; row.forEach((x, k) => { if (k !== t && x > row[j]) j = k; });
     if (j === t) j = row.indexOf(Math.max.apply(null, row.filter((x, k) => k !== t)));
     envied = [t, j];
-    why = `${NAMES[t]} values ${t === 0 ? 'your own' : 'its own'} piece ${LETTERS[t]} at ${row[t]}, but ${j === 0 ? 'your' : NAMES[j] + "'s"} piece ${LETTERS[j]} at ${row[j]}. ${NAMES[t]} would swap. Proportional, but not envy-free.`;
+    why = `${NAMES[t]} ${t === 0 ? 'value your own' : 'values its own'} piece ${LETTERS[t]} at ${row[t]}, but ${j === 0 ? 'your' : NAMES[j] + "'s"} piece ${LETTERS[j]} at ${row[j]}. ${NAMES[t]} would swap. Proportional, but not envy-free.`;
   }
   evRender(envied);
   if (ok){

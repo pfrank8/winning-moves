@@ -367,7 +367,12 @@ const sim2 = makeSim('mh-sim2', { mode: 'guesses', predict: false });
     status(`1000 rounds of ${word} with ${n} doors: <b>${fmtNum(res.w)}</b> wins, ${pct(res.w, res.n)}%. The formula says ${strategy === 'stay' ? `1/${n}` : `${n - 1}/${n}`} = ${(100 * (strategy === 'stay' ? 1 : n - 1) / n).toFixed(1)}%.`);
   }
   function resetTallies(){ if (s.running) return; s.t = newTally(); s.round = 0; newRound(); status('Tallies cleared. Pick a door.'); }
-  q('n').addEventListener('change', () => { if (s.running) return; readN(); resetTallies(); status(`${s.n} doors now. Tallies cleared. Pick a door.`); });
+  q('n').addEventListener('change', () => {
+    if (s.running) return;
+    const before = s.n; readN();
+    if (s.n === before) return;
+    resetTallies(); status(`${s.n} doors now. Tallies cleared. Pick a door.`);
+  });
   q('new').addEventListener('click', newRound);
   q('reset').addEventListener('click', resetTallies);
   q('stay').addEventListener('click', () => choose('stay'));

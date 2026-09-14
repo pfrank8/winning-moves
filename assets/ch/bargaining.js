@@ -354,11 +354,14 @@ function pgCrew(){
     out.innerHTML = `<p>With <b>${n}</b> pirates and <b>${c}</b> coins, the captain needs ${half(n)} of ${n} votes and buys ${k}. The captain keeps <b class="big">${sol.alloc[0]}</b>` +
       (k ? `, pays 1 coin each to ${k} pirate${k === 1 ? '' : 's'} (number${k === 1 ? '' : 's'} ${posText}, counting the captain as 1), and gives 0 to everyone else.` : ' and gives nothing to anyone.') + ' It passes.</p>';
   } else {
-    let m = n; const drowned = [];
+    let m = n - 1; const drowned = [];                       // crews below n whose captain also drowns
     while (m > 1 && pirateSolve(m, c, false).dies){ drowned.push(m); m--; }
     const s = pirateSolve(m, c, false);
-    out.innerHTML = `<p>With <b>${n}</b> pirates and <b>${c}</b> coins, the captain needs ${half(n)} of ${n} votes and cannot buy enough of them. <b class="you">The captain goes overboard no matter what.</b></p>` +
-      `<p>${drowned.length === 1 ? 'The next captain' : `The next ${drowned.length} captains`} (crew${drowned.length === 1 ? '' : 's'} of ${drowned.slice().reverse().join(', ')}) ${drowned.length === 1 ? 'goes' : 'go'} overboard too. The first proposal that passes is from the captain of <b>${m}</b> pirates, who keeps <b class="big">${s.alloc[0]}</b>. The doomed captains vote yes to that for free: it keeps them alive.</p>`;
+    const crews = drowned.slice().reverse();
+    const crewText = crews.length <= 6 ? crews.join(', ') : `${crews.slice(0, 3).join(', ')}, ... , ${crews.slice(-2).join(', ')}`;
+    const also = crews.length === 0 ? '' : crews.length === 1 ? ` So does the next captain (the crew of ${crewText}).` : ` So do the next ${crews.length} captains (the crews of ${crewText}).`;
+    out.innerHTML = `<p>With <b>${n}</b> pirates and <b>${c}</b> coins, the captain needs ${half(n)} of ${n} votes and cannot buy enough of them. <b class="you">The captain goes overboard no matter what.</b>${also}</p>` +
+      `<p>The first proposal that passes comes from the captain of <b>${m}</b> pirates, who keeps <b class="big">${s.alloc[0]}</b>. The doomed captain${n - m > 1 ? 's' : ''} vote${n - m > 1 ? '' : 's'} yes to it for free: it keeps them alive.</p>`;
   }
 }
 $('#pg-crew-n').addEventListener('change', pgCrew); $('#pg-crew-n').addEventListener('input', pgCrew);
@@ -398,7 +401,9 @@ function mpDraw(){
     `<text x="${cx}" y="210" text-anchor="middle" style="fill:var(--ink-soft);font-size:15px">worth ${fmt(pie)}</text>`;
 }
 function mpSplitText(){
-  const pie = mpPie(), robo = mp.pending ? mp.pending.robo : Math.min(pie, Number(sliderEl.value));
+  if (mp.puddle){ $('#mp-split').innerHTML = `<span class="you">You get 0</span> · <span class="robo">Robo gets 0</span>`; return; }
+  const pie = mp.pending && mp.pending.done ? mp.pending.pie : mpPie();
+  const robo = mp.pending ? mp.pending.robo : Math.min(pie, Number(sliderEl.value));
   $('#mp-split').innerHTML = `<span class="you">You keep ${fmt(pie - robo)}</span> · <span class="robo">Robo gets ${fmt(robo)}</span>`;
 }
 const mpSlider = slider(sliderEl, v => fmt(v), () => { if (!mp.sol) return; if (!mp.over && !mp.pending) mpDraw(); mpSplitText(); });

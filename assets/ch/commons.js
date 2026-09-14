@@ -141,14 +141,15 @@ function pondReset(){
 }
 function playSeason(){
   const you = clamp(Math.round(+$('#cm-catch').value) || 0, 0, 10);
-  const asks = [{ ask: you, cheats: pond.quota && you > pond.q }, robotAsk(1), robotAsk(2), robotAsk(3)];
+  const asks = [{ ask: you }, robotAsk(1), robotAsk(2), robotAsk(3)];
   const before = pond.F;
   const o = season(pond.F, asks.map(a => a.ask));
   const parts = [];
   for (let i = 0; i < 4; i++){
     pond.caught[i] += o.caught[i]; pond.this[i] = o.caught[i];
     let p = `${NAMES[i]} ${fmt(o.caught[i])}`;
-    if (asks[i].cheats){ pond.fines[i] += pond.fine; p += ` (over the quota, fined ${pond.fine})`; }
+    /* the fine is for what you actually landed over the quota, not for what you asked for */
+    if (pond.quota && o.caught[i] > pond.q + 1e-9){ pond.fines[i] += pond.fine; p += ` (over the quota, fined ${pond.fine})`; }
     parts.push(p);
   }
   pond.lastYou = you; pond.F = o.next; pond.s++; pond.path.push(pond.F); pond.bars.push(o.caught.reduce((a, b) => a + b, 0));
@@ -230,7 +231,7 @@ function calcRender(c){
   const o = CALC[c];
   drawChart($('#cm-calc-chart'), o.path, null, {});
   const best = Math.max.apply(null, CALC.map(z => z.total));
-  let h = '<tr><th>Each takes</th><th>Total per fisher, 20 seasons</th><th>Pond after 20</th><th></th></tr>';
+  let h = '<tr><th>Each takes</th><th>Total each</th><th>Pond after 20</th><th></th></tr>';
   for (let k = 0; k <= 10; k++){
     const z = CALC[k];
     h += `<tr class="${k === c ? 'hl' : ''}"><td>${k}</td><td>${fmt(z.total)}</td><td>${z.empty ? `empty by season ${z.empty}` : fmt(z.F)}</td>` +

@@ -10,8 +10,8 @@
   ]
 } -->
 <style>
-  .ck-kids{ display:flex; flex-wrap:wrap; gap:14px 12px; margin:14px 0 6px }
-  .ck-kid{ width:150px; display:grid; gap:6px; justify-items:center; padding:8px 6px 10px; border:3px solid transparent; border-radius:14px; transition:transform .25s, border-color .25s, background .25s }
+  .ck-kids{ display:grid; grid-template-columns:repeat(auto-fill, minmax(122px, 1fr)); gap:14px 10px; margin:14px 0 6px }
+  .ck-kid{ display:grid; gap:6px; justify-items:center; align-content:start; padding:8px 6px 10px; border:3px solid transparent; border-radius:14px; transition:transform .25s, border-color .25s, background .25s }
   .ck-kid.fwd{ transform:translateY(-8px); border-color:var(--win); background:var(--win-soft) }
   .ck-kid .name{ font:600 .9rem var(--f-display) }
   .ck-kid.you .name{ color:var(--you) } .ck-kid.robo .name{ color:var(--robo) }
@@ -68,7 +68,7 @@
   <div class="prose">
     <p>Here is the puzzle. Some children come inside after playing in the mud. A few of them, say <span class="var">k</span>, have mud on their foreheads. Every child can see every other child's forehead, but not their own. There are no mirrors, and nobody may talk, point, or make faces. The teacher looks at the whole group and announces, out loud: <b>"At least one of you has a muddy forehead."</b> Then she asks, <b>"If you know you are muddy, step forward."</b></p>
     <p>Nobody moves. She asks again. Nobody moves. She keeps asking, and on the <span class="var">k</span>th time, every muddy child steps forward at the same moment, and no clean child does. Not one of them ever saw their own face.</p>
-    <p>Play it before you read how it works. You are one of the children, so your own forehead is a question mark. The other children are robots, and each one shows what it is thinking. Every time the teacher asks, press <b>I stay put</b> to let the round go by, or <b>I step forward</b> when you are certain. Certain is the whole game: stepping forward too early, or when you are clean, is a mistake even if you happen to be muddy. Leave the muddy count on <b>Secret</b>, so you have to work it out the way the children do.</p>
+    <p>Play it before you read how it works. You are one of the children, so your own forehead is a question mark. The others are robots, and each one shows what it is thinking. Each time the teacher asks, press <b>I stay put</b> to let the round go by, or <b>I step forward</b> when you are certain. Certain is the whole game: stepping forward too early, or when you are clean, is a mistake even if you happen to be muddy. Leave the muddy count on <b>Secret</b>, so you have to work it out the way the children do.</p>
   </div>
 
   <div class="board">
@@ -103,23 +103,23 @@
       <li><b>Two muddy children.</b> Each of them sees exactly one muddy face and thinks: "If I am clean, that child sees no mud at all and will step forward on round 1." Round 1 goes by and nobody moves. "So I am not clean." Both step forward on round 2.</li>
       <li><b>Three muddy children.</b> Each sees two muddy faces and thinks: "If I am clean, those two are in the two-muddy situation, and they will step forward on round 2." Round 2 passes, nobody moves, and all three step forward on round 3.</li>
     </ul>
-    <p>Here is the pattern. A child who sees <span class="var">m</span> muddy faces waits <span class="var">m</span> rounds. If those <span class="var">m</span> children step forward, she is clean. If they do not, she is muddy, and she steps forward on round <span class="var">m</span> + 1. That rule is the entire strategy, and it is exactly what the robots above are running. A muddy child sees one fewer muddy face than a clean child does, so she acts one round earlier, and that round is round <span class="var">k</span>.</p>
+    <p>The pattern: a child who sees <span class="var">m</span> muddy faces waits <span class="var">m</span> rounds. If those <span class="var">m</span> children step forward, she is clean. If they do not, she is muddy, and she steps forward on round <span class="var">m</span> + 1. That rule is the entire strategy, and it is what the robots above are running. A muddy child sees one fewer muddy face than a clean child does, so she acts one round earlier, and that round is round <span class="var">k</span>.</p>
   </div>
 </section>
 
 <section>
   <h2>Why the announcement matters</h2>
   <div class="prose">
-    <p>Now the puzzle inside the puzzle. Suppose <span class="var">k</span> is 2 or more. Then before the teacher said a word, every child could already see at least one muddy forehead. Every child already knew "at least one of us is muddy." The teacher told them something they all knew. So how did it change anything?</p>
-    <p>Take <span class="var">k</span> = 2, with Robo 1 and Robo 2 muddy. Robo 1 knows somebody is muddy: it can see Robo 2. But does Robo 1 know that <i>Robo 2</i> knows? Robo 1 thinks: "If my own forehead is clean, then Robo 2 sees no mud at all, and Robo 2 has no idea anybody is muddy." Robo 1 cannot rule that out. So Robo 1 knows the fact, but does not know whether Robo 2 knows it. And the round-2 argument needs exactly that: "if I were clean, Robo 2 would have known, and would have stepped forward." Without the announcement, Robo 1 cannot make that argument, and nothing ever happens.</p>
-    <p>The teacher's sentence fixes this, not because of what it says but because of <i>how</i> it is said: out loud, to everyone, with everyone watching everyone else hear it. After it, everyone knows the fact, everyone knows that everyone knows it, everyone knows that everyone knows that everyone knows it, and so on without end. A fact like that is called <span class="term">common knowledge</span>. Think of it as a ladder:</p>
+    <p>Now the puzzle inside the puzzle. Suppose <span class="var">k</span> is 2 or more. Then before the teacher said a word, every child could already see a muddy forehead, so every child already knew "at least one of us is muddy." The teacher told them something they all knew. How did that change anything?</p>
+    <p>Take <span class="var">k</span> = 2, with Robo 1 and Robo 2 muddy. Robo 1 knows somebody is muddy: it can see Robo 2. But does Robo 1 know that <i>Robo 2</i> knows? Robo 1 thinks: "If my own forehead is clean, Robo 2 sees no mud at all and has no idea anybody is muddy." Robo 1 cannot rule that out. So Robo 1 knows the fact, but does not know whether Robo 2 knows it. And the round-2 argument needs exactly that: "if I were clean, Robo 2 would have known, and would have stepped forward." Without the announcement, nothing ever happens.</p>
+    <p>The teacher's sentence fixes this, not because of what it says but because of <i>how</i> it is said: out loud, to everyone, with everyone watching everyone else hear it. After it, everyone knows the fact, everyone knows that everyone knows it, and so on without end. A fact like that is called <span class="term">common knowledge</span>. Think of it as a ladder:</p>
     <ul>
       <li><b>Rung 1.</b> Everyone knows it.</li>
       <li><b>Rung 2.</b> Everyone knows that everyone knows it.</li>
       <li><b>Rung 3.</b> Everyone knows that everyone knows that everyone knows it.</li>
       <li><b>Rungs 4, 5, 6, ...</b> and so on, forever.</li>
     </ul>
-    <p>Before the announcement, the ladder for "somebody is muddy" is only <span class="var">k</span> − 1 rungs high, and the round-<span class="var">k</span> argument needs rung <span class="var">k</span>. The announcement builds the whole ladder in one sentence. Check it below for two and for three muddy robots, before and after.</p>
+    <p>Before the announcement, the ladder for "somebody is muddy" is only <span class="var">k</span> − 1 rungs high, and the round-<span class="var">k</span> argument needs rung <span class="var">k</span>. The announcement builds the whole ladder in one sentence. Check it below for two and for three muddy robots.</p>
   </div>
 
   <div class="board">
@@ -137,8 +137,8 @@
 <section>
   <h2>Guess two thirds of the average</h2>
   <div class="prose">
-    <p>Common knowledge is about what people know. The next game is about how deep they <i>think</i>. Everyone in a group secretly picks a whole number from 0 to 100. Then you average all the numbers, take two thirds of that average, and whoever is closest wins.</p>
-    <p>What would you pick? A first thought: "if the others pick at random, the average is about 50, and two thirds of 50 is 33." Call that <b>level 1</b> thinking. A second thought: "but everybody will think that, so they will all pick 33, and two thirds of 33 is 22." That is <b>level 2</b>. Level 3 picks 15, level 4 picks 10, and each level assumes the crowd is exactly one level below it. Play against nine Robos. You choose how deep they think. The <b>Mixed</b> crowd is the realistic one: a spread from level 0 to level 3, with each Robo wobbling a couple of points, the way real people do.</p>
+    <p>Common knowledge is about what people know. The next game is about how deep they <i>think</i>. Everyone in a group secretly picks a whole number from 0 to 100. Average all the numbers, take two thirds of that average, and whoever is closest wins.</p>
+    <p>What would you pick? A first thought: "if the others pick at random, the average is about 50, and two thirds of 50 is 33." Call that <b>level 1</b> thinking. A second thought: "but everybody will think that, so they will all pick 33, and two thirds of 33 is 22." That is <b>level 2</b>. Level 3 picks 15, level 4 picks 10, and each level assumes the crowd is exactly one level below it. Play against nine Robos and choose how deep they think. The <b>Mixed</b> crowd is the realistic one: a spread from level 0 to level 3, each Robo wobbling a couple of points, the way real people do.</p>
   </div>
 
   <div class="board">
@@ -177,8 +177,8 @@
   </div>
 
   <div class="prose">
-    <p>Push the reasoning as far as it goes. Even if every single person picks 100, the average is 100 and two thirds of it is 66.7. So a number above 66.7 can never be closer to the target than 66.7 itself. It is <span class="term">dominated</span>, Chapter 2's word, and a sensible player crosses it out. But if everyone can see that, nobody picks above 66.7, so the average is at most 66.7, and two thirds of that is 44.4. Now everything above 44.4 is dominated. Cross it out and the ceiling drops to 29.6, then 19.8, then 13.2. Every step cuts the ceiling to two thirds of what it was, and the only number that survives every step is 0. That is the game's equilibrium (Chapter 3): if everyone reasons perfectly, and everyone knows that everyone reasons perfectly, all the way up the ladder, everyone picks 0.</p>
-    <p>Real crowds do not. When newspapers have run this contest with thousands of readers, the average guess landed in the twenties or thirties, and the winning number in the teens or low twenties, because most people climb two or three levels and then stop. Nobody is at level 100. So the winning move is not to reason perfectly. It is to reason exactly one level deeper than the crowd you are actually in. Try that against the mixed crowd: it takes a few rounds, because the level-0 Robos add luck, but a number near 20 wins far more often than 33 or 50.</p>
+    <p>Push the reasoning as far as it goes. Even if every single person picks 100, two thirds of the average is 66.7, so a number above 66.7 can never be closer to the target than 66.7 itself. It is <span class="term">dominated</span>, Chapter 2's word, and a sensible player crosses it out. But if everyone can see that, nobody picks above 66.7, so two thirds of the average is at most 44.4, and now everything above 44.4 is dominated. Cross it out and the ceiling drops to 29.6, then 19.8, then 13.2. The only number that survives every step is 0. That is the game's equilibrium (Chapter 3): if everyone reasons perfectly, and everyone knows that everyone reasons perfectly, all the way up the ladder, everyone picks 0.</p>
+    <p>Real crowds do not. When newspapers have run this contest with thousands of readers, the average guess landed in the twenties or thirties and the winning number in the teens or low twenties, because most people climb two or three levels and then stop. Nobody is at level 100. So the winning move is not to reason perfectly. It is to reason exactly one level deeper than the crowd you are actually in. Against the mixed crowd, a number near 20 wins far more often than 33 or 50, though the level-0 Robos add enough luck that it takes a few rounds.</p>
   </div>
 </section>
 
@@ -186,7 +186,7 @@
   <h2>The three hats</h2>
   <div class="prose">
     <p>One more puzzle about what people can see. Three players each get a hat, red or blue, decided by a coin flip. Each sees the other two hats and not their own. At the same moment, each player must either guess their own hat color or say "pass." The team wins if at least one player guesses right and nobody guesses wrong. No talking once the hats are on, but the team may agree on a plan beforehand.</p>
-    <p>The obvious plan: one player guesses, the other two pass. A guess about your own hat is a coin flip, so the team wins half the time, and it seems as if nothing could beat that, because nobody ever sees their own hat. Here is the plan that does: <b>if you see two hats of the same color, guess the other color; otherwise pass.</b> Play it, then run a thousand games with each plan and compare. Then look at the table of all eight ways the hats can fall and find where the clever plan loses.</p>
+    <p>The obvious plan: one player guesses, the other two pass. A guess about your own hat is a coin flip, so the team wins half the time, and it seems as if nothing could beat that, because nobody ever sees their own hat. Here is the plan that does: <b>if you see two hats of the same color, guess the other color; otherwise pass.</b> Play it, run a thousand games with each plan, then find in the table of all eight hat patterns where the clever plan loses.</p>
   </div>
 
   <div class="board">
@@ -218,16 +218,16 @@
   </div>
 
   <div class="prose">
-    <p>The clever plan does not make any single guess better than a coin flip. Every guess anybody makes is still right exactly half the time. What the plan does is arrange the guesses so that the wrong ones all happen in the same two games, when the three hats match and everyone guesses wrong together, while the right ones are spread out one per game across the other six. Losses concentrated, wins spread out. Six wins out of eight is 3/4. Real error-correcting codes, the ones that let a scratched disc still play, use the same trick with more hats.</p>
+    <p>The clever plan does not make any single guess better than a coin flip. Every guess anybody makes is still right exactly half the time. What the plan does is arrange the guesses so that the wrong ones all land in the same two games, when the three hats match and everyone guesses wrong together, while the right ones are spread one per game across the other six. Losses concentrated, wins spread out: 6 of 8 is 3/4.</p>
   </div>
 </section>
 
 <div class="math">
   <span class="tag">Math corner</span>
-  <p><b>Muddy children by induction.</b> The claim: with <span class="var">k</span> muddy children, all of them step forward on round <span class="var">k</span> and nobody steps forward before that. It works for <span class="var">k</span> = 1: the one muddy child sees no mud, hears "at least one," and steps forward on round 1, while every clean child sees one muddy face and waits. Now suppose it works for <span class="var">k</span>, and take <span class="var">k</span> + 1 muddy children. Each muddy child sees <span class="var">k</span> muddy faces and reasons: "If I were clean, there would be exactly <span class="var">k</span> muddy children, and by the claim for <span class="var">k</span> they would step forward on round <span class="var">k</span>." Round <span class="var">k</span> passes and nobody moves, so on round <span class="var">k</span> + 1 every muddy child knows, and steps forward. A clean child sees <span class="var">k</span> + 1 muddy faces and is still waiting. So it works for <span class="var">k</span> + 1. It works for 1, so it works for 2, so for 3, and so on for every <span class="var">k</span>.</p>
+  <p><b>Muddy children by induction.</b> The claim: with <span class="var">k</span> muddy children, all of them step forward on round <span class="var">k</span> and nobody before that. It works for <span class="var">k</span> = 1: the one muddy child sees no mud, hears "at least one," and steps forward on round 1, while every clean child sees one muddy face and waits. Now suppose it works for <span class="var">k</span>, and take <span class="var">k</span> + 1 muddy children. Each muddy child sees <span class="var">k</span> muddy faces and reasons: "If I were clean, there would be exactly <span class="var">k</span> muddy children, and by the claim for <span class="var">k</span> they would step forward on round <span class="var">k</span>." Round <span class="var">k</span> passes and nobody moves, so on round <span class="var">k</span> + 1 every muddy child knows, and steps forward. A clean child sees <span class="var">k</span> + 1 muddy faces and is still waiting. So it works for <span class="var">k</span> + 1. It works for 1, so for 2, so for 3, and so on for every <span class="var">k</span>.</p>
   <p><b>The shrinking ceiling.</b> If nobody picks above <span class="var">c</span>, the target is at most 2/3 of <span class="var">c</span>. Starting from 100:</p>
   <div class="formula">100 × 2/3 = 66.7,&nbsp; 66.7 × 2/3 = 44.4,&nbsp; then 29.6, 19.8, 13.2, 8.8, 5.9, 3.9, ...</div>
-  <p>After <span class="var">n</span> steps the ceiling is <code>100 × (2/3)<sup>n</sup></code>, which never stops shrinking and gets as close to 0 as you like. One honest footnote: with whole numbers and a small group, the last step gets fuzzy. In a group of 10, "everybody picks 1" is also an equilibrium, because a lone switch to 0 pulls the target down by less than it moves you, so the switcher loses. The huge crowd with fractions lands cleanly on 0.</p>
+  <p>After <span class="var">n</span> steps the ceiling is <code>100 × (2/3)<sup>n</sup></code>, which never stops shrinking and gets as close to 0 as you like. One honest footnote: with whole numbers and a small group the last step gets fuzzy. In a group of 10, "everybody picks 1" is also an equilibrium, because a lone switch to 0 pulls the target down by less than it moves you, so the switcher loses. The huge crowd with fractions lands cleanly on 0.</p>
   <p><b>Hats.</b> Three fair coins give <code>2 × 2 × 2 = 8</code> equally likely hat patterns. The clever plan loses on exactly 2 of them (all red, all blue), so it wins <code>6/8 = 3/4</code> of the time. The one-guesser plan wins <code>4/8 = 1/2</code>.</p>
 </div>
 
@@ -249,10 +249,10 @@
 
 <div class="challenge">
   <span class="tag">Challenge</span>
-  <p>Two armies are camped on two hills with the enemy in the valley between them. They win only if both attack at the same moment; an army that attacks alone is destroyed. The only way to talk is a messenger who runs through the valley, and any messenger might be captured. General A sends: "Attack at dawn." Did the messenger get through? A cannot know. So B sends one back: "Got it, dawn." Now B cannot know whether that one arrived. Show that no plan with a finite number of messengers can ever make "attack at dawn" common knowledge, no matter how many of them get through.</p>
+  <p>Two armies are camped on two hills with the enemy in the valley between them. They win only if both attack at the same moment; an army that attacks alone is destroyed. The only way to talk is a messenger who runs through the valley, and any messenger might be captured. General A sends: "Attack at dawn." Did the messenger get through? A cannot know. So B sends one back: "Got it, dawn." Now B cannot know whether that one arrived. Show that no plan with a finite number of messengers can ever make "attack at dawn" common knowledge, however many of them get through.</p>
   <details class="reveal"><summary>Answer</summary>
-    <p>Suppose some plan with a finite number of messages works, meaning both armies attack together whenever the plan is followed, whatever happens to the messengers. Look at the last message in the plan. Its sender cannot tell whether it arrived, so the sender does exactly the same thing either way, and since the plan works, the sender attacks whether or not that last message got through. The receiver must attack at the same moment in both cases too, so the last message never changed what anybody did. Delete it: the plan still works with one message fewer. Now delete the new last message by the same argument, and keep going until the plan has no messages at all. But a plan with no messages cannot say when to attack. So no such plan exists. Each message adds one rung to the ladder, and the ladder never reaches the top.</p>
-    <p>Computer scientists call this the two generals problem, and networks live with it every second. When one computer sends another a message, it does not wait to be certain that the other computer knows that it knows. It waits a set amount of time for a reply, and sends again if none comes. Certainty is impossible, so engineers settle for very likely, and a timer.</p>
+    <p>Suppose some plan with a finite number of messages works: both armies attack together whenever the plan is followed, whatever happens to the messengers. Look at the last message in the plan. Its sender cannot tell whether it arrived, so the sender does exactly the same thing either way, and since the plan works, the sender attacks whether or not that message got through. The receiver must attack at the same moment in both cases too, so the last message never changed what anybody did. Delete it: the plan still works with one message fewer. Delete the new last message by the same argument, and keep going until no messages are left. But a plan with no messages cannot say when to attack. So no such plan exists. Each message adds one rung to the ladder, and the ladder never reaches the top.</p>
+    <p>Computer scientists call this the two generals problem, and networks live with it every second. When one computer sends another a message, it does not wait to be certain that the other computer knows that it knows. It waits a set time for a reply and sends again if none comes. Certainty is impossible, so engineers settle for very likely, plus a timer.</p>
   </details>
 </div>
 

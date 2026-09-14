@@ -30,7 +30,7 @@
 <section>
   <div class="prose">
     <p>Two people, one cake, nobody to referee. The rule every kid works out eventually: <b class="you">you</b> cut the cake into two pieces, and <b class="robo">Robo</b> picks whichever piece it wants. You get the other one.</p>
-    <p>Play it. Slide the knife, press Cut, and Robo takes the piece it likes better. Your job is to end up with as much cake as you can. Where should you cut?</p>
+    <p>Play it. Slide the knife, press Cut, and Robo takes the piece it likes better. Where should you cut?</p>
   </div>
 
   <div class="board">
@@ -63,27 +63,27 @@
   </div>
 
   <div class="prose">
-    <p>Cut at 40 and Robo takes the 60. Cut at 70 and Robo takes the 70. Robo always takes the bigger piece, so whatever you do, you get the <b>smaller</b> one. The only way to make the smaller piece as big as possible is to make the two pieces equal. Cut at 50 and you are guaranteed exactly half, and there is nothing Robo can do about it. That is the whole idea of <span class="term">cut and choose</span>: the cutter cuts so that it does not matter which piece the chooser takes.</p>
+    <p>Cut at 40 and Robo takes the 60. Cut at 70 and Robo takes the 70. Whatever you do, Robo takes the bigger piece and you get the <b>smaller</b> one, so the best you can do is make the two pieces equal. Cut at 50 and you are guaranteed exactly half. That is the whole idea of <span class="term">cut and choose</span>: the cutter cuts so that it does not matter which piece the chooser takes.</p>
   </div>
 </section>
 
 <section>
   <h2>Half by size is not half by value</h2>
   <div class="prose">
-    <p>Now the cake is half chocolate and half vanilla: chocolate on the left, vanilla on the right. And here is the thing that makes dividing things interesting: you and Robo do not agree about what the cake is worth. Suppose that to you a bite of chocolate is worth three times a bite of vanilla, so the chocolate half holds 75% of the cake's value and the vanilla half holds 25%. Robo likes them equally, 50 and 50.</p>
-    <p>Switch the board above to "Chocolate and vanilla" and watch the table. Cut at 50 and the two pieces are the same size, but they are not the same to you: the left piece is worth 75% to you and the right piece 25%. Robo sees a tie, takes the left, and you are stuck with a quarter of the cake.</p>
-    <p>So where is the safe cut now? The same rule as before, said more carefully: cut so that the two pieces are worth the same <b>to you</b>. To you, the chocolate half carries 75 points of value spread over 50 units of length, so each unit of chocolate is worth 1.5 points. You reach 50 points at <code>50 ÷ 1.5 = 33.3</code> units, one third of the way along. Cut there and both pieces are worth 50% to you. Robo can take either one and you still get half by your own measure. The slider only moves in whole percents, so 33 or 34 is as close as you can get.</p>
-    <p>Now watch what Robo does with that cut. To Robo the left piece is a third of the cake and the right piece is two thirds, so Robo takes the right. You get the left, half the cake by your taste, and Robo gets two thirds by its taste. Add those up and you get 116.7% of one cake. Nobody cheated and nobody is confused. When people want different things, a good split can leave <b>both</b> of them with more than half.</p>
-    <p>Can you push it further? Robo takes the piece it prefers, and as long as you cut anywhere left of the middle, Robo prefers the right. So the whole chocolate side up to your cut is yours. Cut at 40 and you get 60% by your measure. Cut at 49 and you get 73.5%. Cut at 50 and the pieces tie for Robo, Robo takes the left, and you fall to 25%. The greedy cut is a bet that you know Robo's tastes exactly. The safe cut at 33 needs no information about Robo at all, and that is the point of the procedure: it works against a chooser you know nothing about. Play with both taste sliders. Find out how much you can win, and how badly a wrong guess can go.</p>
+    <p>Now the cake is half chocolate (left) and half vanilla (right), and you and Robo disagree about what it is worth. To you a bite of chocolate is worth three times a bite of vanilla, so the chocolate half holds 75% of the cake's value and the vanilla half 25%. Robo likes them equally, 50 and 50.</p>
+    <p>Switch the board above to "Chocolate and vanilla". Cut at 50 and the pieces are the same size but not the same to you: the left is worth 75% to you, the right 25%. Robo sees a tie, takes the left, and you are stuck with a quarter.</p>
+    <p>The safe cut is the same rule said more carefully: cut so that the two pieces are worth the same <b>to you</b>. The chocolate half carries 75 points of value over 50 units of length, so each unit of chocolate is worth 1.5 points, and you reach 50 points at <code>50 ÷ 1.5 = 33.3</code> units. Cut there and both pieces are worth half to you, so Robo can take either one. The slider moves in whole percents; 33 or 34 is as close as you can get.</p>
+    <p>Now watch Robo. To Robo the left piece is a third and the right piece is two thirds, so Robo takes the right. You get half by your taste, Robo gets two thirds by its taste, and together that is 116.7% of one cake. Nobody cheated. When people want different things, a good split can leave <b>both</b> of them with more than half.</p>
+    <p>Can you push it further? As long as you cut left of the middle, Robo prefers the right, so everything up to your cut is yours. Cut at 40 and you get 60%. Cut at 49 and you get 73.5%. Cut at 50 and the pieces tie for Robo, Robo takes the left, and you fall to 25%. The greedy cut is a bet that you know Robo's tastes exactly. The safe cut needs no information about Robo at all, and that is the point: it works against a chooser you know nothing about. Play with both taste sliders and see how badly a wrong guess can go.</p>
   </div>
 </section>
 
 <section>
   <h2>Three people and a moving knife</h2>
   <div class="prose">
-    <p>Cut and choose is a two-person trick. With three people, who cuts? If you cut the cake into three pieces you think are equal, and Robo and Robo 2 each pick one, you get what is left, which is a third to you. Fine for you. But Robo and Robo 2 might both want the same piece, and then what?</p>
-    <p>In 1961 Lester Dubins and Edwin Spanier described a procedure that solves this with one moving knife. A referee slides a knife slowly across the cake from left to right. Every player watches the piece to the left of the knife. The moment that piece is worth exactly one third of the cake <b>to you</b>, you shout Stop. Whoever shouts first takes the piece to the left of the knife and leaves. The two players still standing split the rest with cut and choose.</p>
-    <p>This cake has three flavors: chocolate, vanilla, and strawberry. You, <b class="robo">Robo</b>, and <b class="fd-r2">Robo 2</b> each weigh the flavors differently, and you can only see your own weights. Robo and Robo 2 will shout at exactly their thirds. Start the knife, watch the readout, and shout when it says a third. Not before. If a robot beats you to it, do not worry, and keep reading below to see why.</p>
+    <p>Cut and choose is a two-person trick. With three people, who cuts? You could cut three pieces you think are equal and let the robots pick, but Robo and Robo 2 might both want the same piece.</p>
+    <p>In 1961 Lester Dubins and Edwin Spanier fixed this with one moving knife. A referee slides a knife slowly across the cake from left to right. The moment the piece to the left of the knife is worth exactly one third of the cake <b>to you</b>, you shout Stop. Whoever shouts first takes that piece and leaves. The two players still standing split the rest with cut and choose.</p>
+    <p>This cake has three flavors, and you, <b class="robo">Robo</b>, and <b class="fd-r2">Robo 2</b> each weigh them differently. You can see only your own weights. The robots shout at exactly their thirds. Start the knife, watch the readout, and shout when it says a third. Not before.</p>
   </div>
 
   <div class="board">
@@ -111,14 +111,14 @@
   </div>
 
   <div class="prose">
-    <p>Why does everyone get at least a third? Say Robo shouts first. Robo took a piece worth exactly one third to Robo. You had not shouted yet, so to you that piece was worth <b>less</b> than a third, which means the rest of the cake is worth <b>more</b> than two thirds to you. Cut and choose on the rest gives you at least half of it, and half of two thirds is a third. The same reasoning works for whoever is left. A division where every one of <span class="var">n</span> people thinks they got at least 1/<span class="var">n</span> is called <span class="term">proportional</span> <span class="say">(say: pro-POR-shun-ul)</span>. Shouting early is the only way to lose: you would take a piece worth less than a third to you and have nobody to blame.</p>
+    <p>Why does everyone get at least a third? Say Robo shouts first. That piece was worth exactly a third to Robo. You had not shouted yet, so to you it was worth <b>less</b> than a third, which means the rest of the cake is worth <b>more</b> than two thirds to you, and cut and choose gives you at least half of that: a third. A division where every one of <span class="var">n</span> people thinks they got at least 1/<span class="var">n</span> is called <span class="term">proportional</span> <span class="say">(say: pro-POR-shun-ul)</span>. Shouting early is the only way to lose.</p>
   </div>
 </section>
 
 <section>
   <h2>Proportional is not the same as envy-free</h2>
   <div class="prose">
-    <p>Here is a division of a cake among you, Robo, and Robo 2. Each row shows how one player values the three pieces, adding up to 100. You got piece A, Robo got B, Robo 2 got C. Everyone got at least a third by their own measure, so it is proportional. Now look at your row.</p>
+    <p>Here is a proportional division among you, Robo, and Robo 2. Each row shows how one player values the three pieces, adding to 100. You got A, Robo got B, Robo 2 got C, and everyone got at least a third by their own measure. Now look at your row.</p>
   </div>
   <div class="scroll">
     <table class="data">
@@ -129,9 +129,8 @@
     </table>
   </div>
   <div class="prose">
-    <p>You got a third. You also think Robo's piece is worth half the cake. You would trade with Robo in a heartbeat. Proportional says "I got my share." It does not say "I would not rather have yours." A division where nobody would swap with anybody is called <span class="term">envy-free</span>. Every envy-free division is proportional (the Math corner says why in one sentence), and this table shows the reverse is false.</p>
-    <p>For two people the two ideas are the same thing: if my piece is at least half, the other piece is at most half, so I do not want it. With three people they come apart, and that is exactly where fair division gets hard.</p>
-    <p>Here is an envy detector. Every division it shows is proportional. Some of them hide an envious player: someone whose row has a bigger number somewhere other than their own piece. Find that player, or say nobody. Three in a row earns the star.</p>
+    <p>You got a third. You also think Robo's piece is worth half the cake, and you would trade in a heartbeat. Proportional says "I got my share." It does not say "I would not rather have yours." A division where nobody would swap with anybody is called <span class="term">envy-free</span>. Every envy-free division is proportional (the Math corner says why in one sentence); this table shows the reverse is false. For two people the two ideas turn out to be the same thing. With three they come apart, and that is where fair division gets hard.</p>
+    <p>Every division the envy detector shows is proportional. Some hide an envious player, whose row has a bigger number somewhere other than their own piece. Find that player, or say nobody. Three in a row earns the star.</p>
   </div>
 
   <div class="board">
@@ -153,57 +152,57 @@
 <section>
   <h2>A recipe with no envy in it</h2>
   <div class="prose">
-    <p>Is there a procedure that guarantees an envy-free split for three people, whatever they want? Yes. John Selfridge found one in 1960, and John Conway found the same one on his own in 1993. Neither of them published it, so it travelled by word of mouth. It never needs more than five cuts. Here it is as a recipe, with you cutting, Robo trimming, and Robo 2 choosing first.</p>
+    <p>Is there a procedure that guarantees an envy-free split for three people, whatever they want? Yes. John Selfridge found it in 1960 and John Conway found it again in 1993; neither published it, so it travelled by word of mouth. It never needs more than five cuts. Here it is as a recipe.</p>
   </div>
   <ol class="steps">
     <li><b class="you">You</b> cut the cake into three pieces that are equal in your eyes.</li>
-    <li><b class="robo">Robo</b> looks at the three pieces. If one of them is the biggest to Robo, Robo <b>trims</b> it until it ties with Robo's second biggest. The trimmings go to one side. If two pieces already tie for biggest in Robo's eyes, Robo trims nothing.</li>
-    <li><b class="fd-r2">Robo 2</b> takes whichever of the three pieces it likes best.</li>
-    <li><b class="robo">Robo</b> takes next, with one rule: if the trimmed piece is still on the table, Robo must take it.</li>
+    <li><b class="robo">Robo</b> looks at the pieces. If one is the biggest to Robo, Robo <b>trims</b> it until it ties with Robo's second biggest, and sets the trimmings aside. If two already tie for biggest, Robo trims nothing.</li>
+    <li><b class="fd-r2">Robo 2</b> takes whichever piece it likes best.</li>
+    <li><b class="robo">Robo</b> takes next. If the trimmed piece is still on the table, Robo must take it.</li>
     <li><b class="you">You</b> take the last piece.</li>
-    <li>If nothing was trimmed, everyone is done. Otherwise the trimmings still have to be divided. Call whichever of Robo and Robo 2 ended up with the trimmed piece the <b>taker</b>. The <i>other</i> one of those two cuts the trimmings into three parts that are equal in its eyes.</li>
-    <li>The taker picks first from the three parts of the trimmings, then you, then the one who cut them.</li>
+    <li>If nothing was trimmed, everyone is done. Otherwise, whichever of Robo and Robo 2 took the trimmed piece is the <b>taker</b>. The other one of those two cuts the trimmings into three parts that are equal in its eyes.</li>
+    <li>The taker picks first from those parts, then you, then the one who cut them.</li>
   </ol>
   <div class="prose">
-    <p>Why does nobody envy anybody? In the first round, you cut three equal pieces, so you are happy with whichever one is left. Robo made sure its two favorite pieces tied, so after Robo 2 takes one, Robo still gets a favorite. Robo 2 chose first. The trimmings round is a smaller version of the same trick. The one worry is that you might envy the taker, who got the trimmed piece <i>and</i> first pick of the trimmings. But the trimmed piece plus <i>all</i> of the trimmings is exactly one of your original three equal pieces. The taker cannot end up with more than that.</p>
-    <p>For four or more people the question stayed open for decades. A procedure with no limit on the number of cuts was found in 1995 by Steven Brams and Alan Taylor. A procedure with a guaranteed limit was found only in 2016, by Haris Aziz and Simon Mackenzie, and the limit is enormous: for <span class="var">n</span> people it is a tower of exponents six <span class="var">n</span>'s tall, <span class="var">n</span> to the <span class="var">n</span> to the <span class="var">n</span> to the <span class="var">n</span> to the <span class="var">n</span> to the <span class="var">n</span>. Nobody will ever run it at a birthday party. But it exists, and before 2016 nobody knew whether it could.</p>
+    <p>Why is nobody envious? You cut three equal pieces, so you are happy with the one left over. Robo made its two favorites tie, so after Robo 2 takes one, Robo still gets a favorite. Robo 2 chose first. The trimmings round is the same trick again, and the one worry, that you might envy the taker's extra helping, disappears once you notice that the trimmed piece plus <i>all</i> of the trimmings is exactly one of your original equal pieces. The taker cannot end up with more than that.</p>
+    <p>For four or more people the question stayed open for decades. Steven Brams and Alan Taylor found a procedure in 1995 with no limit on the number of cuts. Haris Aziz and Simon Mackenzie found one with a limit only in 2016, and the limit is enormous: for <span class="var">n</span> people, a tower of exponents six <span class="var">n</span>'s tall. Nobody will run it at a birthday party. But it exists, and before 2016 nobody knew whether it could.</p>
   </div>
 </section>
 
 <div class="math">
   <span class="tag">Math corner</span>
-  <p><b>Writing fairness down.</b> Number the players 1, 2, and so on up to <span class="var">n</span>. Player <span class="var">i</span> has a <span class="term">value function</span> <span class="var">v<sub>i</sub></span> that turns any piece of cake into a number, with the whole cake worth 1: <span class="var">v<sub>i</sub></span>(whole cake) = 1. Values add: glue two pieces together and their values add up. Different players have different value functions, and that is the whole difficulty. Each definition of fair is one line:</p>
+  <p><b>Writing fairness down.</b> Number the players 1 to <span class="var">n</span>. Player <span class="var">i</span> has a <span class="term">value function</span> <span class="var">v<sub>i</sub></span> that turns any piece of cake into a number, with the whole cake worth 1, and values add when you glue pieces together. Different players have different value functions; that is the whole difficulty. Each definition of fair is one line:</p>
   <div class="formula">Proportional: v<sub>i</sub>(my piece) ≥ 1/n, for every player i</div>
   <div class="formula">Envy-free: v<sub>i</sub>(my piece) ≥ v<sub>i</sub>(any other piece), for every player i</div>
   <p><b>Envy-free implies proportional, in one sentence.</b> If my piece is at least as good as every one of the <span class="var">n</span> pieces by my measure, and the <span class="var">n</span> pieces add up to 1, then my piece is at least 1/<span class="var">n</span>, because if it were smaller, all <span class="var">n</span> pieces would be smaller than 1/<span class="var">n</span> and they could not add up to 1.</p>
-  <p><b>Two people.</b> With <span class="var">n</span> = 2 the two definitions collapse into one: if <span class="var">v</span>(mine) ≥ 1/2 then <span class="var">v</span>(yours) = 1 − <span class="var">v</span>(mine) ≤ 1/2 ≤ <span class="var">v</span>(mine). That is why cut and choose is envy-free. The cutter makes the two pieces equal in the cutter's eyes, so the cutter values both at 1/2 and does not care which one goes. The chooser takes the piece the chooser values more, so it is worth at least 1/2 to the chooser. Nobody wants to swap.</p>
+  <p><b>Two people.</b> With <span class="var">n</span> = 2 the definitions collapse into one: if <span class="var">v</span>(mine) ≥ 1/2 then <span class="var">v</span>(yours) = 1 − <span class="var">v</span>(mine) ≤ 1/2. That is why cut and choose is envy-free: the cutter values both pieces at 1/2 and does not care which one goes, and the chooser took the piece it values more. Nobody wants to swap.</p>
 </div>
 
 <div class="idea">
   <span class="tag">Big idea</span>
-  <p>"Fair" is not a feeling. It is a definition, and there are two. <b>Proportional</b>: every one of <span class="var">n</span> people thinks they got at least 1/<span class="var">n</span>. <b>Envy-free</b>: nobody would trade with anybody. A good procedure makes the fair outcome a guaranteed result of following the rules, without anyone needing to know what the others want. For two people one cut does it. For three, five cuts. For many, the only known guarantee allows more cuts than there are atoms in the universe, and still nobody can complain.</p>
+  <p>"Fair" is not a feeling. It is a definition, and there are two. <b>Proportional</b>: everyone thinks they got at least 1/<span class="var">n</span>. <b>Envy-free</b>: nobody would trade. A good procedure makes fairness a guaranteed result of following the rules, without anyone needing to know what the others want. Two people, one cut. Three people, five cuts. Many people: more cuts than there are atoms in the universe, and still nobody can complain.</p>
 </div>
 
 <div class="try">
   <span class="tag">Try it on paper</span>
-  <p><b>1.</b> A cake's left half is worth 70 to you and its right half is worth 30, out of 100. You are the cutter. Where do you cut so that the two pieces are worth the same to you?</p>
-  <details class="reveal"><summary>Answer</summary><p>You want 50 points on the left. The left half carries 70 points, so you need 50/70 = 5/7 of the left half. That is 5/7 × 1/2 = 5/14 of the whole cake, about 35.7% of the way from the left edge. Check: 70 × 5/7 = 50.</p></details>
-  <p><b>2.</b> Four people share a cake using a proportional procedure. What fraction is each person guaranteed, by their own measure? Can someone end up with more than that?</p>
-  <details class="reveal"><summary>Answer</summary><p>At least 1/4, which is 25%. And yes: when tastes differ, several people can all get more than a quarter by their own measure at the same time, exactly as you and Robo shared 116.7% of the chocolate and vanilla cake. The guarantee is a floor, not a ceiling.</p></details>
+  <p><b>1.</b> A cake's left half is worth 70 to you and its right half 30. You are the cutter. Where do you cut so that the two pieces are worth the same to you?</p>
+  <details class="reveal"><summary>Answer</summary><p>You need 50 of the 70 points on the left, which is 5/7 of the left half, or 5/7 × 1/2 = 5/14 of the whole cake: about 35.7% from the left edge. Check: 70 × 5/7 = 50.</p></details>
+  <p><b>2.</b> Four people share a cake with a proportional procedure. What fraction is each person guaranteed, by their own measure? Can someone get more?</p>
+  <details class="reveal"><summary>Answer</summary><p>At least 1/4. And yes: when tastes differ, several people can all get more than a quarter by their own measure, just as you and Robo shared 116.7% of the chocolate and vanilla cake. The guarantee is a floor, not a ceiling.</p></details>
   <p><b>3.</b> Two people use cut and choose. Can the result fail to be envy-free?</p>
-  <details class="reveal"><summary>Answer</summary><p>Only if the cutter cuts badly. The chooser never envies: they took the piece they liked better. If the cutter cuts two pieces that are equal in the cutter's eyes, the cutter does not care which one went, and nobody envies anybody. But if the cutter cuts unequally, the chooser may take the piece the cutter liked more, and the cutter envies. The procedure guarantees envy-freeness only for a cutter who cuts at the safe point. The chocolate and vanilla board shows this: cut at 50 and Robo walks off with the piece you wanted.</p></details>
+  <details class="reveal"><summary>Answer</summary><p>Only if the cutter cuts badly. The chooser took the piece it liked better, so it never envies. A cutter who makes the two pieces equal in its own eyes does not care which one went. But a cutter who cuts unequally may watch the chooser walk off with the piece it wanted, and then it envies. Cut at 50 on the chocolate and vanilla board to feel it.</p></details>
 </div>
 
 <div class="challenge">
   <span class="tag">Challenge</span>
-  <p>Now divide something nobody wants. A garden with rows of weeds to pull, where the rows are different amounts of work to different people (you hate weeding near the strawberries, Robo does not mind). Fair now means nobody thinks they got <b>more</b> than their share of the work. Two questions. First: what changes in cut and choose? Second, the hard one: write the moving-knife rule for three people so that everyone ends up with at most a third of the work by their own measure. Be careful about who takes the piece.</p>
+  <p>Now divide something nobody wants: a garden of weeds to pull, where the rows are different amounts of work to different people. Fair now means nobody thinks they got <b>more</b> than their share of the work. First: what changes in cut and choose? Second, the hard one: write the moving-knife rule for three people so that everyone ends up with at most a third of the work by their own measure. Be careful about who takes the piece.</p>
   <details class="reveal"><summary>Answer</summary>
-    <p><b>Cut and choose for chores.</b> The cutter still splits the garden into two halves that are equal work in the cutter's eyes. The chooser takes the piece that is <b>less</b> work by the chooser's measure. Both end up with at most half of the work by their own count.</p>
-    <p><b>The moving knife for chores.</b> The knife sweeps from left to right. Each player shouts when the piece to the left of the knife is exactly one third of the work to them. But nobody takes anything yet: the knife keeps moving until the <b>last</b> player shouts, and that last player takes the left piece. Why the last one? At that moment the last shouter thinks the piece is exactly a third of the work. The other two shouted earlier, so to them the piece is <i>at least</i> a third of the work, which means the rest of the garden is <i>at most</i> two thirds. They split the rest with chores cut and choose, and each ends up with at most half of at most two thirds, which is at most a third. If the <i>first</i> shouter took the piece, as with cake, the others would think the rest was more than two thirds of the work, and someone could get stuck with more than a third. For cake the first shout wins; for chores the last one does. Everything flips.</p>
+    <p><b>Cut and choose for chores.</b> The cutter still splits the garden into two halves that are equal work in the cutter's eyes. The chooser takes the piece that is <b>less</b> work by the chooser's measure. Both end up with at most half.</p>
+    <p><b>The moving knife for chores.</b> The knife sweeps from left to right and each player shouts when the left piece is exactly one third of the work to them, but the knife keeps moving until the <b>last</b> player shouts, and that last player takes the piece. At that moment the other two shouted earlier, so to them the piece is at least a third of the work and the rest of the garden is at most two thirds. They split the rest with chores cut and choose, and each gets at most half of at most two thirds: at most a third. If the <i>first</i> shouter took the piece, as with cake, the others would think the rest was more than two thirds of the work, and one of them could get stuck with more than a third. For cake the first shout wins; for chores the last one does.</p>
   </details>
 </div>
 
 <div class="story">
   <span class="tag">True story</span>
-  <p>In 1944, in occupied Poland, the mathematician Hugo Steinhaus was in hiding under a false name, and he spent some of that time thinking about how to divide a cake. He posed the problem, gave a method for three people, and his colleagues Stefan Banach and Bronisław Knaster found the "last diminisher" procedure, the first proportional method for any number of people. Steinhaus published the whole story in 1948. Lester Dubins and Edwin Spanier turned last diminisher into the moving knife in 1961. John Selfridge found the three-person envy-free procedure in 1960 and John Conway found it again in 1993; neither published it, and the world learned it from people passing it along. Steven Brams and Alan Taylor gave the first envy-free procedure for any number of people in 1995, with no limit on how many cuts it might take, and Haris Aziz and Simon Mackenzie found the first with a limit in 2016. The problem is eighty years old and it is not finished: nobody knows how many cuts are really needed.</p>
+  <p>In 1944, in occupied Poland, the mathematician Hugo Steinhaus was in hiding under a false name, and he spent some of that time thinking about how to divide a cake. He posed the problem, solved it for three people, and his colleagues Stefan Banach and Bronisław Knaster found the "last diminisher" procedure, the first proportional method for any number of people. Steinhaus published it all in 1948. Lester Dubins and Edwin Spanier turned last diminisher into the moving knife in 1961. Steven Brams and Alan Taylor gave the first envy-free procedure for any number of people in 1995, with no limit on the cuts, and Aziz and Mackenzie found the first with a limit in 2016. The problem is eighty years old and not finished: nobody knows how many cuts are really needed.</p>
 </div>
