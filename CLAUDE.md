@@ -28,12 +28,12 @@ real mathematics. Published with GitHub Pages from `docs/`.
 ## Deploy
 
 `git push` to `main` runs `.github/workflows/pages.yml`, which uploads `docs/`
-as the Pages artifact and deploys it (Pages is set to `build_type: workflow`). The repo lives in the `leapwave`
-GitHub org because the `pfrank8` personal account was billing-locked on
-2026-09-14 and could not run Actions or Pages builds; move it back with a
-repo transfer once that clears. Live URL: https://leapwave.github.io/winning-moves/ . The custom domain (if any) is
+as the Pages artifact and deploys it (Pages is set to `build_type: workflow`). The repo is `pfrank8/winning-moves`
+and must stay under Peter's personal account (not any company org). As of
+2026-09-14 the pfrank8 account was billing-locked, which blocks Actions and
+Pages builds until Peter clears it at github.com/settings/billing. The custom domain (if any) is
 `domain` in `content/site.json`, which writes `docs/CNAME`; the registrar
-needs a CNAME record pointing at `leapwave.github.io` first.
+needs a CNAME record pointing at `pfrank8.github.io` first.
 
 ## Verifying
 
