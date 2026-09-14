@@ -55,17 +55,25 @@ function optimum(N){
 }
 function priceOfAnarchy(N){ return avgTime(equilibrium(N, true)) / avgTime(optimum(N)); }
 
+/* How fast the gap between routes r and s closes per car that moves from r to s: a hundredth of a minute for every
+   narrow road that is on one of the two routes but not the other (a car leaving r unclogs r's own narrow roads,
+   a car joining s clogs s's). Top to bottom shares no narrow road, so 2 / SLOPE; top to bridge share S-A, so 1 / SLOPE. */
+const EDGE_OF = { a: ['SA', 'AE'], b: ['SB', 'BE'], c: ['SA', 'AB', 'BE'] };
+const NARROW = ['SA', 'BE'];
+function closeRate(r, s){ return NARROW.filter(e => EDGE_OF[r].includes(e) !== EDGE_OF[s].includes(e)).length / SLOPE; }
+
 /* Best-response dynamics, one round. Routes take turns: the drivers on a route look at the best switch open to them
-   and a share of them take it (a third of the number that would close the gap on its own, at least one driver).
+   and some of them take it: a third of the number that would close the gap while the gap is big (so the reader can
+   watch it shrink), and the whole number once the gap is under 0.3 minutes (so the tail does not crawl one car at a time).
    Handling the routes one at a time, with fresh times after each move, keeps the crowd from overshooting. */
-function stepDynamics(f, bridge, share){
-  share = share || 1 / 3;
+function stepDynamics(f, bridge){
   const cur = Object.assign({}, f); const moves = [];
   for (const r of usedRoutes(bridge)){
     if (cur[r] === 0) continue;
     const s = bestMove(cur, r, bridge); if (!s) continue;
     const t = routeTimes(cur); const gap = t[r] - t[s];
-    const k = cl(Math.round(gap * SLOPE * share), 1, cur[r]);
+    const exact = gap / closeRate(r, s);
+    const k = cl(Math.round(gap > 0.3 ? exact / 3 : exact), 1, cur[r]);
     cur[r] -= k; cur[s] += k; moves.push({ from: r, to: s, k });
   }
   return { flows: cur, moves, settled: moves.length === 0 };
@@ -221,7 +229,8 @@ function makeBoard(id, opts){
     }
     let worst = used[0]; for (const r of used) if (t[r] > t[worst]) worst = r;
     const s = bestMove(f, worst, bd.bridge);
-    return `The ${NAMES[worst]} takes ${mins(t[worst])}; the ${NAMES[s]} takes ${mins(t[s])}. <span class="robo">${NAMES[worst].replace(' route', '')} drivers want to switch.</span>`;
+    const who = NAMES[worst].replace(' route', '');
+    return `The ${NAMES[worst]} takes ${mins(t[worst])}; the ${NAMES[s]} takes ${mins(t[s])}. <span class="robo">${who[0].toUpperCase() + who.slice(1)} drivers want to switch.</span>`;
   }
   function mineText(){
     if (!bd.mine) return '';
@@ -294,8 +303,14 @@ function makeBoard(id, opts){
       step++; bd.flows = s.flows;
       bd.log.push(`Round ${step}: ` + s.moves.map(m => `${fmtNum(m.k)} left the ${NAMES[m.from]} for the ${NAMES[m.to]}`).join(', ') + '.');
       render();
-      await wait(step <= 2 ? 800 : 450);
+      const moved = s.moves.reduce((n, m) => n + m.k, 0);
+      await wait(step <= 2 ? 800 : moved >= 20 ? 450 : 200);
       if (id !== bd.runId) return;   // the reader changed something mid-run
+    }
+    const tidied = tidy(bd.flows, bd.bridge);
+    if (tidied !== bd.flows){
+      step++; bd.flows = tidied;
+      bd.log.push(`Round ${step}: the last couple of drivers, who gain nothing either way, shuffle until every route is exactly equal.`);
     }
     bd.running = false; bd.settledRun = true;
     render();

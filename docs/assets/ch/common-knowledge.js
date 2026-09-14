@@ -153,7 +153,7 @@ function renderMuddy(){
       bubble: text, did: mg.fwd[i] ? `stepped forward, round ${mg.fwd[i]}` : ''
     }));
   }
-  $('#ck-round').textContent = String(mg.round);
+  $('#ck-round').textContent = String(mg.over ? mg.round : mg.round + 1);   // the round the teacher is asking about now
   $('#ck-kshow').textContent = (mg.mode === 'secret' && !mg.over) ? '?' : String(mg.k);
   $('#ck-sees').textContent = `${m} muddy`;
   $('#ck-teacher').innerHTML = mg.over
@@ -347,7 +347,7 @@ function checkZero(){
     st.innerHTML = '<span class="win-c">Yes: 0.</span> It is the only number under every ceiling, and if everyone picks 0, the average is 0, two thirds of it is 0, and everyone ties. Nobody can do better by switching alone.';
     earn('ck-zero');
   } else if (v === 1) st.innerHTML = 'Close, but the ceiling gets below 1 too: after 12 steps it is 0.8. Keep going.';
-  else if (v > 0 && v <= 100) st.innerHTML = `Not yet. ${v} gets crossed out at step ${Math.ceil(Math.log(v / 100) / Math.log(2 / 3))}. Which number never does?`;
+  else if (v > 0 && v <= 100) st.innerHTML = `Not yet. ${v} gets crossed out at step ${Math.max(1, Math.ceil(Math.log(v / 100) / Math.log(2 / 3)))}. Which number never does?`;
   else st.textContent = 'The numbers in this game run from 0 to 100.';
 }
 $('#ck-zero-check').addEventListener('click', checkZero);

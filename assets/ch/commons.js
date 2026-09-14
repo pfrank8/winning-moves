@@ -231,11 +231,12 @@ function calcRender(c){
   const o = CALC[c];
   drawChart($('#cm-calc-chart'), o.path, null, {});
   const best = Math.max.apply(null, CALC.map(z => z.total));
-  let h = '<tr><th>Each takes</th><th>Total each</th><th>Pond after 20</th><th></th></tr>';
+  let h = '<tr><th>Each takes</th><th>Total each, 20 seasons</th><th>Pond after 20</th></tr>';
   for (let k = 0; k <= 10; k++){
     const z = CALC[k];
-    h += `<tr class="${k === c ? 'hl' : ''}"><td>${k}</td><td>${fmt(z.total)}</td><td>${z.empty ? `empty by season ${z.empty}` : fmt(z.F)}</td>` +
-         `<td><div class="bar ${z.empty ? 'you' : 'win'}"><i style="width:${(100 * z.total / best).toFixed(0)}%"></i></div></td></tr>`;
+    h += `<tr class="${k === c ? 'hl' : ''}"><td>${k}</td>` +
+         `<td>${fmt(z.total)}<div class="bar ${z.empty ? 'you' : 'win'}"><i style="width:${(100 * z.total / best).toFixed(0)}%"></i></div></td>` +
+         `<td>${z.empty ? `empty by season ${z.empty}` : fmt(z.F)}</td></tr>`;
   }
   $('#cm-calc-table').innerHTML = h;
   let s = `Everyone takes ${c}: ${4 * c} fish a season. `;

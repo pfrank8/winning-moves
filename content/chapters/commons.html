@@ -31,7 +31,13 @@
   .cm-table td,.cm-table th{ white-space:nowrap }
   .cm-table td.you{ color:var(--you); font-weight:600 } .cm-table td.robo{ color:var(--robo) }
   .cm-table tr.hl td{ background:var(--math-soft) }
-  .cm-table td .bar{ min-width:110px; height:12px }
+  .cm-table td .bar{ width:90px; height:8px; margin-top:3px; margin-left:auto }
+  .cm-calc.two{ grid-template-columns:minmax(0,5fr) minmax(0,7fr) }
+  @media (max-width:640px){
+    .cm-calc.two{ grid-template-columns:1fr }
+    .cm-table{ font-size:.8rem } .cm-table th{ white-space:normal; font-size:.8rem } .cm-table td .bar{ width:64px }
+    .cm-table th,.cm-table td{ padding:5px 7px }
+  }
   .cm-punish{ margin-top:12px }
   .cm-preset{ margin:4px 0 18px }
 </style>
@@ -87,7 +93,7 @@
 
   <div class="board">
     <div class="board-head"><h3>What if everyone did that?</h3><span class="rules">All four fishers take the same amount, every season, for 20 seasons.</span></div>
-    <div class="two">
+    <div class="two cm-calc">
       <div>
         <div class="slider"><label class="lab" for="cm-calc"><span>Each fisher takes</span><span class="v" data-for="cm-calc">3</span></label><input type="range" id="cm-calc" min="0" max="10" step="1" value="3"></div>
         <canvas class="sim" id="cm-calc-chart" width="400" height="230"></canvas>
@@ -101,7 +107,7 @@
 <section>
   <h2>The public goods game</h2>
   <div class="prose">
-    <p>Here is the same trap with coins instead of fish, stripped down so you can see the gears. Four players, 10 coins each. Each of you secretly puts some of your coins, 0 to 10, into a shared pot. The pot is then multiplied by 1.6 and split equally among all four players, whether they put anything in or not.</p>
+    <p>The same trap with coins instead of fish, stripped down so you can see the gears. Four players, 10 coins each. Each of you secretly puts some of your coins, 0 to 10, into a shared pot. The pot is then multiplied by 1.6 and split equally among all four players, whether they put anything in or not.</p>
     <p>Two extremes first. If all four put in everything, the pot is 40, it becomes 64, and everyone walks away with 16 coins. If nobody puts in anything, everyone keeps 10. Now the gears. A coin you put in becomes 1.6 coins, split four ways, so <code>1.6 ÷ 4 = 0.4</code> of a coin comes back to you and 1.2 goes to the other three. Keeping it gives you the whole coin, so every coin you contribute costs you 0.6, no matter what anyone else does: contributing is <b>dominated</b>. The best thing for the group is for everyone to contribute everything, and the best thing for each player is to contribute nothing, and both are true at the same time. Grown-ups call this a <span class="term">public goods game</span>, and someone who contributes nothing while collecting a share of the pot is a <span class="term">free rider</span>.</p>
     <p>Play 10 rounds. Everyone gets a fresh 10 coins each round, and what you end the round with piles up in your total. The robots come as <b>Giver</b> (puts in all 10), <b>Free rider</b> (puts in 0), <b>Conditional</b> (puts in whatever the other three averaged last round, starting at 5), or <b>Mixed</b>, one of each. Before you play, answer the question on the board.</p>
   </div>
@@ -148,7 +154,7 @@
   </div>
   <div class="row cm-preset"><button class="btn btn-robo" id="cm-preset-quota" type="button">Set up the pond: Greedy robots, quota on</button></div>
   <div class="prose">
-    <p><b>Punishment.</b> In the coin game there is no warden, so let the players do it themselves: after each round, anyone can pay 1 coin to take 3 coins from someone. Punishing costs the punisher, so it is itself a small public good. With punishment on, a robot that gave at least the average punishes anyone who gave 3 or more coins less than the average, and a punished Free rider matches the others for three rounds before it tests you again. Watch the Conditional robots. Without punishment, a free rider drags the average down and they follow it. With punishment, the free rider is made to give, the average climbs, and they climb with it.</p>
+    <p><b>Punishment.</b> The coin game has no warden, so the players do it themselves: after each round, anyone can pay 1 coin to take 3 coins from someone. Punishing costs the punisher, so it is itself a small public good. With punishment on, a robot that gave at least the average punishes anyone who gave 3 or more coins less than the average, and a punished Free rider matches the others for three rounds before it tests you again. Watch the Conditional robots. Without punishment, a free rider drags the average down and they follow it. With punishment, the free rider is made to give, the average climbs, and they climb with it.</p>
   </div>
   <div class="row cm-preset"><button class="btn btn-robo" id="cm-preset-punish" type="button">Set up the coin pot: Mixed robots, punishment on</button></div>
   <div class="prose">
@@ -165,7 +171,7 @@
 
 <div class="idea">
   <span class="tag">Big idea</span>
-  <p>When many people share something that regrows, each person's best move is to take a little more, and the sum of everyone's best moves can destroy the thing. It is the Cookie Game with many players and a future, and nobody has to be evil for it to happen. The way out is not to hope for nicer players but to change the payoffs: quotas, fines, and punishment that the players agree on and enforce themselves.</p>
+  <p>When many people share something that regrows, each person's best move is to take a little more, and the sum of everyone's best moves can destroy the thing. It is the Cookie Game with many players and a future. The way out is not to hope for nicer players but to change the payoffs: quotas, fines, and punishment that the players agree on and enforce themselves.</p>
 </div>
 
 <div class="try">
@@ -189,5 +195,5 @@
 
 <div class="story">
   <span class="tag">True story</span>
-  <p>The phrase comes from a 1968 essay in the journal <i>Science</i> called "The Tragedy of the Commons", by an ecologist with an excellent first name, Garrett Hardin. His example was a shared pasture where every herder adds one more animal, and his conclusion was gloomy: shared things get ruined unless somebody owns them or a government polices them. The political scientist Elinor Ostrom spent decades in the field checking whether that was true. She studied Swiss mountain meadows, Spanish irrigation canals, forests in Nepal, and lobster grounds in Maine, and found that communities very often avoid the tragedy with rules they design, monitor, and enforce themselves. In 2009 she won the Nobel Prize in economics, the first woman to do so. The coin pot with punishment comes from experiments by the economists Ernst Fehr and Simon Gächter, published in 2000 and 2002: people paid to punish free riders even when they would never meet them again, and contributions rose over the rounds instead of fading away.</p>
+  <p>The phrase comes from a 1968 essay in the journal <i>Science</i> called "The Tragedy of the Commons", by an ecologist with an excellent first name, Garrett Hardin. His example was a shared pasture where every herder adds one more animal, and his conclusion was gloomy: shared things get ruined unless somebody owns them or a government polices them. The political scientist Elinor Ostrom spent decades in the field checking whether that was true. She studied Swiss mountain meadows, Spanish irrigation canals, forests in Nepal, and lobster grounds in Maine, and found that communities often avoid the tragedy with rules they design, monitor, and enforce themselves. In 2009 she won the Nobel Prize in economics, the first woman to do so. The coin pot with punishment comes from experiments by the economists Ernst Fehr and Simon Gächter, published in 2000 and 2002: people paid to punish free riders even when they would never meet them again, and contributions rose over the rounds instead of fading away.</p>
 </div>
