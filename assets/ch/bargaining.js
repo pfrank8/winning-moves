@@ -183,12 +183,16 @@ function pirateCard(letter, opts){
   return d;
 }
 function readCards(host){
-  return $$('input', host).map(i => { const v = Math.floor(Number(i.value)); return Number.isFinite(v) ? Math.max(0, Math.min(GOLD, v)) : NaN; });
+  return $$('input', host).map(i => {
+    if (String(i.value).trim() === '') return NaN;
+    const v = Math.floor(Number(i.value)); return Number.isFinite(v) ? Math.max(0, Math.min(GOLD, v)) : NaN;
+  });
 }
+/* bad: the split cannot be proposed. red: show it in red (only once every box has something in it). */
 function sumText(vals){
-  if (vals.some(v => Number.isNaN(v))) return { text: 'Fill in every box.', bad: true };
+  if (vals.some(v => Number.isNaN(v))) return { text: 'Fill in every box', bad: true, red: false };
   const s = vals.reduce((a, b) => a + b, 0);
-  return { text: `Total: ${s} of ${GOLD}` + (s === GOLD ? '' : ` (must be exactly ${GOLD})`), bad: s !== GOLD };
+  return { text: `Total: ${s} of ${GOLD}` + (s === GOLD ? '' : ` (must be exactly ${GOLD})`), bad: s !== GOLD, red: s !== GOLD };
 }
 function listSplit(letters, alloc){ return letters.map((L, i) => `${L} ${alloc[i]}`).join(', '); }
 
@@ -226,7 +230,7 @@ function pgRender(){
 }
 function pgSum(){
   const r = sumText(readCards($('#pg-cards')));
-  const el = $('#pg-sum'); el.textContent = r.text; el.classList.toggle('bad', r.bad);
+  const el = $('#pg-sum'); el.textContent = r.text; el.classList.toggle('bad', r.red);
 }
 function pgMark(vals, sol){
   $$('.bg-pirate', $('#pg-cards')).forEach((card, i) => {
@@ -293,7 +297,7 @@ function ppRender(keepValues){
 }
 function ppSum(){
   const r = sumText(readCards($('#pg-play-cards')));
-  const el = $('#pg-play-sum'); el.textContent = r.text; el.classList.toggle('bad', r.bad);
+  const el = $('#pg-play-sum'); el.textContent = r.text; el.classList.toggle('bad', r.red);
 }
 function ppClearVotes(){ $$('.bg-pirate', $('#pg-play-cards')).forEach(c => { c.classList.remove('yes', 'no', 'gone'); $('.bg-vote', c).textContent = ''; }); }
 function ppN(){
@@ -386,12 +390,12 @@ function mpDraw(){
     return;
   }
   const pie = mp.over && mp.pending && mp.pending.done ? mp.pending.pie : mpPie();
-  const r = 96 * Math.sqrt(pie / START);
+  const r = 88 * Math.sqrt(pie / START), cx = 110, cy = 98;
   const roboShare = mp.pending ? mp.pending.robo : Number(sliderEl.value);
   const f = pie > 0 ? Math.max(0, Math.min(1, roboShare / pie)) : 0;
-  svg.innerHTML = `<circle cx="110" cy="110" r="${r.toFixed(1)}" style="fill:var(--you);stroke:var(--line);stroke-width:3"/>` +
-    `<path d="${wedge(110, 110, r, f)}" style="fill:var(--robo);stroke:var(--line);stroke-width:3;stroke-linejoin:round"/>` +
-    `<text x="110" y="214" text-anchor="middle" style="fill:var(--ink-soft);font-size:14px">worth ${fmt(pie)}</text>`;
+  svg.innerHTML = `<circle cx="${cx}" cy="${cy}" r="${r.toFixed(1)}" style="fill:var(--you);stroke:var(--line);stroke-width:3"/>` +
+    `<path d="${wedge(cx, cy, r, f)}" style="fill:var(--robo);stroke:var(--line);stroke-width:3;stroke-linejoin:round"/>` +
+    `<text x="${cx}" y="210" text-anchor="middle" style="fill:var(--ink-soft);font-size:15px">worth ${fmt(pie)}</text>`;
 }
 function mpSplitText(){
   const pie = mpPie(), robo = mp.pending ? mp.pending.robo : Math.min(pie, Number(sliderEl.value));
