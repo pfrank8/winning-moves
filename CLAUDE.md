@@ -27,5 +27,19 @@ real mathematics. Published with GitHub Pages from `docs/`.
 
 ## Deploy
 
-`git push` to `main`. GitHub Pages serves `docs/`. The custom domain (if any)
-is `domain` in `content/site.json`, which writes `docs/CNAME`.
+`git push` to `main` runs `.github/workflows/pages.yml`, which uploads `docs/`
+as the Pages artifact and deploys it (Pages is set to `build_type: workflow`;
+the branch-source mode never produced a build for this repo). Live URL:
+https://pfrank8.github.io/winning-moves/ . The custom domain (if any) is
+`domain` in `content/site.json`, which writes `docs/CNAME`; the registrar
+needs a CNAME record pointing at `pfrank8.github.io` first.
+
+## Verifying
+
+- `python3 scripts/smoke.py` (needs the Python `playwright` package, present on
+  this machine) loads every built page, clicks every button, moves every
+  slider, and fails on any JS error; `--phone` also fails on horizontal
+  overflow at 400px; `--only slug,slug` narrows it; `--out DIR` points it at a
+  private build.
+- Parallel authors build with `python3 build.py --out .scratch/<slug>/out` so
+  they never touch the shared `docs/`.
