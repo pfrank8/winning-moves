@@ -215,7 +215,7 @@ def chapter_page(site: Site, ch: Chapter, template: str, build_id: str) -> str:
     })
 
 
-BOARD_RE = re.compile(r'<div class="board"(?![^>]*\bid=)([^>]*)>(\s*<div class="board-head">\s*<h3>)(.*?)(</h3>)', re.S)
+BOARD_RE = re.compile(r'<div class="board"(?![^>]*\bid=)([^>]*)>(\s*<div class="board-head">\s*<h3>)(.*?)(</h3>)(\s*<span class="rules"[^>]*>(.*?)</span>)?', re.S)
 
 
 @dataclass(frozen=True)
@@ -223,6 +223,7 @@ class Board:
     chapter: Chapter
     title: str
     anchor: str
+    rules: str
 
 
 def anchor_boards(ch: Chapter) -> list[Board]:
@@ -234,8 +235,9 @@ def anchor_boards(ch: Chapter) -> list[Board]:
         nonlocal counter
         counter += 1
         anchor = f"board-{counter}"
-        boards.append(Board(chapter=ch, title=re.sub(r"<[^>]+>", "", m.group(3)).strip(), anchor=anchor))
-        return f'<div class="board" id="{anchor}"{m.group(1)}>{m.group(2)}{m.group(3)}{m.group(4)}'
+        rules = re.sub(r"<[^>]+>", "", m.group(6) or "").strip()
+        boards.append(Board(chapter=ch, title=re.sub(r"<[^>]+>", "", m.group(3)).strip(), anchor=anchor, rules=rules))
+        return f'<div class="board" id="{anchor}"{m.group(1)}>{m.group(2)}{m.group(3)}{m.group(4)}{m.group(5) or ""}'
 
     ch.body = BOARD_RE.sub(repl, ch.body)
     return boards
@@ -244,7 +246,7 @@ def anchor_boards(ch: Chapter) -> list[Board]:
 def arcade_html(boards: list[Board]) -> str:
     cards = "".join(
         f'<li><a class="card" href="{b.chapter.href}#{b.anchor}"><span class="n">Chapter {b.chapter.num} · {b.chapter.title}</span>'
-        f'<h3>{b.title}</h3><p>{b.chapter.description}</p></a></li>' for b in boards)
+        f'<h3>{b.title}</h3><p>{b.rules or b.chapter.kicker}</p></a></li>' for b in boards)
     return f'<ul class="cards">{cards}</ul>'
 
 
