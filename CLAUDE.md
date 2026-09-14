@@ -33,11 +33,11 @@ peter.franklin@gmail.com ("my team", my-team-vvih-ds). Custom domain:
 https://gametheory.primori.com (DNS at Namecheap: CNAME `gametheory` ->
 `winning-moves.netlify.app`, plus a `subdomain-owner-verification` TXT that
 Netlify required because primori.com itself is registered to a different
-Netlify account). Deploy = build, zip `docs/`, and drop the zip on the
+Netlify account). Deploy = `scripts/deploy.sh` (build, smoke test, `netlify deploy --prod
+--dir docs`); it needs a one-time `netlify login` + `netlify link --name
+winning-moves`. Fallback without the CLI: zip `docs/` and drop it on the
 project's "Production deploys" panel at
-https://app.netlify.com/projects/winning-moves/deploys (or `netlify deploy
---prod --dir docs` once the CLI is logged in; `netlify.toml` already points at
-`docs/`). GitHub Pages (`.github/workflows/pages.yml`) is a fallback only; the
+https://app.netlify.com/projects/winning-moves/deploys. GitHub Pages (`.github/workflows/pages.yml`) is a fallback only; the
 pfrank8 account was billing-locked on 2026-09-14 so it could not build. Never
 host this under a company org (Peter, 2026-09-14).
 

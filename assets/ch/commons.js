@@ -159,10 +159,13 @@ function playSeason(){
 function pondFinish(){
   pond.over = true; pond.busy = false; renderPond();
   const alive = pond.F >= 40, mine = net(0);
+  const tamed = pond.type === 'greedy' && pond.quota && alive && mine >= 40;
   let s = `Twenty seasons are done. The pond has <b>${fmt(pond.F)}</b> fish and you caught <b class="you">${fmt(mine)}</b>. `;
   if (alive && mine >= 70){
     s += `<span class="win-c">Pond alive, and 70 or more for you. That is the sustainable way to be a little greedy.</span>`;
     earn('cm-alive');
+  } else if (tamed){
+    s += `<span class="win-c">Three Greedy robots, tamed by a rule.</span> The fine made obeying the quota their best move.`;
   } else if (alive){
     s += `The pond is fine, but you caught less than 70. The pond can spare about 12.5 a season in total. How much of that is going to the robots?`;
   } else if (pond.F < 0.5){
@@ -170,10 +173,7 @@ function pondFinish(){
   } else {
     s += `<span class="you">The pond is below 40.</span> Too much was taken, too often. Try a smaller catch, or a quota.`;
   }
-  if (pond.type === 'greedy' && pond.quota && alive && mine >= 40){
-    s += ` <span class="win-c">Three Greedy robots, tamed by a rule.</span>`;
-    earn('cm-rules');
-  }
+  if (tamed) earn('cm-rules');
   pstatus(s);
 }
 async function nextSeason(){
