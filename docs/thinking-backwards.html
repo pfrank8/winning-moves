@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>5. Thinking backwards · Winning Moves</title>
+<meta name="description" content="The 21 Game, and the trick of solving any game with turns by starting at the end.">
+<link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="./assets/site.css?v=54185305">
+<script>window.WM_CHAPTERS = [{"slug":"what-is-a-game","num":1,"title":"What is a game","stars":[]},{"slug":"payoff-grids","num":2,"title":"Payoff grids","stars":[]},{"slug":"nash-equilibrium","num":3,"title":"Nash equilibrium","stars":[]},{"slug":"mixed-strategies","num":4,"title":"Mixed strategies","stars":[]},{"slug":"thinking-backwards","num":5,"title":"Thinking backwards","stars":[{"id":"tb-win","label":"Beat a perfect Robo at the 21 Game"},{"id":"tb-labels","label":"Label every position from 0 to 21 correctly"},{"id":"tb-misere","label":"Win the version where the last stone loses"}]},{"slug":"nim-and-binary","num":6,"title":"Nim and binary","stars":[]},{"slug":"game-trees","num":7,"title":"Game trees","stars":[]},{"slug":"chomp","num":8,"title":"Chomp","stars":[]},{"slug":"hex","num":9,"title":"Hex","stars":[]},{"slug":"every-game-is-nim","num":10,"title":"Every game is nim","stars":[]},{"slug":"repeated-games","num":11,"title":"Repeated games","stars":[]},{"slug":"fair-division","num":12,"title":"Fair division","stars":[]},{"slug":"auctions","num":13,"title":"Auctions","stars":[]},{"slug":"voting","num":14,"title":"Voting","stars":[]},{"slug":"bargaining","num":15,"title":"Bargaining","stars":[]},{"slug":"hawks-and-doves","num":16,"title":"Hawks and doves","stars":[]},{"slug":"monty-hall","num":17,"title":"Monty hall","stars":[]},{"slug":"common-knowledge","num":18,"title":"Common knowledge","stars":[]},{"slug":"traffic","num":19,"title":"Traffic","stars":[]},{"slug":"commons","num":20,"title":"Commons","stars":[]},{"slug":"ice-cream-carts","num":21,"title":"Ice cream carts","stars":[]}];</script>
+</head>
+<body class="chapter-thinking-backwards">
+<nav class="topbar" aria-label="Site">
+  <a class="brand" href="./">Winning Moves</a>
+  <span class="crumb">Part II · Chapter 5</span>
+  <span class="spacer"></span>
+  <a class="pill" href="./arcade.html">Arcade</a>
+  <a class="pill" href="./glossary.html">Big words</a>
+  <a class="pill" href="./#progress" title="Your stars"><span class="star">★</span> <span id="star-count">0</span>/<span id="star-total">0</span></a>
+</nav>
+<main class="wrap chapter">
+<header class="chapter-head part-2"><div class="num">5</div><div><span class="kicker">Part II · Games with turns</span><h1>Thinking backwards</h1><p class="lede">Twenty-one stones. Take one, two, or three. Whoever takes the last stone wins. Robo never makes a mistake, and there is still a way to beat it. The trick is to solve the game from the end.</p></div></header><style>
+  .tb-cells{ display:flex; flex-wrap:wrap; gap:6px; margin:12px 0 }
+  .tb-cells button{ width:46px; height:56px; border:3px solid var(--line); border-radius:10px; background:var(--surface-2); cursor:pointer; display:grid; grid-template-rows:auto 1fr; padding:2px 0 0; color:var(--ink) }
+  .tb-cells button .n{ font:600 .75rem var(--f-mono); color:var(--ink-soft) }
+  .tb-cells button .m{ font:700 1.3rem var(--f-display); line-height:1 }
+  .tb-cells button.W .m{ color:var(--win) } .tb-cells button.L .m{ color:var(--you) }
+  .tb-cells button.ok{ background:var(--win-soft); border-color:var(--win) } .tb-cells button.bad{ background:var(--you-soft); border-color:var(--you) }
+  .tb-cells button.cur{ outline:4px solid var(--math); outline-offset:-2px }
+  .tb-explain{ min-height:2.6em; font-size:1rem; margin-top:8px }
+</style>
+
+<section>
+  <div class="prose">
+    <p>Here are the rules. There is a pile of stones. You and <b class="robo">Robo</b> take turns. On your turn you take 1, 2, or 3 stones. Whoever takes the <b>last stone wins</b>. That is the whole game.</p>
+    <p>Play it a few times. Robo plays perfectly, so if you lose, that is expected. Pay attention to the <i>number of stones</i> you keep losing from. There is a pattern, and once you see it, Robo cannot beat you when you go first.</p>
+  </div>
+
+  <div class="board">
+    <div class="board-head"><h3>The 21 Game</h3><span class="rules" id="tb-rules">Take 1, 2, or 3 on your turn. Last stone wins.</span></div>
+    <div class="row">
+      <div class="seg" id="tb-first"><button class="on" data-v="you">I go first</button><button data-v="robo">Robo goes first</button></div>
+      <div class="seg" id="tb-rule"><button class="on" data-v="normal">Last stone wins</button><button data-v="misere">Last stone loses</button></div>
+      <button class="btn btn-sm" id="tb-new" type="button">New game</button>
+    </div>
+    <div class="row">
+      <label class="chk"><input type="checkbox" id="tb-secret"> Show the losing positions</label>
+      <label class="chk"><input type="checkbox" id="tb-goof"> Robo goofs sometimes</label>
+    </div>
+    <div class="stones" id="tb-line"></div>
+    <div class="row">
+      <span class="bigcount" id="tb-count">21</span>
+      <span style="font-family:var(--f-display);font-weight:600">stones left</span>
+      <span style="flex:1 0 12px"></span>
+      <span id="tb-takes" class="row"></span>
+      <button class="btn btn-math btn-sm" id="tb-hint" type="button">Hint</button>
+    </div>
+    <div class="status" id="tb-status"></div>
+    <div class="log" id="tb-log"></div>
+    <div class="row" style="margin-top:18px">
+      <span class="field">Stones <input type="number" id="tb-stones" min="8" max="40" value="21"></span>
+      <span class="field">Allowed takes <input type="text" id="tb-takes-in" value="1, 2, 3" size="9"></span>
+      <span class="note">Change the rules and watch the losing positions move.</span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Start at the end</h2>
+  <div class="prose">
+    <p>Do not start by thinking about 21 stones. Start with the <b>smallest</b> pile you can imagine, and work upward.</p>
+    <ul>
+      <li><b>0 stones on your turn.</b> The other player just took the last stone. You lost. Call 0 a <span class="term">losing position</span>, and write <b class="you">L</b>.</li>
+      <li><b>1, 2, or 3 stones.</b> Take them all and win. These are <span class="term">winning positions</span>: <b class="win-c">W</b>.</li>
+      <li><b>4 stones.</b> Whatever you take, you leave 3, 2, or 1, and those are all W for the <i>other</i> player. Every move hands them a win. So 4 is <b class="you">L</b>.</li>
+      <li><b>5, 6, or 7.</b> Take 1, 2, or 3 to leave exactly 4. You hand the other player an L. So these are <b class="win-c">W</b>.</li>
+      <li><b>8.</b> Every move leaves 5, 6, or 7, all W for them. So 8 is <b class="you">L</b>.</li>
+    </ul>
+    <p>You just discovered the rule that solves every game with turns:</p>
+  </div>
+  <div class="idea">
+    <span class="tag">The rule</span>
+    <p>A position is <b class="win-c">W</b> if <b>at least one</b> move leads to an <b class="you">L</b>.<br>A position is <b class="you">L</b> if <b>every</b> move leads to a <b class="win-c">W</b>.</p>
+    <p>Solve the end of the game first, then the positions one step before the end, then the ones before those. This is called <span class="term">backward induction</span> <span class="say">(say: in-DUCK-shun)</span>.</p>
+  </div>
+  <div class="prose">
+    <p>Do it yourself. Click a number to mark it W or L (click again to change your mind). Mark all of them, then check. If you get stuck, "Show me" walks through the reasoning one number at a time.</p>
+  </div>
+
+  <div class="board">
+    <div class="board-head"><h3>Label the positions</h3><span class="rules">W = the player whose turn it is can force a win. L = they cannot.</span></div>
+    <div class="row">
+      <span class="field">Allowed takes <input type="text" id="lab-takes" value="1, 2, 3" size="9"></span>
+      <span class="field">Up to <input type="number" id="lab-n" min="8" max="40" value="21"></span>
+      <div class="seg" id="lab-rule"><button class="on" data-v="normal">Last stone wins</button><button data-v="misere">Last stone loses</button></div>
+    </div>
+    <div class="tb-cells" id="lab-cells"></div>
+    <div class="row">
+      <button class="btn btn-win" id="lab-check" type="button">Check my labels</button>
+      <button class="btn btn-math" id="lab-show" type="button">Show me</button>
+      <button class="btn btn-sm" id="lab-clear" type="button">Clear</button>
+    </div>
+    <div class="tb-explain" id="lab-explain">Click a number to label it.</div>
+  </div>
+</section>
+
+<div class="math">
+  <span class="tag">Math corner</span>
+  <p><b>Remainders.</b> The losing positions are <code>0, 4, 8, 12, 16, 20</code>: the multiples of 4. To find your move from any number, divide by 4 and look at the <b>remainder</b>. <code>21 ÷ 4 = 5 remainder 1</code>, so take 1. Mathematicians write the remainder like this:</p>
+  <div class="formula">21 mod 4 = 1</div>
+  <p>and say "21 mod 4". So the winning move is: <b>take (n mod 4) stones</b>. If <span class="var">n</span> mod 4 = 0, there is no winning move. You are standing on an L, and all you can do is take something and hope.</p>
+  <p><b>Why 4?</b> Because with takes of 1, 2, or 3, whatever the other player takes, you can take the amount that makes the two of you take exactly 4 together. Every round of the game removes 4 stones, and you control the last stone. If you are allowed to take up to <span class="var">k</span>, the magic number becomes <span class="var">k</span> + 1. Try "Allowed takes: 1, 2, 3, 4" above and see 5, 10, 15, 20 light up.</p>
+</div>
+
+<section>
+  <h2>Flip the rule</h2>
+  <div class="prose">
+    <p>Now play the version where whoever takes the last stone <b>loses</b>. Mathematicians call it the <span class="term">misère</span> version <span class="say">(say: mee-ZAIR, French for "misery")</span>.</p>
+    <p>Before you play, predict: which numbers are L now? Work it out from the end again. Facing 0 stones now means the other player took the last stone and <i>lost</i>, so 0 is W for you. Facing 1 stone, you must take it, and lose: 1 is L. Keep going. Then switch the game board to "Last stone loses" and test your theory against Robo.</p>
+  </div>
+  <details class="reveal"><summary>Check your prediction</summary>
+    <p>The losing positions move by one: <code>1, 5, 9, 13, 17, 21</code>. The winning move is to leave the other player on a number that is 1 more than a multiple of 4. In mod language: leave <span class="var">n</span> with <span class="var">n</span> mod 4 = 1.</p>
+    <p>Notice something uncomfortable: 21 is now a losing position for the player who moves first. In the misère game, you want to go <b>second</b>.</p>
+  </details>
+</section>
+
+<div class="try">
+  <span class="tag">Try it on paper</span>
+  <p><b>1.</b> Normal rules, takes of 1 to 3, and you face 30 stones. What do you take?</p>
+  <details class="reveal"><summary>Answer</summary><p>30 mod 4 = 2. Take 2, leaving 28, a multiple of 4.</p></details>
+  <p><b>2.</b> Takes of 1 to 5, and there are 40 stones. Which positions are L? What do you take from 40?</p>
+  <details class="reveal"><summary>Answer</summary><p>The magic number is 5 + 1 = 6, so L positions are the multiples of 6: 0, 6, 12, 18, 24, 30, 36. 40 mod 6 = 4, so take 4 and leave 36.</p></details>
+  <p><b>3.</b> Misère rules, takes of 1 to 3, 21 stones, and you go first. Can you force a win?</p>
+  <details class="reveal"><summary>Answer</summary><p>No. 21 mod 4 = 1, which is a losing position in the misère game. Whatever you take, Robo can return you to 17, 13, 9, 5, and finally 1. Offer to go second.</p></details>
+</div>
+
+<div class="challenge">
+  <span class="tag">Challenge</span>
+  <p>Change the allowed takes to <b>1, 3, 4</b> (no 2). Use the labeling tool up to 30. The losing positions are not multiples of anything, but there is still a repeating pattern. What is the length of the repeat, and can you say the rule using mod?</p>
+  <details class="reveal"><summary>Answer</summary>
+    <p>The L positions are 0, 2, 7, 9, 14, 16, 21, 23, 28, 30. They repeat every 7. The rule: <span class="var">n</span> is L exactly when <span class="var">n</span> mod 7 is 0 or 2. Games like this are called <span class="term">subtraction games</span>, and the losing positions of every subtraction game eventually repeat. Proving that is a good project for a rainy afternoon.</p>
+  </details>
+</div>
+
+<div class="story">
+  <span class="tag">True story</span>
+  <p>In 1913 the mathematician Ernst Zermelo proved that every game like this one, with two players, turns, no dice, no secrets, and a definite end, has a definite answer: either the first player can force a win, or the second player can, or both can force a draw. Chess is one of those games. So there <i>is</i> a correct answer to "who wins at chess?" We just cannot compute it. The chess game tree has more positions than there are atoms in the universe. Tic-tac-toe (Chapter 7) is small enough that we know its answer: a draw.</p>
+</div><section class="chapter-stars"><h3>Stars in this chapter</h3><p class="note" style="margin-top:0">Earn them by doing the clever thing, not by clicking around.</p><ul class="starlist"><li data-star="tb-win"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg><span>Beat a perfect Robo at the 21 Game</span></li><li data-star="tb-labels"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg><span>Label every position from 0 to 21 correctly</span></li><li data-star="tb-misere"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg><span>Win the version where the last stone loses</span></li></ul></section>
+<nav class="pager" aria-label="Chapters"><a class="prev" href="mixed-strategies.html"><span class="lab">← Chapter 4</span><span class="t">Mixed strategies</span></a><a class="next" href="nim-and-binary.html"><span class="lab">Chapter 6 →</span><span class="t">Nim and binary</span></a></nav>
+</main>
+<footer class="site wrap">
+  <span>Winning Moves · a game theory playground. Play these with real things too: coins, a chocolate bar, a cookie to cut.</span>
+  <a href="./grown-ups.html">For grown-ups</a>
+</footer>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="./assets/site.js?v=54185305"></script>
+<script src="assets/ch/thinking-backwards.js?v=54185305"></script>
+</body>
+</html>

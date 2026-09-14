@@ -1,0 +1,28 @@
+{
+  "title": "Winning Moves",
+  "tagline": "A game theory playground",
+  "dedication": "Made for Garrett, who is going to be better at this than the person who built it.",
+  "domain": "",
+  "parts": [
+    {
+      "title": "The rules of the game",
+      "blurb": "What a game is, how to write one down as a grid of numbers, and the two ideas everything else is built on: best responses and equilibrium.",
+      "chapters": ["what-is-a-game", "payoff-grids", "nash-equilibrium", "mixed-strategies"]
+    },
+    {
+      "title": "Games with turns",
+      "blurb": "Games you can solve completely by thinking backwards from the end. Secrets hidden in remainders, in binary, and in proofs that tell you a winner exists without telling you how to win.",
+      "chapters": ["thinking-backwards", "nim-and-binary", "game-trees", "chomp", "hex", "every-game-is-nim"]
+    },
+    {
+      "title": "Playing with people",
+      "blurb": "When the other player is a person: repeating a game changes everything, sharing fairly is harder than it looks, and auctions and elections are games too.",
+      "chapters": ["repeated-games", "fair-division", "auctions", "voting", "bargaining", "hawks-and-doves"]
+    },
+    {
+      "title": "Chance, crowds, and clever puzzles",
+      "blurb": "Games against chance, games with thousands of players, and puzzles where the whole trick is figuring out what everybody else knows.",
+      "chapters": ["monty-hall", "common-knowledge", "traffic", "commons", "ice-cream-carts"]
+    }
+  ]
+}

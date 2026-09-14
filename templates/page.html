@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{title}} · Winning Moves</title>
+<meta name="description" content="{{description}}">
+<link rel="icon" href="{{root}}assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="{{root}}assets/site.css?v={{build}}">
+<script>window.WM_CHAPTERS = {{chapters_json}};</script>
+</head>
+<body class="{{body_class}}">
+<nav class="topbar" aria-label="Site">
+  <a class="brand" href="{{root}}">Winning Moves</a>
+  <span class="crumb">{{crumb}}</span>
+  <span class="spacer"></span>
+  <a class="pill" href="{{root}}arcade.html">Arcade</a>
+  <a class="pill" href="{{root}}glossary.html">Big words</a>
+  <a class="pill" href="{{root}}#progress" title="Your stars"><span class="star">★</span> <span id="star-count">0</span>/<span id="star-total">0</span></a>
+</nav>
+<main class="wrap {{main_class}}">
+{{body}}
+{{pager}}
+</main>
+<footer class="site wrap">
+  <span>Winning Moves · a game theory playground. Play these with real things too: coins, a chocolate bar, a cookie to cut.</span>
+  <a href="{{root}}grown-ups.html">For grown-ups</a>
+</footer>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="{{root}}assets/site.js?v={{build}}"></script>
+{{scripts}}
+</body>
+</html>
