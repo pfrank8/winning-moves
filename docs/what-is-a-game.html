@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>1. What is a game · Winning Moves</title>
-<meta name="description" content="This chapter is still being written.">
+<title>1. What is a game? · Winning Moves</title>
+<meta name="description" content="How to write a game down as a grid, and a surprising answer to "what is the best way to play Rock, Paper, Scissors?"">
 <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="./assets/site.css?v=54185305">
-<script>window.WM_CHAPTERS = [{"slug":"what-is-a-game","num":1,"title":"What is a game","stars":[]},{"slug":"payoff-grids","num":2,"title":"Payoff grids","stars":[]},{"slug":"nash-equilibrium","num":3,"title":"Nash equilibrium","stars":[]},{"slug":"mixed-strategies","num":4,"title":"Mixed strategies","stars":[]},{"slug":"thinking-backwards","num":5,"title":"Thinking backwards","stars":[{"id":"tb-win","label":"Beat a perfect Robo at the 21 Game"},{"id":"tb-labels","label":"Label every position from 0 to 21 correctly"},{"id":"tb-misere","label":"Win the version where the last stone loses"}]},{"slug":"nim-and-binary","num":6,"title":"Nim and binary","stars":[]},{"slug":"game-trees","num":7,"title":"Game trees","stars":[]},{"slug":"chomp","num":8,"title":"Chomp","stars":[]},{"slug":"hex","num":9,"title":"Hex","stars":[]},{"slug":"every-game-is-nim","num":10,"title":"Every game is nim","stars":[]},{"slug":"repeated-games","num":11,"title":"Repeated games","stars":[]},{"slug":"fair-division","num":12,"title":"Fair division","stars":[]},{"slug":"auctions","num":13,"title":"Auctions","stars":[]},{"slug":"voting","num":14,"title":"Voting","stars":[]},{"slug":"bargaining","num":15,"title":"Bargaining","stars":[]},{"slug":"hawks-and-doves","num":16,"title":"Hawks and doves","stars":[]},{"slug":"monty-hall","num":17,"title":"Monty hall","stars":[]},{"slug":"common-knowledge","num":18,"title":"Common knowledge","stars":[]},{"slug":"traffic","num":19,"title":"Traffic","stars":[]},{"slug":"commons","num":20,"title":"Commons","stars":[]},{"slug":"ice-cream-carts","num":21,"title":"Ice cream carts","stars":[]}];</script>
+<link rel="stylesheet" href="./assets/site.css?v=7837293e">
+<script>window.WM_CHAPTERS = [{"slug":"what-is-a-game","num":1,"title":"What is a game?","stars":[{"id":"wg-ten","label":"Play ten rounds and read the grid"},{"id":"wg-exploit","label":"Win 7 of 10 against Pattern Robo"},{"id":"wg-balance","label":"Build a fair five-weapon game"}]},{"slug":"payoff-grids","num":2,"title":"The Cookie Game","stars":[{"id":"pg-play","label":"Work out the dominant strategy, then play the Cookie Game"},{"id":"pg-best","label":"Mark every best response in a 3 by 3 grid"},{"id":"pg-cross","label":"Cross out the whole grid down to one box"}]},{"slug":"nash-equilibrium","num":3,"title":"Nobody wants to switch","stars":[{"id":"ne-hunt","label":"Solve all five equilibrium puzzles"},{"id":"ne-predict","label":"Predict the number of equilibria in five random games in a row"},{"id":"ne-three","label":"Design a 2 by 2 game with exactly three equilibria"}]},{"slug":"mixed-strategies","num":4,"title":"Being unpredictable","stars":[{"id":"ms-exploit","label":"Win 7 of 10 rounds against a Robo with a favorite"},{"id":"ms-safe","label":"Find the plan Robo cannot beat, then test it 100 times"},{"id":"ms-solve","label":"Solve a fresh penalty-kick game to within 3 percent"}]},{"slug":"thinking-backwards","num":5,"title":"Thinking backwards","stars":[{"id":"tb-win","label":"Beat a perfect Robo at the 21 Game"},{"id":"tb-labels","label":"Label every position from 0 to 21 correctly"},{"id":"tb-misere","label":"Win the version where the last stone loses"}]},{"slug":"nim-and-binary","num":6,"title":"Nim and binary","stars":[{"id":"nb-win","label":"Beat a perfect Robo at three-pile Nim"},{"id":"nb-xor","label":"Get five nim-sums right in the column tool"},{"id":"nb-move","label":"Find the winning move in three positions in a row"}]},{"slug":"game-trees","num":7,"title":"Seeing the whole tree","stars":[{"id":"gt-draw","label":"Hold a perfect Robo to a draw"},{"id":"gt-tree","label":"Pick the best move in three tree puzzles"},{"id":"gt-shallow","label":"Beat a Robo that only looks two moves ahead"}]},{"slug":"chomp","num":8,"title":"A proof that you can win","stars":[{"id":"ch-win","label":"Beat a perfect Robo at Chomp on a 4 by 6 bar"},{"id":"ch-square","label":"Beat Robo on a square bar using the mirror trick"},{"id":"ch-count","label":"Count the shapes of a bar with the formula"}]},{"slug":"hex","num":9,"title":"Hex","stars":[{"id":"hx-win","label":"Beat Robo on a 6 by 6 board or bigger, without hints"},{"id":"hx-chain","label":"Trace the winning chain on three random full boards"},{"id":"hx-bridge","label":"Win a game against Robo in which you built a bridge"}]},{"slug":"every-game-is-nim","num":10,"title":"Every game is secretly Nim","stars":[{"id":"gr-mex","label":"Get all five mex problems right"},{"id":"gr-labels","label":"Grundy-label a subtraction game up to 12 or more"},{"id":"gr-sum","label":"Beat a perfect Robo at a sum of two games"}]},{"slug":"repeated-games","num":11,"title":"Playing again and again","stars":[{"id":"rg-coop","label":"Score 60 in 20 rounds against Tit for Tat"},{"id":"rg-guess","label":"Work out which strategy Mystery Robo is using"},{"id":"rg-noise","label":"Run a tournament with 5 or more strategies and 5% noise or more"}]},{"slug":"fair-division","num":12,"title":"Fair division","stars":[]},{"slug":"auctions","num":13,"title":"Going once, going twice","stars":[{"id":"au-english","label":"Win an English auction with a positive profit"},{"id":"au-shade","label":"Finish 10 rounds of the first-price auction with a positive total profit"},{"id":"au-honest","label":"Answer the Vickrey quiz correctly, then win a Vickrey round with a profit"}]},{"slug":"voting","num":14,"title":"How to pick a winner when nobody agrees","stars":[{"id":"vo-three","label":"Build a profile where plurality, instant runoff, and Borda pick three different winners"},{"id":"vo-cycle","label":"Build a Condorcet cycle from scratch"},{"id":"vo-strategic","label":"Find the strategic vote in the Borda election"}]},{"slug":"bargaining","num":15,"title":"Bargaining","stars":[]},{"slug":"hawks-and-doves","num":16,"title":"Hawks and doves","stars":[{"id":"hd-predict","label":"Predict the hawk fraction before the simulation finds it"},{"id":"hd-allhawk","label":"Set a prize worth fighting for and call the hawk takeover"},{"id":"hd-cycle","label":"Watch the lizards cycle for 200 generations"}]},{"slug":"monty-hall","num":17,"title":"Monty hall","stars":[]},{"slug":"common-knowledge","num":18,"title":"Common knowledge","stars":[]},{"slug":"traffic","num":19,"title":"Traffic","stars":[]},{"slug":"commons","num":20,"title":"Commons","stars":[]},{"slug":"ice-cream-carts","num":21,"title":"Ice cream carts","stars":[]}];</script>
 </head>
 <body class="chapter-what-is-a-game">
 <nav class="topbar" aria-label="Site">
@@ -22,15 +22,129 @@
   <a class="pill" href="./#progress" title="Your stars"><span class="star">★</span> <span id="star-count">0</span>/<span id="star-total">0</span></a>
 </nav>
 <main class="wrap chapter">
-<header class="chapter-head part-1"><div class="num">1</div><div><span class="kicker">Part I · The rules of the game</span><h1>What is a game</h1><p class="lede">This chapter is still being written.</p></div></header><div class="prose"><p>Coming soon.</p></div>
-<nav class="pager" aria-label="Chapters"><a class="prev" href="./"><span class="lab">← Home</span><span class="t">All chapters</span></a><a class="next" href="payoff-grids.html"><span class="lab">Chapter 2 →</span><span class="t">Payoff grids</span></a></nav>
+<header class="chapter-head part-1"><div class="num">1</div><div><span class="kicker">Part I · The rules of the game</span><h1>What is a game?</h1><p class="lede">Rock, Paper, Scissors is a real game, and so is a surprising amount of life. Before you can win a game you have to be able to write it down. This chapter shows you how. Then it asks a question with a surprising answer: what is the best way to play Rock, Paper, Scissors?</p></div></header><style>
+  .wg-hand{ font-size:1.3em; margin-right:.2em }
+  .wg-bal td{ cursor:pointer; width:64px; height:52px; font-size:1rem }
+  .wg-bal td.diag{ background:var(--grid); cursor:default; color:var(--ink-soft) }
+  .wg-bal td.w{ background:var(--win-soft); color:var(--win) } .wg-bal td.l{ background:var(--you-soft); color:var(--you) }
+  .wg-bal th.rh{ color:var(--ink) } .wg-bal th.ch{ color:var(--ink) }
+  .wg-counts{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px }
+  .wg-counts span{ font-family:var(--f-mono); font-size:.9rem; padding:4px 10px; border-radius:8px; background:var(--surface-2) }
+  .wg-counts span.ok{ background:var(--win-soft); color:var(--win) }
+</style>
+
+<section>
+  <div class="prose">
+    <p>Every game has three parts. Mathematicians use these exact words, so learn them now:</p>
+    <ul>
+      <li><span class="term">Players</span>: whoever is choosing. Here it is <b class="you">you</b> and <b class="robo">Robo</b>.</li>
+      <li><span class="term">Strategies</span>: the complete list of choices each player could make. Rock, Paper, or Scissors.</li>
+      <li><span class="term">Payoffs</span>: what each player gets at the end, for every possible combination of choices. A win, a loss, or a tie.</li>
+    </ul>
+    <p>Play ten rounds against Robo, who picks at random. Watch the grid while you play. Your choice picks the <b>row</b>, Robo's choice picks the <b>column</b>, and the box where they meet is the outcome. The grid is not a scoreboard. It is the whole game, written down.</p>
+  </div>
+
+  <div class="board">
+    <div class="board-head"><h3>Rock, Paper, Scissors</h3><span class="rules" id="wg-rules">Robo picks at random.</span></div>
+    <div class="row">
+      <button class="btn btn-you" type="button" data-rps="Rock"><span class="wg-hand">✊</span>Rock</button>
+      <button class="btn btn-you" type="button" data-rps="Paper"><span class="wg-hand">✋</span>Paper</button>
+      <button class="btn btn-you" type="button" data-rps="Scissors"><span class="wg-hand">✌</span>Scissors</button>
+      <button class="btn btn-sm" type="button" id="wg-reset">Start over</button>
+    </div>
+    <div class="row">
+      <span class="field">Robo's brain</span>
+      <div class="seg" id="wg-mode"><button class="on" data-v="random">Random</button><button data-v="pattern">Pattern Robo</button><button data-v="learner">Learning Robo</button></div>
+    </div>
+    <div class="status" id="wg-status">Pick one to play.</div>
+    <div class="two">
+      <div class="scroll"><table class="pay" id="wg-grid"></table></div>
+      <div>
+        <div class="stats">
+          <div class="stat"><span class="k">Rounds</span><span class="v" id="wg-n">0</span></div>
+          <div class="stat"><span class="k">Wins</span><span class="v win-c" id="wg-w">0</span></div>
+          <div class="stat"><span class="k">Losses</span><span class="v you" id="wg-l">0</span></div>
+          <div class="stat"><span class="k">Ties</span><span class="v" id="wg-t">0</span></div>
+        </div>
+        <p class="note" id="wg-note">After ten rounds, compare your number of ties with the math below.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>The grid is the game</h2>
+  <div class="prose">
+    <p>You have 3 strategies and Robo has 3 strategies, so there are <code>3 × 3 = 9</code> possible rounds. That is why the grid has 9 boxes. Three of them, the diagonal, are ties. Of the other six, you win three and lose three. The game is <b>symmetric</b>: swap the players and nothing changes.</p>
+    <p>Here is a bigger version that some people play: Rock, Paper, Scissors, Lizard, Spock. Scissors cuts Paper, Paper covers Rock, Rock crushes Lizard, Lizard poisons Spock, Spock smashes Scissors, Scissors decapitates Lizard, Lizard eats Paper, Paper disproves Spock, Spock vaporizes Rock, Rock crushes Scissors. Five strategies each, so <code>5 × 5 = 25</code> boxes. Look at the grid and count: every weapon beats exactly two others and loses to exactly two. That is what makes it fair.</p>
+  </div>
+  <div class="board">
+    <div class="board-head"><h3>Rock, Paper, Scissors, Lizard, Spock</h3><span class="rules">Rows are you, columns are Robo. Hover a row to count its wins.</span></div>
+    <div class="scroll"><table class="pay small" id="wg-rpsls"></table></div>
+    <p class="note" id="wg-rpsls-note">25 boxes: 5 ties, 10 wins for the row player, 10 losses.</p>
+  </div>
+  <div class="prose">
+    <p>Now design your own. Below is an empty 5-weapon grid. Click a box to decide who wins that matchup (the mirror box fills in by itself, because if A beats B then B loses to A). Your job: make every weapon beat <b>exactly two</b> of the others. Then think about why you could never do this with four weapons.</p>
+  </div>
+  <div class="board">
+    <div class="board-head"><h3>Build a fair game</h3><span class="rules">Green = row beats column. Red = row loses. Click to flip.</span></div>
+    <div class="row"><span class="field">Weapon names <input type="text" id="wg-names" value="Fire, Water, Wood, Metal, Earth" size="22"></span><button class="btn btn-sm" type="button" id="wg-bal-clear">Clear</button></div>
+    <div class="scroll"><table class="pay wg-bal" id="wg-bal"></table></div>
+    <div class="wg-counts" id="wg-counts"></div>
+    <div class="status" id="wg-bal-status">Fill in all ten matchups.</div>
+  </div>
+</section>
+
+<section>
+  <h2>Can you be smarter than random?</h2>
+  <div class="prose">
+    <p>Against a Robo that picks at random, the honest answer is no. Whatever you do, each of Robo's three choices is equally likely, so you win a third of the time, lose a third, and tie a third. No plan beats a coin flip, and no plan loses to one either.</p>
+    <p>But most opponents are not random. Switch Robo's brain to <b>Pattern Robo</b>: it assumes you will repeat your last move, and plays whatever beats that. Figure out its pattern and you can beat it almost every round. Then try <b>Learning Robo</b>, which counts what you have played most often and plays whatever beats your favorite. The only way to beat a learner is to have no favorite at all. That idea, being deliberately unpredictable, is the whole subject of Chapter 4.</p>
+  </div>
+</section>
+
+<div class="math">
+  <span class="tag">Math corner</span>
+  <p><b>Counting boxes.</b> If you have <span class="var">a</span> strategies and Robo has <span class="var">b</span>, the grid has <span class="var">a</span> × <span class="var">b</span> boxes. Two players each choosing a number from 1 to 10 make a 100-box grid, and a game of chess makes a grid too big to write down, but it is a grid all the same.</p>
+  <p><b>Chance.</b> Random Robo lands on each of the 9 boxes with probability <code>1/9</code>. Three boxes are ties, so the chance of a tie in one round is <code>3/9 = 1/3</code>. Over ten rounds you should expect about <code>10 × 1/3 ≈ 3.3</code> ties. You will not get exactly that, and the more rounds you play, the closer your fraction of ties gets to one third. Mathematicians call that the <span class="term">law of large numbers</span>.</p>
+  <p><b>Why five works and four does not.</b> With <span class="var">n</span> weapons there are <span class="var">n</span>(<span class="var">n</span> − 1)/2 matchups between different weapons (for 5 weapons, 10 matchups). In a fair game every weapon wins the same number of them, so each wins (<span class="var">n</span> − 1)/2. For that to be a whole number, <span class="var">n</span> − 1 must be even, so <span class="var">n</span> must be <b>odd</b>. Three works. Five works. Four cannot.</p>
+</div>
+
+<div class="idea">
+  <span class="tag">Big idea</span>
+  <p>A game is players, strategies, and payoffs. Once you write it down as a grid, you can reason about it: count its boxes, spot its symmetries, and find the best way to play it. Everything else on this site is a way of reading grids.</p>
+</div>
+
+<div class="try">
+  <span class="tag">Try it on paper</span>
+  <p><b>1.</b> Two players each secretly pick a number from 1 to 4. How many boxes does the grid have? How many of them are ties?</p>
+  <details class="reveal"><summary>Answer</summary><p>4 × 4 = 16 boxes, and 4 ties (the diagonal, where both picked the same number).</p></details>
+  <p><b>2.</b> In ordinary Rock, Paper, Scissors, in how many of the 9 boxes does the row player win? What fraction is that?</p>
+  <details class="reveal"><summary>Answer</summary><p>3 boxes: Rock over Scissors, Paper over Rock, Scissors over Paper. That is 3/9 = 1/3 of the grid.</p></details>
+  <p><b>3.</b> With 7 weapons in a fair game, how many others does each weapon beat, and how many matchups are there in total?</p>
+  <details class="reveal"><summary>Answer</summary><p>Each beats (7 − 1)/2 = 3 others. Total matchups: 7 × 6 / 2 = 21.</p></details>
+</div>
+
+<div class="challenge">
+  <span class="tag">Challenge</span>
+  <p>Learning Robo plays whatever beats your most common move so far. Suppose you know that. Can you design a sequence of moves that beats Learning Robo <i>every single round</i> after the first few? Try to work it out on paper, then test it on the board.</p>
+  <details class="reveal"><summary>Answer</summary>
+    <p>Yes. Learning Robo's next move is completely determined by your history, so you can always predict it and play the counter. Suppose you have played Rock more than anything else. Robo will play Paper. You play Scissors and win. Keep your counts arranged so that you always know the leader, and you always know Robo's move. The lesson is not about Robo. It is that any opponent who follows a fixed rule can be beaten by anyone who learns the rule.</p>
+  </details>
+</div>
+
+<div class="story">
+  <span class="tag">True story</span>
+  <p>Game theory was invented by John von Neumann, a Hungarian mathematician who could multiply eight-digit numbers in his head as a child. In 1928 he published a paper on "parlor games" that proved every two-player game like Rock, Paper, Scissors has a best way to play it, even if that best way is to roll a die. In 1944 he and the economist Oskar Morgenstern turned the idea into a 600-page book, and a new branch of mathematics was born. Rock, Paper, Scissors itself is much older: it comes from a family of Japanese hand games called <i>janken</i> and reached Europe in the early 1900s.</p>
+</div><section class="chapter-stars"><h3>Stars in this chapter</h3><p class="note" style="margin-top:0">Earn them by doing the clever thing, not by clicking around.</p><ul class="starlist"><li data-star="wg-ten"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg><span>Play ten rounds and read the grid</span></li><li data-star="wg-exploit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg><span>Win 7 of 10 against Pattern Robo</span></li><li data-star="wg-balance"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg><span>Build a fair five-weapon game</span></li></ul></section>
+<nav class="pager" aria-label="Chapters"><a class="prev" href="./"><span class="lab">← Home</span><span class="t">All chapters</span></a><a class="next" href="payoff-grids.html"><span class="lab">Chapter 2 →</span><span class="t">The Cookie Game</span></a></nav>
 </main>
 <footer class="site wrap">
   <span>Winning Moves · a game theory playground. Play these with real things too: coins, a chocolate bar, a cookie to cut.</span>
   <a href="./grown-ups.html">For grown-ups</a>
 </footer>
 <div id="toast" role="status" aria-live="polite"></div>
-<script src="./assets/site.js?v=54185305"></script>
-
+<script src="./assets/site.js?v=7837293e"></script>
+<script src="assets/ch/what-is-a-game.js?v=7837293e"></script>
 </body>
 </html>

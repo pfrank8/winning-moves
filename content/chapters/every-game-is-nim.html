@@ -19,7 +19,7 @@
   .gr-mexans{ font:600 1.15rem var(--f-display); min-height:1.6em; margin-top:10px }
   .gr-mq{ display:grid; gap:10px; margin-top:16px }
   .gr-mq-row{ display:flex; flex-wrap:wrap; align-items:center; gap:10px }
-  .gr-mq-row .q{ font:600 1.05rem var(--f-mono); min-width:15ch }
+  .gr-mq-row .q{ font:600 1.05rem var(--f-mono); min-width:25ch }
   .gr-mq-row input{ width:4.5em }
   .gr-mq-row .fb{ font:600 .95rem var(--f-display); min-width:8ch }
   .gr-mq-row.ok .fb{ color:var(--win) } .gr-mq-row.bad .fb{ color:var(--you) }
@@ -53,25 +53,25 @@
 
   /* Kayles */
   .gr-pins{ display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; margin:16px 0 8px; min-height:74px }
-  .gr-pin{ width:30px; height:70px; border:3px solid var(--line); border-radius:15px 15px 9px 9px; background:var(--surface-2); cursor:pointer; position:relative; padding:0; transition:transform .25s, opacity .25s; transform-origin:50% 100%; display:grid; align-content:end; justify-items:center; font:600 .7rem var(--f-mono); color:var(--ink-soft); padding-bottom:4px }
-  .gr-pin::before{ content:""; position:absolute; top:6px; left:50%; width:12px; height:12px; margin-left:-6px; border-radius:50%; background:var(--you) }
+  .gr-pin{ width:30px; height:70px; border:3px solid var(--line); border-radius:15px 15px 9px 9px; background:var(--surface-2); cursor:pointer; position:relative; padding:0; transition:height .25s, opacity .25s; display:grid; align-content:end; justify-items:center; font:600 .7rem var(--f-mono); color:var(--ink-soft); padding-bottom:4px }
+  .gr-pin::before{ content:""; position:absolute; top:6px; left:50%; width:12px; height:12px; margin-left:-6px; border-radius:50%; background:var(--line) }
   .gr-pin:hover:not(:disabled){ background:var(--math-soft) }
   .gr-pin.sel{ outline:4px solid var(--math); outline-offset:2px; background:var(--math-soft) }
-  .gr-pin.down{ opacity:.22; transform:rotate(70deg); border-style:dashed; cursor:default }
-  .gr-pin.down::before{ background:var(--ink-soft) }
+  .gr-pin.down{ height:26px; opacity:.35; border-style:dashed; border-radius:8px; cursor:default; padding-bottom:2px }
+  .gr-pin.down::before{ display:none }
   .gr-pin:disabled:not(.down){ cursor:default }
 </style>
 
 <section>
   <div class="prose">
     <p>Chapter 5 gave every position a letter: <b class="win-c">W</b> if the player whose turn it is can force a win, <b class="you">L</b> if they cannot. Chapter 6 gave every Nim position a number: write the piles in binary, add the columns without carrying, and if that nim-sum is 0 you are standing on an L. Two different tools, and it looked as if the second one only worked for Nim.</p>
-    <p>Here is a puzzle that breaks the first tool. Put two games on the table at once. Game A is a pile of 6 stones where a move takes 1, 2, or 3. Game B is a pile of 4 stones where a move takes 1, 3, or 4. On your turn you move in <b>one</b> of the games, whichever you like. When it is your turn and you cannot move anywhere, you lose. Each game on its own is a W for the player to move: 6 mod 4 is not 0, and 4 is not one of the L positions from Chapter 5's challenge. But put them together and the player to move <i>loses</i>. Change Game B to 5 stones, still a W on its own, and the player to move <i>wins</i>. W plus W is sometimes L and sometimes W. Letters cannot tell these two apart.</p>
-    <p>You need something finer than a letter: a number. Finding it takes one new idea, and the idea has a funny name.</p>
+    <p>Here is a puzzle that breaks the first tool. Put two games on the table at once. Game A is a pile of 6 stones where a move takes 1, 2, or 3. Game B is a pile of 4 stones where a move takes 1, 3, or 4. On your turn you move in <b>one</b> of the games, whichever you like, and if you cannot move anywhere, you lose. Each game on its own is a W for the player to move (6 mod 4 is not 0, and 4 is not an L position from Chapter 5's challenge). Put them together and the player to move <i>loses</i>. Change Game B to 5 stones, still a W on its own, and the player to move <i>wins</i>. W plus W is sometimes L and sometimes W, and the letters cannot tell you which.</p>
+    <p>You need something finer than a letter: a number. Finding it takes one new idea with a funny name.</p>
   </div>
 
   <h2>A number for every position</h2>
   <div class="prose">
-    <p>Take any set of whole numbers and look for the smallest whole number that is <b>not</b> in it. For {0, 1, 2} the answer is 3. For {1, 2, 3} the answer is 0, because 0 is missing. For {0, 1, 3, 4} it is 2. This is the <span class="term">mex</span> of the set <span class="say">(say: mex, rhymes with checks)</span>, short for <b>m</b>inimum <b>ex</b>cluded value. Repeats do not matter and neither does the order: the mex of {3, 0, 0, 1} is 2. One case matters more than it looks. The mex of the <b>empty set</b>, the set with nothing in it, is 0, because 0 is the first number you look for and it is not there.</p>
+    <p>Take any set of whole numbers and look for the smallest whole number that is <b>not</b> in it. For {0, 1, 2} the answer is 3. For {1, 2, 3} the answer is 0, because 0 is missing. For {0, 1, 3, 4} it is 2. This is the <span class="term">mex</span> of the set <span class="say">(say: mex, rhymes with checks)</span>, short for <b>m</b>inimum <b>ex</b>cluded value. Repeats do not matter and neither does the order: the mex of {3, 0, 0, 1} is 2. The mex of the <b>empty set</b>, the set with nothing in it, is 0: 0 is the first number you look for, and it is not there.</p>
     <p>Try the calculator, then do the five problems without it.</p>
   </div>
 
@@ -103,8 +103,8 @@
   </div>
   <div class="prose">
     <p>Try it on the 21 Game, takes of 1, 2, or 3. From 0 there are no moves, so <code>G(0) = 0</code>. From 1 the only move is to 0, so <code>G(1) = mex{0} = 1</code>. From 2 you can reach 1 and 0, whose values are 1 and 0: <code>mex{1, 0} = 2</code>. From 3: <code>mex{2, 1, 0} = 3</code>. From 4 you can reach 3, 2, and 1, whose values are 3, 2, and 1. The set is {1, 2, 3}, 0 is missing, so <code>G(4) = 0</code>. Keep going and the values run 0, 1, 2, 3, 0, 1, 2, 3, and so on forever. You have seen that pattern before: <code>G(n) = n mod 4</code>.</p>
-    <p>Look at where the zeros landed: 0, 4, 8, 12. Those are exactly the L positions from Chapter 5. That is not luck. <b><span class="var">G</span> = 0 means L, and <span class="var">G</span> &gt; 0 means W</b>, in every game, and two sentences say why. If <span class="var">G</span> = 0, then 0 is missing from the set of values you can reach, so every move hands the other player a nonzero position. If <span class="var">G</span> &gt; 0, then 0 is not the mex, so 0 must be in the set: some move reaches a position worth 0, and you hand that one over. Zeros behave exactly like L (every move leads away from them) and nonzeros exactly like W (some move leads to a zero). A position with no moves is both L and 0, so the two labelings agree from the end of the game all the way back to the start.</p>
-    <p>So the Grundy values know everything the letters knew, and more. The extra information is what tells a 1 from a 2 from a 3, and the next section is where it pays off. First, label a game yourself. Type each value, or use the small buttons. "Check" tells you which cells are wrong without telling you the answer, and "Show me" works through the mex reasoning one position at a time.</p>
+    <p>Look at where the zeros landed: 0, 4, 8, 12. Those are exactly the L positions from Chapter 5. That is not luck. <b><span class="var">G</span> = 0 means L, and <span class="var">G</span> &gt; 0 means W</b>, in every game, and two sentences say why. If <span class="var">G</span> = 0, then 0 is missing from the set of values you can reach, so every move hands the other player a nonzero position. If <span class="var">G</span> &gt; 0, then 0 is not the mex, so 0 must be in the set: some move reaches a position worth 0, and you hand that one over. That is the W and L rule with 0 playing the part of L. A position with no moves is both L and 0, so the two labelings agree from the end of the game all the way back to the start.</p>
+    <p>So the Grundy values know everything the letters knew, and more: they tell a 1 from a 2 from a 3, and the next section is where that pays off. First, label a game yourself. Type each value or use the small buttons. "Check" marks the wrong cells without giving answers, and "Show me" walks through the mex reasoning one position at a time.</p>
   </div>
 
   <div class="board">
@@ -136,7 +136,7 @@
   </div>
   <div class="prose">
     <p>Games that fit that description are called <span class="term">impartial games</span> <span class="say">(say: im-PAR-shul)</span>. The important word is impartial: both players have the same moves from every position. Every subtraction game is impartial, and so is Nim. Chess is not, because you may only move your own pieces.</p>
-    <p>Read the theorem again slowly, because it says something surprising. A position with Grundy value 2 combines with other games exactly the way a Nim pile of 2 stones would. That is the sense in which every game is secretly Nim. To play a sum of games, replace each game by a Nim pile of size <span class="var">G</span>, then use Chapter 6's rule: work out the nim-sum, and move so that it becomes 0.</p>
+    <p>Read the theorem again slowly, because it says something surprising. A position with Grundy value 2 combines with other games exactly the way a Nim pile of 2 stones would. That is the sense in which every game is secretly Nim. To play a sum of games, replace each game by a Nim pile of size <span class="var">G</span>, then use Chapter 6's rule: move so that the nim-sum becomes 0.</p>
     <p>Now the puzzle at the top makes sense. Game A, 6 stones with takes of 1, 2, 3, has <code>G = 6 mod 4 = 2</code>. Game B, 4 stones with takes of 1, 3, 4, has <code>G = 2</code> as well (the Math corner works it out). Two piles of 2: <code>2 XOR 2 = 0</code>, a loss for the player to move. Change B to 5 stones and its value becomes 3. Now <code>2 XOR 3 = 1</code>, a win, and the winning move is to bring B's value down from 3 to 2 by taking 1 stone. The two games have different rules and you cannot copy a move from one into the other, but the numbers see straight through that.</p>
     <p>Play it. Robo does this arithmetic silently unless you tick "Show the secret". The hint tells you which game to fix, what value to aim for, and which stones get you there.</p>
   </div>
@@ -203,12 +203,12 @@
     <tr class="hl"><td>9</td><td>8, 6, 5</td><td>{1, 2, 3}</td><td>0</td></tr>
   </table>
   </div>
-  <p>The sequence 0, 1, 0, 1, 2, 3, 2 then repeats every 7, and its zeros (0, 2, 7, 9, 14, 16, ...) are exactly the L positions from Chapter 5's challenge. So <code>G(9) = 0</code>. The starting position is worth <code>2 ⊕ 0 = 2</code>, in binary <code>10 ⊕ 00 = 10</code>, so the player to move wins. Which move? Chapter 6's rule: the nim-sum's leftmost 1 is in the 2s column, and Game A's value is the one with a 1 there, so fix Game A. Aim it at <code>2 ⊕ 2 = 0</code>: take 2 stones, leaving 8, which is worth 0. Now the position is worth <code>0 ⊕ 0 = 0</code>, and Robo is on the losing side.</p>
+  <p>The sequence 0, 1, 0, 1, 2, 3, 2 then repeats every 7, and its zeros (0, 2, 7, 9, 14, 16, ...) are exactly the L positions from Chapter 5's challenge. So <code>G(9) = 0</code>. The starting position is worth <code>2 ⊕ 0 = 2</code>, in binary <code>10 ⊕ 00 = 10</code>, so the player to move wins. Which move? Chapter 6's rule: the nim-sum's leftmost 1 is in the 2s column, and Game A's value has a 1 there, so fix Game A. Aim it at <code>2 ⊕ 2 = 0</code>: take 2 stones, leaving 8, which is worth 0. Now the position is worth <code>0 ⊕ 0 = 0</code>, and Robo is on the losing side.</p>
   <p><b>Why XOR?</b> Here is the idea of the proof, in three steps.</p>
   <div class="proof">
     <ol>
       <li>A Nim pile of <span class="var">g</span> stones can move to any smaller pile: 0, 1, ..., <span class="var">g</span> − 1. A position with Grundy value <span class="var">g</span> can also reach every value below <span class="var">g</span> (they are all in its set, or <span class="var">g</span> would not be the mex), and it can never reach a value of <span class="var">g</span> itself.</li>
-      <li>The only difference is that a position might also have moves to values <i>bigger</i> than <span class="var">g</span>. Those moves are useless to the player who makes them. If your opponent jumps from <span class="var">g</span> up to some bigger value <span class="var">h</span>, then <span class="var">g</span> is below <span class="var">h</span>, so you can move straight back to a position worth <span class="var">g</span>. The value is where it was, and because the game always ends, the bouncing cannot go on forever.</li>
+      <li>The only difference is that a position might also have moves to values <i>bigger</i> than <span class="var">g</span>. Those moves never help the player who makes them: if your opponent jumps from <span class="var">g</span> up to a bigger value <span class="var">h</span>, you can move straight back down to a position worth <span class="var">g</span>, because <span class="var">g</span> is below <span class="var">h</span>. The value is where it was, and since the game always ends, the bouncing cannot go on forever.</li>
       <li>So inside a sum, a position worth <span class="var">g</span> is a Nim pile of <span class="var">g</span> plus some extra moves that never help. Whoever wins Nim with piles <span class="var">G</span>(A) and <span class="var">G</span>(B) wins A + B by the matching moves, and Chapter 6 says the Nim winner is decided by the nim-sum.</li>
     </ol>
   </div>
@@ -226,15 +226,15 @@
   <p><b>2.</b> In the subtraction game where a move takes 2 or 3 stones (never 1), find G(0) through G(8). Careful: 1 is a position with no moves.</p>
   <details class="reveal"><summary>Answer</summary><p>0, 0, 1, 1, 2, 0, 0, 1, 1. From 1 you cannot move, so <code>G(1) = 0</code>, and 1 is an L position: the player who faces a single stone is stuck. From 4 you can reach 2 and 1, worth 1 and 0, so <code>G(4) = 2</code>. From 5 you reach 3 and 2, both worth 1, so <code>G(5) = 0</code>. The pattern repeats every 5.</p></details>
   <p><b>3.</b> You face a sum: a pile of 6 stones with takes of 1, 2, 3, next to a plain Nim pile of 2 stones. It is your turn. Who wins, and what is the move?</p>
-  <details class="reveal"><summary>Answer</summary><p><code>G(6) = 6 mod 4 = 2</code>, and the Nim pile is worth 2. <code>2 ⊕ 2 = 0</code>: you are on a losing position and there is no winning move. Whatever you do, Robo can answer to bring the nim-sum back to 0. Take 1 from the 6 (now worth 1) and Robo takes 1 from the Nim pile (now worth 1). If the Nim pile had 3 stones instead, <code>2 ⊕ 3 = 1</code> and you would win by taking 1 from the Nim pile.</p></details>
+  <details class="reveal"><summary>Answer</summary><p><code>G(6) = 6 mod 4 = 2</code>, and the Nim pile is worth 2. <code>2 ⊕ 2 = 0</code>: you are on a losing position, and there is no winning move. Whatever you do, Robo answers by bringing the nim-sum back to 0: take 1 from the 6 (now worth 1) and Robo takes 1 from the Nim pile (now worth 1). If the Nim pile had 3 stones instead, <code>2 ⊕ 3 = 1</code> and you would win by taking 1 from it.</p></details>
 </div>
 
 <div class="challenge">
   <span class="tag">Challenge</span>
-  <p><b>Kayles.</b> A row of bowling pins. On your turn you knock down one pin, or two pins standing next to each other. Last move wins. Knocking down a pin in the middle of a row splits it into two shorter rows that never touch again, and that is a sum. So one number per row length is enough to play perfectly: <span class="var">G</span>(row of <span class="var">n</span>) is the mex, over every possible knock-down, of the nim-sum of the two pieces left behind. Work out the values for rows of length 0 to 8. Then say who wins a row of 5 pins, and what the first move is. Use the board below to check.</p>
+  <p><b>Kayles.</b> A row of bowling pins. On your turn you knock down one pin, or two pins standing next to each other. Last move wins. Knocking down a pin in the middle of a row splits it into two shorter rows that never touch again, and that is a sum. So one number per row length is enough to play perfectly: <span class="var">G</span>(row of <span class="var">n</span>) is the mex, over every possible knock-down, of the nim-sum of the two pieces left behind. Work out the values for rows of length 0 to 8. Then say who wins a row of 5 pins, and what the first move is. The board below will check you.</p>
   <details class="reveal"><summary>Answer</summary>
-    <p>The values are 0, 1, 2, 3, 1, 4, 3, 2, 1. For a row of 4, for example: knock down an end pin and a row of 3 is left (worth 3); knock down a middle pin and rows of 1 and 2 are left (<code>1 ⊕ 2 = 3</code>); knock down the two end pins and a row of 2 is left (worth 2); knock down the middle two and rows of 1 and 1 are left (<code>1 ⊕ 1 = 0</code>). <code>mex{3, 3, 2, 0} = 1</code>.</p>
-    <p>A row of 5 is worth 4, so the first player wins. The move: knock down the middle pin, leaving 2 + 2, worth <code>2 ⊕ 2 = 0</code>, then copy whatever Robo does in the other row. That mirror trick works for a single row of any length (middle pin if the row is odd, middle pair if it is even), so every single row is a first-player win. The values still earn their keep: once the rows are unequal, only the numbers can tell you what to do. Richard Guy and Cedric Smith computed the Kayles values in 1956 using exactly this theorem. Beyond 70 pins the values repeat every 12.</p>
+    <p>The values are 0, 1, 2, 3, 1, 4, 3, 2, 1. For a row of 4, for example: an end pin leaves a row of 3 (worth 3); a middle pin leaves rows of 1 and 2 (<code>1 ⊕ 2 = 3</code>); the two end pins leave a row of 2 (worth 2); the middle two leave rows of 1 and 1 (<code>1 ⊕ 1 = 0</code>). <code>mex{3, 3, 2, 0} = 1</code>.</p>
+    <p>A row of 5 is worth 4, so the first player wins. The move: knock down the middle pin, leaving 2 + 2, worth <code>2 ⊕ 2 = 0</code>, then copy whatever Robo does in the other row. That mirror trick works for a single row of any length (middle pin if odd, middle pair if even), so every single row is a first-player win. The values still earn their keep: once the rows are unequal, only the numbers can tell you what to do. Richard Guy and Cedric Smith computed the Kayles values in 1956 using exactly this theorem. Beyond 70 pins the values repeat every 12.</p>
   </details>
 
   <div class="board">

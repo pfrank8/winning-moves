@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>3. Nash equilibrium · Winning Moves</title>
-<meta name="description" content="This chapter is still being written.">
+<title>3. Nobody wants to switch · Winning Moves</title>
+<meta name="description" content="John Nash's question about every game, five puzzles with one, two, or zero answers, and arrows that find the settled place.">
 <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="./assets/site.css?v=54185305">
-<script>window.WM_CHAPTERS = [{"slug":"what-is-a-game","num":1,"title":"What is a game","stars":[]},{"slug":"payoff-grids","num":2,"title":"Payoff grids","stars":[]},{"slug":"nash-equilibrium","num":3,"title":"Nash equilibrium","stars":[]},{"slug":"mixed-strategies","num":4,"title":"Mixed strategies","stars":[]},{"slug":"thinking-backwards","num":5,"title":"Thinking backwards","stars":[{"id":"tb-win","label":"Beat a perfect Robo at the 21 Game"},{"id":"tb-labels","label":"Label every position from 0 to 21 correctly"},{"id":"tb-misere","label":"Win the version where the last stone loses"}]},{"slug":"nim-and-binary","num":6,"title":"Nim and binary","stars":[]},{"slug":"game-trees","num":7,"title":"Game trees","stars":[]},{"slug":"chomp","num":8,"title":"Chomp","stars":[]},{"slug":"hex","num":9,"title":"Hex","stars":[]},{"slug":"every-game-is-nim","num":10,"title":"Every game is nim","stars":[]},{"slug":"repeated-games","num":11,"title":"Repeated games","stars":[]},{"slug":"fair-division","num":12,"title":"Fair division","stars":[]},{"slug":"auctions","num":13,"title":"Auctions","stars":[]},{"slug":"voting","num":14,"title":"Voting","stars":[]},{"slug":"bargaining","num":15,"title":"Bargaining","stars":[]},{"slug":"hawks-and-doves","num":16,"title":"Hawks and doves","stars":[]},{"slug":"monty-hall","num":17,"title":"Monty hall","stars":[]},{"slug":"common-knowledge","num":18,"title":"Common knowledge","stars":[]},{"slug":"traffic","num":19,"title":"Traffic","stars":[]},{"slug":"commons","num":20,"title":"Commons","stars":[]},{"slug":"ice-cream-carts","num":21,"title":"Ice cream carts","stars":[]}];</script>
+<link rel="stylesheet" href="./assets/site.css?v=7837293e">
+<script>window.WM_CHAPTERS = [{"slug":"what-is-a-game","num":1,"title":"What is a game?","stars":[{"id":"wg-ten","label":"Play ten rounds and read the grid"},{"id":"wg-exploit","label":"Win 7 of 10 against Pattern Robo"},{"id":"wg-balance","label":"Build a fair five-weapon game"}]},{"slug":"payoff-grids","num":2,"title":"The Cookie Game","stars":[{"id":"pg-play","label":"Work out the dominant strategy, then play the Cookie Game"},{"id":"pg-best","label":"Mark every best response in a 3 by 3 grid"},{"id":"pg-cross","label":"Cross out the whole grid down to one box"}]},{"slug":"nash-equilibrium","num":3,"title":"Nobody wants to switch","stars":[{"id":"ne-hunt","label":"Solve all five equilibrium puzzles"},{"id":"ne-predict","label":"Predict the number of equilibria in five random games in a row"},{"id":"ne-three","label":"Design a 2 by 2 game with exactly three equilibria"}]},{"slug":"mixed-strategies","num":4,"title":"Being unpredictable","stars":[{"id":"ms-exploit","label":"Win 7 of 10 rounds against a Robo with a favorite"},{"id":"ms-safe","label":"Find the plan Robo cannot beat, then test it 100 times"},{"id":"ms-solve","label":"Solve a fresh penalty-kick game to within 3 percent"}]},{"slug":"thinking-backwards","num":5,"title":"Thinking backwards","stars":[{"id":"tb-win","label":"Beat a perfect Robo at the 21 Game"},{"id":"tb-labels","label":"Label every position from 0 to 21 correctly"},{"id":"tb-misere","label":"Win the version where the last stone loses"}]},{"slug":"nim-and-binary","num":6,"title":"Nim and binary","stars":[{"id":"nb-win","label":"Beat a perfect Robo at three-pile Nim"},{"id":"nb-xor","label":"Get five nim-sums right in the column tool"},{"id":"nb-move","label":"Find the winning move in three positions in a row"}]},{"slug":"game-trees","num":7,"title":"Seeing the whole tree","stars":[{"id":"gt-draw","label":"Hold a perfect Robo to a draw"},{"id":"gt-tree","label":"Pick the best move in three tree puzzles"},{"id":"gt-shallow","label":"Beat a Robo that only looks two moves ahead"}]},{"slug":"chomp","num":8,"title":"A proof that you can win","stars":[{"id":"ch-win","label":"Beat a perfect Robo at Chomp on a 4 by 6 bar"},{"id":"ch-square","label":"Beat Robo on a square bar using the mirror trick"},{"id":"ch-count","label":"Count the shapes of a bar with the formula"}]},{"slug":"hex","num":9,"title":"Hex","stars":[{"id":"hx-win","label":"Beat Robo on a 6 by 6 board or bigger, without hints"},{"id":"hx-chain","label":"Trace the winning chain on three random full boards"},{"id":"hx-bridge","label":"Win a game against Robo in which you built a bridge"}]},{"slug":"every-game-is-nim","num":10,"title":"Every game is secretly Nim","stars":[{"id":"gr-mex","label":"Get all five mex problems right"},{"id":"gr-labels","label":"Grundy-label a subtraction game up to 12 or more"},{"id":"gr-sum","label":"Beat a perfect Robo at a sum of two games"}]},{"slug":"repeated-games","num":11,"title":"Playing again and again","stars":[{"id":"rg-coop","label":"Score 60 in 20 rounds against Tit for Tat"},{"id":"rg-guess","label":"Work out which strategy Mystery Robo is using"},{"id":"rg-noise","label":"Run a tournament with 5 or more strategies and 5% noise or more"}]},{"slug":"fair-division","num":12,"title":"Fair division","stars":[]},{"slug":"auctions","num":13,"title":"Going once, going twice","stars":[{"id":"au-english","label":"Win an English auction with a positive profit"},{"id":"au-shade","label":"Finish 10 rounds of the first-price auction with a positive total profit"},{"id":"au-honest","label":"Answer the Vickrey quiz correctly, then win a Vickrey round with a profit"}]},{"slug":"voting","num":14,"title":"How to pick a winner when nobody agrees","stars":[{"id":"vo-three","label":"Build a profile where plurality, instant runoff, and Borda pick three different winners"},{"id":"vo-cycle","label":"Build a Condorcet cycle from scratch"},{"id":"vo-strategic","label":"Find the strategic vote in the Borda election"}]},{"slug":"bargaining","num":15,"title":"Bargaining","stars":[]},{"slug":"hawks-and-doves","num":16,"title":"Hawks and doves","stars":[{"id":"hd-predict","label":"Predict the hawk fraction before the simulation finds it"},{"id":"hd-allhawk","label":"Set a prize worth fighting for and call the hawk takeover"},{"id":"hd-cycle","label":"Watch the lizards cycle for 200 generations"}]},{"slug":"monty-hall","num":17,"title":"Monty hall","stars":[]},{"slug":"common-knowledge","num":18,"title":"Common knowledge","stars":[]},{"slug":"traffic","num":19,"title":"Traffic","stars":[]},{"slug":"commons","num":20,"title":"Commons","stars":[]},{"slug":"ice-cream-carts","num":21,"title":"Ice cream carts","stars":[]}];</script>
 </head>
 <body class="chapter-nash-equilibrium">
 <nav class="topbar" aria-label="Site">
@@ -22,15 +22,117 @@
   <a class="pill" href="./#progress" title="Your stars"><span class="star">★</span> <span id="star-count">0</span>/<span id="star-total">0</span></a>
 </nav>
 <main class="wrap chapter">
-<header class="chapter-head part-1"><div class="num">3</div><div><span class="kicker">Part I · The rules of the game</span><h1>Nash equilibrium</h1><p class="lede">This chapter is still being written.</p></div></header><div class="prose"><p>Coming soon.</p></div>
-<nav class="pager" aria-label="Chapters"><a class="prev" href="payoff-grids.html"><span class="lab">← Chapter 2</span><span class="t">Payoff grids</span></a><a class="next" href="mixed-strategies.html"><span class="lab">Chapter 4 →</span><span class="t">Mixed strategies</span></a></nav>
+<header class="chapter-head part-1"><div class="num">3</div><div><span class="kicker">Part I · The rules of the game</span><h1>Nobody wants to switch</h1><p class="lede">John Nash asked a simple question about any game: after everyone has chosen, does anyone wish they had chosen differently? When the answer is no for every player at once, the game has settled. That settled place carries his name. Every game has one, though not always where you expect, and sometimes not in the grid at all.</p></div></header><style>
+  .ne-arrows td{ position:relative }
+  #ne-pick{ max-width:210px }
+  .ne-arrows td .ay{ position:absolute; left:4px; top:50%; transform:translateY(-50%); color:var(--you); font-size:1.4rem; font-weight:700; line-height:1 }
+  .ne-arrows td .ar{ position:absolute; right:4px; top:50%; transform:translateY(-50%); color:var(--robo); font-size:1.4rem; font-weight:700; line-height:1 }
+  .ne-arrows td.token{ box-shadow:inset 0 0 0 4px var(--math) }
+  .ne-design input[type=number]{ width:3.2em; padding:.2em .25em; font-size:.95rem }
+  .ne-design td{ width:auto; min-width:120px }
+  .ne-design td{ height:auto; padding:6px }
+  .ne-design td .pair{ display:flex; gap:4px; justify-content:center; align-items:center }
+</style>
+
+<section>
+  <div class="prose">
+    <p>Here is the test. Pick any box in a payoff grid. Cover Robo's choice with your hand and ask: "Knowing Robo will do that, would I rather be in a different row?" Then cover your own choice and ask: "Knowing I will do this, would Robo rather be in a different column?" If both answers are <b>no</b>, the box is a <span class="term">Nash equilibrium</span> <span class="say">(say: NASH ee-kwi-LIB-ree-um)</span>. Nobody wants to switch. The game has come to rest.</p>
+    <p>Chapter 2 gave this a name: each player is playing a <b>best response</b> to the other. An equilibrium is a box where both best responses land at once.</p>
+    <p>Five games. Click boxes to test them. One game has one equilibrium, some have two, and one has none at all. Solve all five for a star.</p>
+  </div>
+
+  <div class="board">
+    <div class="board-head"><h3>Equilibrium hunt</h3><span class="rules">Five games, five different answers.</span></div>
+    <div class="stack" id="ne-puzzles"></div>
+  </div>
+</section>
+
+<section>
+  <h2>Arrows find it for you</h2>
+  <div class="prose">
+    <p>There is a faster way than testing every box. In each column, draw a red arrow from every box toward your best response in that column. In each row, draw a blue arrow toward Robo's best response. A box that no arrow leaves is an equilibrium: nobody has anywhere better to go.</p>
+    <p>Choose a game below and the arrows appear. Then press <b>Random game</b> and, before the arrows show, predict how many equilibria the grid has. Get five in a row right for a star.</p>
+  </div>
+  <div class="board">
+    <div class="board-head"><h3>Best-response arrows</h3><span class="rules">Red arrows: where you would move. Blue arrows: where Robo would move.</span></div>
+    <div class="row">
+      <span class="field">Game <select id="ne-pick"></select></span>
+      <button class="btn btn-math btn-sm" type="button" id="ne-random">Random game</button>
+      <button class="btn btn-sm" type="button" id="ne-play">Let them play</button>
+    </div>
+    <div class="two">
+      <div class="scroll"><table class="pay ne-arrows" id="ne-arrows"></table></div>
+      <div class="stack">
+        <div id="ne-guess" hidden>
+          <p class="note" style="margin-top:0">How many equilibria does this random game have?</p>
+          <div class="row"><button class="btn btn-sm" type="button" data-guess="0">None</button><button class="btn btn-sm" type="button" data-guess="1">One</button><button class="btn btn-sm" type="button" data-guess="2">Two</button><button class="btn btn-sm" type="button" data-guess="3">Three or more</button></div>
+        </div>
+        <div class="note" id="ne-arrows-msg"></div>
+        <div class="stat"><span class="k">Streak</span><span class="v" id="ne-streak">0</span></div>
+      </div>
+    </div>
+    <p class="note" id="ne-play-msg">"Let them play" drops a token on a random box and lets you and Robo take turns moving to your best responses. Sometimes the token settles. Sometimes it chases its tail forever.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Design your own</h2>
+  <div class="prose">
+    <p>Type any payoffs you like. The board counts the equilibria as you type. Can you make a 2 by 2 game with exactly three? Think about what has to happen at the fourth box.</p>
+  </div>
+  <div class="board">
+    <div class="board-head"><h3>Equilibrium counter</h3><span class="rules">Red numbers are yours, blue are Robo's. Ties count.</span></div>
+    <div class="scroll"><table class="pay ne-design" id="ne-design"></table></div>
+    <div class="row">
+      <div class="stat"><span class="k">Equilibria</span><span class="v" id="ne-count">0</span></div>
+      <div class="note" id="ne-design-msg" style="flex:1 1 240px"></div>
+    </div>
+  </div>
+</section>
+
+<div class="math">
+  <span class="tag">Math corner</span>
+  <p><b>The definition, properly.</b> Write your payoff as <code>u(a, b)</code> and Robo's as <code>v(a, b)</code>, where <span class="var">a</span> is your row and <span class="var">b</span> is Robo's column. A pair (<span class="var">a</span>*, <span class="var">b</span>*) is a Nash equilibrium when</p>
+  <div class="formula">u(a*, b*) ≥ u(a, b*) for every row a<br>v(a*, b*) ≥ v(a*, b) for every column b</div>
+  <p>The first line says no row beats <span class="var">a</span>* against <span class="var">b</span>*. The second says no column beats <span class="var">b</span>* against <span class="var">a</span>*. Notice the ≥: a tie counts. If switching gets you exactly the same payoff, you do not <i>want</i> to switch.</p>
+  <p><b>Nash's theorem (1950).</b> Every game with a finite number of players and a finite number of strategies has at least one equilibrium, as long as players are allowed to choose at random with chosen odds. Matching Pennies has no equilibrium among the four boxes, but it has one if each player flips a coin. That is Chapter 4.</p>
+</div>
+
+<div class="idea">
+  <span class="tag">Big idea</span>
+  <p>A Nash equilibrium is a box where each player is already playing a best response to the other, so nobody wants to switch. It is where a game comes to rest. It is not always good for the players, it is not always fair, and there is not always exactly one, but there is always at least one once dice are allowed.</p>
+</div>
+
+<div class="try">
+  <span class="tag">Try it on paper</span>
+  <p><b>1.</b> Rows Up and Down, columns Left and Right. Payoffs (yours, Robo's): Up-Left (2, 1), Up-Right (0, 0), Down-Left (0, 0), Down-Right (1, 2). Find every equilibrium.</p>
+  <details class="reveal"><summary>Answer</summary><p>Two: Up-Left and Down-Right. You prefer Up-Left, Robo prefers Down-Right, but both are settled. This game is sometimes called the Battle of the Sexes; a better name is "which movie shall we see".</p></details>
+  <p><b>2.</b> A dominant strategy equilibrium (like Grab-Grab in the Cookie Game) is always a Nash equilibrium. Explain why in one sentence.</p>
+  <details class="reveal"><summary>Answer</summary><p>A dominant strategy is a best response to everything, so it is certainly a best response to whatever the other player is doing.</p></details>
+  <p><b>3.</b> Can a game have an equilibrium where one player is playing a dominated strategy?</p>
+  <details class="reveal"><summary>Answer</summary><p>Not a strictly dominated one. If some other row is strictly better in every column, it is strictly better in the equilibrium column too, so the player would want to switch. Weakly dominated strategies can appear in equilibria, because ties count.</p></details>
+</div>
+
+<div class="challenge">
+  <span class="tag">Challenge</span>
+  <p>Use the equilibrium counter to build a 2 by 2 game with exactly three equilibria. Then explain why exactly three is possible but requires a tie somewhere.</p>
+  <details class="reveal"><summary>Answer</summary>
+    <p>One way: make three boxes pay (1, 1) and the fourth pay (0, 0). Every (1, 1) box is settled because moving away either keeps you at 1 (a tie, no reason to move) or drops you to 0. The (0, 0) box is not settled. Why a tie is needed: with no ties, each column has exactly one red arrow target and each row exactly one blue target, so at most one box per column can be an equilibrium, which caps a 2 by 2 game at two.</p>
+  </details>
+</div>
+
+<div class="story">
+  <span class="tag">True story</span>
+  <p>John Nash proved his theorem in 1950 as a 21-year-old graduate student at Princeton, in a PhD thesis shorter than many school reports. The idea was so simple that the great John von Neumann, when Nash described it to him, reportedly said "that's trivial, you know, that's just a fixed point theorem." It was not trivial. It became the foundation of modern economics, and in 1994 Nash shared the Nobel Prize for it. In between, he spent decades fighting a serious mental illness, a story told in the film <i>A Beautiful Mind</i>. He died in 2015, at 86, on the way home from receiving another of mathematics' top prizes.</p>
+</div><section class="chapter-stars"><h3>Stars in this chapter</h3><p class="note" style="margin-top:0">Earn them by doing the clever thing, not by clicking around.</p><ul class="starlist"><li data-star="ne-hunt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg><span>Solve all five equilibrium puzzles</span></li><li data-star="ne-predict"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg><span>Predict the number of equilibria in five random games in a row</span></li><li data-star="ne-three"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg><span>Design a 2 by 2 game with exactly three equilibria</span></li></ul></section>
+<nav class="pager" aria-label="Chapters"><a class="prev" href="payoff-grids.html"><span class="lab">← Chapter 2</span><span class="t">The Cookie Game</span></a><a class="next" href="mixed-strategies.html"><span class="lab">Chapter 4 →</span><span class="t">Being unpredictable</span></a></nav>
 </main>
 <footer class="site wrap">
   <span>Winning Moves · a game theory playground. Play these with real things too: coins, a chocolate bar, a cookie to cut.</span>
   <a href="./grown-ups.html">For grown-ups</a>
 </footer>
 <div id="toast" role="status" aria-live="polite"></div>
-<script src="./assets/site.js?v=54185305"></script>
-
+<script src="./assets/site.js?v=7837293e"></script>
+<script src="assets/ch/nash-equilibrium.js?v=7837293e"></script>
 </body>
 </html>

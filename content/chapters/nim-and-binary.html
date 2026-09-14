@@ -49,12 +49,17 @@
   .nb-xor tr.res button.ok{ background:var(--win-soft); border-color:var(--win) }
   .nb-xor tr.res button.bad{ background:var(--you-soft); border-color:var(--you) }
   .nb-sum{ white-space:pre; line-height:1.55 }
+  @media (max-width:480px){
+    .nb-piles{ gap:14px }
+    .nb-bits{ gap:2px }
+    .nb-bits i{ width:16px; height:20px; font-size:.75rem }
+  }
 </style>
 
 <section>
   <div class="prose">
     <p>Chapter 5 had one pile. This game, called <span class="term">Nim</span>, has several. The rules: there are some piles of stones. On your turn, pick <b>one</b> pile and take as many stones from it as you like, at least one, up to the whole pile. Whoever takes the <b>last stone wins</b>.</p>
-    <p>That one change breaks the remainder trick. There is no single number to divide by 4 any more. But there is still a secret, and it is a good one. Play <b class="robo">Robo</b> a few times first. Watch what Robo does when you leave two piles the same size.</p>
+    <p>That one change breaks the remainder trick. There is no single number to divide by 4 any more. But there is still a secret, and it is a good one. Play <b class="robo">Robo</b> a few times first. Pay attention to the moment when only two piles are left.</p>
   </div>
 
   <div class="board">
@@ -80,7 +85,7 @@
   </div>
 
   <div class="prose">
-    <p>Did you catch it? Leave two equal piles and Robo <b>copies</b> you: whatever you take from one pile, Robo takes from the other, so Robo always has an answer and Robo gets the last stone. Two equal piles is a losing position for the player who must move. Three piles are harder to see through. The secret that handles any number of piles needs a new way of writing numbers.</p>
+    <p>Did you catch it? Once only two piles are left, Robo makes them the same size the first chance it gets, and then Robo <b>copies</b> you: whatever you take from one pile, Robo takes from the other. Robo always has an answer, and Robo gets the last stone. Two equal piles, with nothing else, is a losing position for the player who must move. Three piles are harder to see through. The secret that handles any number of piles needs a new way of writing numbers.</p>
   </div>
 </section>
 
@@ -153,7 +158,7 @@
   <div class="proof">
     <ol>
       <li><b>From a nim-sum of 0, every move breaks it.</b> A move changes exactly one pile. Changing a number changes at least one of its binary digits, and flipping one digit in a column changes that column's count of 1s from even to odd. So after any move, some column is odd, and the nim-sum is no longer 0. Whoever faces 0 must hand the other player something that is not 0.</li>
-      <li><b>From a nim-sum that is not 0, there is always a move back to 0.</b> Here is the recipe. Find the leftmost column where the nim-sum has a 1. Some pile has a 1 in that column too, otherwise the column would hold no 1s at all. Take that pile and rewrite it: in every column where the nim-sum has a 1, flip the pile's digit. The new number is smaller, because the leftmost digit you flipped went from 1 to 0, and no digit further left changed. So it is a legal move. And each flipped column was odd before and is even now, so every column is even: nim-sum 0.</li>
+      <li><b>From a nim-sum that is not 0, there is always a move back to 0.</b> Here is the recipe. Find the leftmost column where the nim-sum has a 1. Some pile has a 1 in that column too, otherwise the column would hold no 1s at all. Take that pile and rewrite it: in every column where the nim-sum has a 1, flip the pile's digit. The new number is smaller, because the leftmost digit you flipped went from 1 to 0, and no digit further left changed. So it is a legal move. Each flipped column was odd before and is even now, and the columns you did not flip were already even. So every column is even: nim-sum 0.</li>
       <li><b>Facing 0 means losing.</b> The board with no stones has nim-sum 0. Suppose you face 0. By step 1 you must move to a nonzero position, and by step 2 the other player can move back to 0. The 0s keep landing on you, the piles only shrink, and the last 0 of all is the empty board. Facing the empty board means the other player just took the last stone. So a player who faces 0 loses, as long as the other player knows the recipe. And a player who faces anything else can win, by using it.</li>
     </ol>
   </div>
@@ -210,5 +215,5 @@
 
 <div class="story">
   <span class="tag">True story</span>
-  <p>In 1901 Charles Bouton, a mathematician at Harvard, published a short paper called "Nim, a game with a complete mathematical theory." It contained everything in this chapter: the binary trick, the proof, and the name Nim, which he may have taken from the German word <i>nimm</i>, meaning "take", though that is a guess. It was the first time anyone had published a complete solution to a game like this. Fifty years later, in 1951, a computer called Nimrod, built by the British company Ferranti, played Nim against visitors at the Festival of Britain in London. It was one of the first computers ever built to play a game. And Nim is more than a curiosity: in Chapter 10 you will see that every game where both players have the same moves and the last move wins is secretly a game of Nim.</p>
+  <p>In 1901 Charles Bouton, a mathematician at Harvard, published a short paper called "Nim, a game with a complete mathematical theory." It contained everything in this chapter: the binary trick, the proof, and the name Nim, which he may have taken from the German word <i>nimm</i>, meaning "take", though that is a guess. It was the first time anyone had published a complete solution to a game like this. Fifty years later, in 1951, a computer called Nimrod, built by the British company Ferranti, played Nim against visitors at the Festival of Britain in London. It was one of the first computers ever built to play a game. And Nim is more than a curiosity: in Chapter 10 you will see that every game that has to end, where both players have the same moves and the last move wins, is secretly a game of Nim.</p>
 </div>

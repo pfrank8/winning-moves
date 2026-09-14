@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>13. Auctions · Winning Moves</title>
-<meta name="description" content="This chapter is still being written.">
+<title>13. Going once, going twice · Winning Moves</title>
+<meta name="description" content="Four ways to sell one rare card, the bidding tradeoff, and the auction where telling the truth cannot be beaten.">
 <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="./assets/site.css?v=54185305">
-<script>window.WM_CHAPTERS = [{"slug":"what-is-a-game","num":1,"title":"What is a game","stars":[]},{"slug":"payoff-grids","num":2,"title":"Payoff grids","stars":[]},{"slug":"nash-equilibrium","num":3,"title":"Nash equilibrium","stars":[]},{"slug":"mixed-strategies","num":4,"title":"Mixed strategies","stars":[]},{"slug":"thinking-backwards","num":5,"title":"Thinking backwards","stars":[{"id":"tb-win","label":"Beat a perfect Robo at the 21 Game"},{"id":"tb-labels","label":"Label every position from 0 to 21 correctly"},{"id":"tb-misere","label":"Win the version where the last stone loses"}]},{"slug":"nim-and-binary","num":6,"title":"Nim and binary","stars":[]},{"slug":"game-trees","num":7,"title":"Game trees","stars":[]},{"slug":"chomp","num":8,"title":"Chomp","stars":[]},{"slug":"hex","num":9,"title":"Hex","stars":[]},{"slug":"every-game-is-nim","num":10,"title":"Every game is nim","stars":[]},{"slug":"repeated-games","num":11,"title":"Repeated games","stars":[]},{"slug":"fair-division","num":12,"title":"Fair division","stars":[]},{"slug":"auctions","num":13,"title":"Auctions","stars":[]},{"slug":"voting","num":14,"title":"Voting","stars":[]},{"slug":"bargaining","num":15,"title":"Bargaining","stars":[]},{"slug":"hawks-and-doves","num":16,"title":"Hawks and doves","stars":[]},{"slug":"monty-hall","num":17,"title":"Monty hall","stars":[]},{"slug":"common-knowledge","num":18,"title":"Common knowledge","stars":[]},{"slug":"traffic","num":19,"title":"Traffic","stars":[]},{"slug":"commons","num":20,"title":"Commons","stars":[]},{"slug":"ice-cream-carts","num":21,"title":"Ice cream carts","stars":[]}];</script>
+<link rel="stylesheet" href="./assets/site.css?v=7837293e">
+<script>window.WM_CHAPTERS = [{"slug":"what-is-a-game","num":1,"title":"What is a game?","stars":[{"id":"wg-ten","label":"Play ten rounds and read the grid"},{"id":"wg-exploit","label":"Win 7 of 10 against Pattern Robo"},{"id":"wg-balance","label":"Build a fair five-weapon game"}]},{"slug":"payoff-grids","num":2,"title":"The Cookie Game","stars":[{"id":"pg-play","label":"Work out the dominant strategy, then play the Cookie Game"},{"id":"pg-best","label":"Mark every best response in a 3 by 3 grid"},{"id":"pg-cross","label":"Cross out the whole grid down to one box"}]},{"slug":"nash-equilibrium","num":3,"title":"Nobody wants to switch","stars":[{"id":"ne-hunt","label":"Solve all five equilibrium puzzles"},{"id":"ne-predict","label":"Predict the number of equilibria in five random games in a row"},{"id":"ne-three","label":"Design a 2 by 2 game with exactly three equilibria"}]},{"slug":"mixed-strategies","num":4,"title":"Being unpredictable","stars":[{"id":"ms-exploit","label":"Win 7 of 10 rounds against a Robo with a favorite"},{"id":"ms-safe","label":"Find the plan Robo cannot beat, then test it 100 times"},{"id":"ms-solve","label":"Solve a fresh penalty-kick game to within 3 percent"}]},{"slug":"thinking-backwards","num":5,"title":"Thinking backwards","stars":[{"id":"tb-win","label":"Beat a perfect Robo at the 21 Game"},{"id":"tb-labels","label":"Label every position from 0 to 21 correctly"},{"id":"tb-misere","label":"Win the version where the last stone loses"}]},{"slug":"nim-and-binary","num":6,"title":"Nim and binary","stars":[{"id":"nb-win","label":"Beat a perfect Robo at three-pile Nim"},{"id":"nb-xor","label":"Get five nim-sums right in the column tool"},{"id":"nb-move","label":"Find the winning move in three positions in a row"}]},{"slug":"game-trees","num":7,"title":"Seeing the whole tree","stars":[{"id":"gt-draw","label":"Hold a perfect Robo to a draw"},{"id":"gt-tree","label":"Pick the best move in three tree puzzles"},{"id":"gt-shallow","label":"Beat a Robo that only looks two moves ahead"}]},{"slug":"chomp","num":8,"title":"A proof that you can win","stars":[{"id":"ch-win","label":"Beat a perfect Robo at Chomp on a 4 by 6 bar"},{"id":"ch-square","label":"Beat Robo on a square bar using the mirror trick"},{"id":"ch-count","label":"Count the shapes of a bar with the formula"}]},{"slug":"hex","num":9,"title":"Hex","stars":[{"id":"hx-win","label":"Beat Robo on a 6 by 6 board or bigger, without hints"},{"id":"hx-chain","label":"Trace the winning chain on three random full boards"},{"id":"hx-bridge","label":"Win a game against Robo in which you built a bridge"}]},{"slug":"every-game-is-nim","num":10,"title":"Every game is secretly Nim","stars":[{"id":"gr-mex","label":"Get all five mex problems right"},{"id":"gr-labels","label":"Grundy-label a subtraction game up to 12 or more"},{"id":"gr-sum","label":"Beat a perfect Robo at a sum of two games"}]},{"slug":"repeated-games","num":11,"title":"Playing again and again","stars":[{"id":"rg-coop","label":"Score 60 in 20 rounds against Tit for Tat"},{"id":"rg-guess","label":"Work out which strategy Mystery Robo is using"},{"id":"rg-noise","label":"Run a tournament with 5 or more strategies and 5% noise or more"}]},{"slug":"fair-division","num":12,"title":"Fair division","stars":[]},{"slug":"auctions","num":13,"title":"Going once, going twice","stars":[{"id":"au-english","label":"Win an English auction with a positive profit"},{"id":"au-shade","label":"Finish 10 rounds of the first-price auction with a positive total profit"},{"id":"au-honest","label":"Answer the Vickrey quiz correctly, then win a Vickrey round with a profit"}]},{"slug":"voting","num":14,"title":"How to pick a winner when nobody agrees","stars":[{"id":"vo-three","label":"Build a profile where plurality, instant runoff, and Borda pick three different winners"},{"id":"vo-cycle","label":"Build a Condorcet cycle from scratch"},{"id":"vo-strategic","label":"Find the strategic vote in the Borda election"}]},{"slug":"bargaining","num":15,"title":"Bargaining","stars":[]},{"slug":"hawks-and-doves","num":16,"title":"Hawks and doves","stars":[{"id":"hd-predict","label":"Predict the hawk fraction before the simulation finds it"},{"id":"hd-allhawk","label":"Set a prize worth fighting for and call the hawk takeover"},{"id":"hd-cycle","label":"Watch the lizards cycle for 200 generations"}]},{"slug":"monty-hall","num":17,"title":"Monty hall","stars":[]},{"slug":"common-knowledge","num":18,"title":"Common knowledge","stars":[]},{"slug":"traffic","num":19,"title":"Traffic","stars":[]},{"slug":"commons","num":20,"title":"Commons","stars":[]},{"slug":"ice-cream-carts","num":21,"title":"Ice cream carts","stars":[]}];</script>
 </head>
 <body class="chapter-auctions">
 <nav class="topbar" aria-label="Site">
@@ -22,15 +22,234 @@
   <a class="pill" href="./#progress" title="Your stars"><span class="star">★</span> <span id="star-count">0</span>/<span id="star-total">0</span></a>
 </nav>
 <main class="wrap chapter">
-<header class="chapter-head part-3"><div class="num">13</div><div><span class="kicker">Part III · Playing with people</span><h1>Auctions</h1><p class="lede">This chapter is still being written.</p></div></header><div class="prose"><p>Coming soon.</p></div>
-<nav class="pager" aria-label="Chapters"><a class="prev" href="fair-division.html"><span class="lab">← Chapter 12</span><span class="t">Fair division</span></a><a class="next" href="voting.html"><span class="lab">Chapter 14 →</span><span class="t">Voting</span></a></nav>
+<header class="chapter-head part-3"><div class="num">13</div><div><span class="kicker">Part III · Playing with people</span><h1>Going once, going twice</h1><p class="lede">One rare trading card, four bidders, and everyone's real price is a secret. Change how the auction is run and the right way to bid changes with it. In one kind of auction the unbeatable plan is simply to tell the truth, and by the end you will be able to prove it.</p></div></header><style>
+  .au-bidders{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:16px 0 }
+  @media (max-width:640px){ .au-bidders{ grid-template-columns:repeat(2,1fr) } }
+  .au-b{ border:3px solid var(--robo); background:var(--robo-soft); border-radius:12px; padding:10px 12px; display:grid; gap:2px; transition:opacity .25s }
+  .au-b.you{ border-color:var(--you); background:var(--you-soft) }
+  .au-b .n{ font:700 1.05rem var(--f-display) }
+  .au-b .s{ font:600 .82rem var(--f-mono); color:var(--ink-soft) }
+  .au-b .v{ font:600 .95rem var(--f-mono) }
+  .au-b.out{ opacity:.4 }
+  .au-b.won{ border-color:var(--win); background:var(--win-soft); opacity:1 }
+  .au-tbl td.rb{ color:var(--robo) } .au-tbl td.yb{ color:var(--you); font-weight:700 }
+  .au-chart{ width:100%; max-width:640px; height:auto; display:block; border:3px solid var(--line); border-radius:12px; background:var(--surface); margin-top:6px }
+  .au-chart .ax{ stroke:var(--line); stroke-width:2 }
+  .au-chart .gl{ stroke:var(--grid); stroke-width:1 }
+  .au-chart .curve{ stroke:var(--ink); stroke-width:5; fill:none; stroke-linecap:round }
+  .au-chart .vline{ stroke:var(--math); stroke-width:3; stroke-dasharray:7 6 }
+  .au-chart .rline{ stroke:var(--robo); stroke-width:2; stroke-dasharray:3 5 }
+  .au-chart .dotv{ fill:var(--math); stroke:var(--ink); stroke-width:2.5 }
+  .au-chart .dotb{ fill:var(--you); stroke:var(--ink); stroke-width:2.5 }
+  .au-chart .dotc{ fill:var(--ink) }
+  .au-chart .doto{ fill:var(--surface); stroke:var(--ink); stroke-width:3 }
+  .au-chart text{ font:600 14px var(--f-mono); fill:var(--ink-soft) }
+  .au-chart text.lab{ font:600 15px var(--f-display); fill:var(--ink) }
+  .au-clock{ font:700 3.2rem var(--f-display); line-height:1; min-width:4.2ch; font-variant-numeric:tabular-nums }
+  .au-hist{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px }
+  .au-hist span{ font:600 .82rem var(--f-mono); padding:2px 8px; border-radius:999px; border:2px solid var(--line); background:var(--surface-2) }
+  .au-hist span.up{ background:var(--win-soft); border-color:var(--win) }
+  .au-hist span.down{ background:var(--you-soft); border-color:var(--you) }
+</style>
+
+<section>
+  <div class="prose">
+    <p>A rare trading card is up for sale. Four bidders want it: <b class="you">you</b>, <b class="robo">Robo</b>, <b class="robo">Robo 2</b>, and <b class="robo">Robo 3</b>. Every bidder has a <span class="term">private value</span>: the most they would pay for the card and still be glad they bought it. Your value is shown to you. The robots' values are secret. Each auction, every robot gets a fresh value somewhere between $10 and $100, every amount equally likely.</p>
+    <p>Winning is not the goal. <b>Profit</b> is. If you win at price <span class="var">p</span>, your profit is your value minus <span class="var">p</span>. If you do not win, your profit is 0. Paying $80 for a card you value at $60 is not a victory. It is a loss of $20.</p>
+    <p>The auction you probably picture is the <span class="term">English auction</span>: the auctioneer calls a price, everyone willing to pay it stays in, and the price climbs by $5 until one bidder is left. That bidder pays the last price called. Play a few. Each time a price is called, stay in or drop out.</p>
+  </div>
+
+  <div class="board">
+    <div class="board-head"><h3>The English auction</h3><span class="rules">Price climbs by $5. Last bidder standing pays the last price called.</span></div>
+    <div class="row">
+      <div class="stat"><span class="k">Your value</span><span class="v you" id="au-e-val">$60</span></div>
+      <div class="stat"><span class="k">Price called</span><span class="v" id="au-e-price">$5</span></div>
+      <div class="stat"><span class="k">Still in</span><span class="v" id="au-e-in">4</span></div>
+    </div>
+    <div class="au-bidders" id="au-e-bidders"></div>
+    <div class="row">
+      <button class="btn btn-you" id="au-e-stay" type="button">Stay in</button>
+      <button class="btn" id="au-e-drop" type="button">Drop out</button>
+      <button class="btn btn-math btn-sm" id="au-e-hint" type="button">Hint</button>
+      <span style="flex:1 0 12px"></span>
+      <button class="btn btn-sm" id="au-e-new" type="button">New auction</button>
+    </div>
+    <div class="status" id="au-e-status"></div>
+    <div class="log" id="au-e-log"></div>
+    <div class="row" style="margin-top:16px">
+      <div class="stat"><span class="k">Auctions</span><span class="v" id="au-e-n">0</span></div>
+      <div class="stat"><span class="k">You won</span><span class="v" id="au-e-w">0</span></div>
+      <div class="stat"><span class="k">Total profit</span><span class="v" id="au-e-total">$0</span></div>
+    </div>
+  </div>
+
+  <div class="prose">
+    <p>Every robot follows one rule: <b>stay in while the price is below my value, drop out the moment it is not</b>. It is the right rule for you too. Say your value is $60 and the price called is $45. Staying in costs nothing yet, and if everyone else drops out the card is yours for $45, a $15 profit. Dropping out throws that away. Once the price called reaches $60, staying in can only win you the card at $60 or more: profit zero, or a loss. So the plan is: <b>stay until the price passes your value</b>. Nothing the other bidders do changes it.</p>
+    <p>Look at what the winner pays. Not their own value. They pay the price at which the <i>second-to-last</i> bidder gave up, which is roughly the second-highest value in the room. Hold onto that.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Sealed envelopes</h2>
+  <div class="prose">
+    <p>Change the rules. Each bidder writes one number in an envelope. The envelopes are opened, the highest number wins, and the winner pays <b>the number they wrote</b>. This is a <span class="term">first-price sealed-bid auction</span>.</p>
+    <p>The English auction had an easy rule. This one does not. Say your value is $60. If you write 60 and win, you pay $60 for a card worth $60 to you. Profit: zero, guaranteed. Bidding your full value can never earn you a cent. So you must bid less. But bidding less means you might lose to a robot that wrote $52 when you would gladly have paid $55. A lower bid gives you a bigger profit <i>if</i> you win and a smaller chance of winning. That tradeoff is the whole game.</p>
+    <p>The robots know this. Each one <span class="term">shades</span> its bid: it writes down three quarters of its value. A robot that values the card at $80 writes $60. Your job: pick a bid, ten rounds in a row, and finish ahead.</p>
+  </div>
+
+  <div class="board">
+    <div class="board-head"><h3>First price, ten rounds</h3><span class="rules">Highest bid wins and pays its own bid. Robots bid 3/4 of their value.</span></div>
+    <div class="row">
+      <div class="stat"><span class="k">Round</span><span class="v" id="au-f-round">1 of 10</span></div>
+      <div class="stat"><span class="k">Your value</span><span class="v you" id="au-f-val">$60</span></div>
+      <div class="stat"><span class="k">Total profit</span><span class="v" id="au-f-total">$0</span></div>
+    </div>
+    <div class="row">
+      <span class="field">Your bid $<input type="number" id="au-f-bid" min="0" max="100" step="1" value="45"></span>
+      <button class="btn btn-you" id="au-f-go" type="button">Seal it</button>
+      <button class="btn btn-math btn-sm" id="au-f-hint" type="button">Hint</button>
+      <span style="flex:1 0 12px"></span>
+      <button class="btn btn-sm" id="au-f-new" type="button">Start over</button>
+    </div>
+    <div class="status" id="au-f-status"></div>
+    <div class="scroll"><table class="data au-tbl" id="au-f-tbl"></table></div>
+    <div class="au-hist" id="au-f-hist"></div>
+  </div>
+</section>
+
+<div class="math">
+  <span class="tag">Math corner</span>
+  <p><b>Expected profit.</b> Chapter 4's tool is exactly what a sealed bid needs. Your expected profit from a bid <span class="var">b</span> is</p>
+  <div class="formula">expected profit = (chance of winning) × (value − b)</div>
+  <p>The second factor is easy: bid $45 with a value of $60 and you earn $15 whenever you win. The first factor takes work. You beat one robot when its bid, 0.75 × its value, is below <span class="var">b</span>, which means its value is below <span class="var">b</span> ÷ 0.75. Robot values are spread evenly from 10 to 100, so the chance one robot's value lands below some number <span class="var">x</span> is (<span class="var">x</span> − 10) ÷ 90. Put those together:</p>
+  <div class="formula">chance one robot bids below b = (b ÷ 0.75 − 10) ÷ 90</div>
+  <p>kept between 0 and 1. The three robots draw their values separately, so the chance that <i>all three</i> bid below <span class="var">b</span> is that number <b>cubed</b>. Here is the table for the value in the game above, right now (<span class="you" id="au-ev-v">$60</span>), with bids rounded to whole dollars:</p>
+  <div class="scroll"><table class="data" id="au-ev"></table></div>
+  <p id="au-ev-best"></p>
+  <p>The robots' three-quarters rule is no accident. With <span class="var">n</span> bidders whose values are spread evenly from zero up to some top amount, bidding (<span class="var">n</span> − 1)/<span class="var">n</span> of your value is the <span class="term">equilibrium</span>: the rule where no bidder gains by switching. Four bidders: 3/4. Our values start at $10 rather than $0, which nudges the exact equilibrium up by about $2.50; three quarters is close enough for a robot.</p>
+</div>
+
+<section>
+  <h2>The clever auction</h2>
+  <div class="prose">
+    <p>Here is a small change with a huge effect. Envelopes again, and the highest number still wins. But the winner pays the <b>second-highest</b> number, not their own. This is a <span class="term">second-price auction</span>, also called a <span class="term">Vickrey auction</span> <span class="say">(say: VICK-ree)</span> after the economist who worked out what it does.</p>
+    <p>In a second-price auction, writing down exactly your true value is a <span class="term">dominant strategy</span>, Chapter 2's word: it is at least as good as every other bid <i>no matter what the other bidders write</i>. No shading. No guessing what Robo will do. No tradeoff. Just tell the truth.</p>
+    <p>That is a strong claim, so test it before you believe it. Set your value <span class="var">V</span>. Set <span class="var">R</span>, the highest number anyone else wrote (only the highest matters, because that is the price you would pay). Then slide your own bid <span class="var">B</span> around and watch your profit.</p>
+  </div>
+
+  <div class="board">
+    <div class="board-head"><h3>Why honesty wins</h3><span class="rules">Second price: if B beats R you win and pay R. Ties go to the other bidder.</span></div>
+    <div class="three">
+      <div class="slider"><label class="lab" for="au-v"><span class="you">Your value V</span><span class="v" data-for="au-v">$60</span></label><input type="range" id="au-v" min="0" max="100" value="60"></div>
+      <div class="slider"><label class="lab" for="au-r"><span class="robo">Highest rival bid R</span><span class="v" data-for="au-r">$45</span></label><input type="range" id="au-r" min="0" max="100" value="45"></div>
+      <div class="slider"><label class="lab" for="au-b"><span>Your bid B</span><span class="v" data-for="au-b">$60</span></label><input type="range" id="au-b" min="0" max="100" value="60"></div>
+    </div>
+    <div class="status" id="au-x-status"></div>
+    <p class="note" id="au-x-note"></p>
+    <svg class="au-chart" id="au-chart" viewBox="0 0 640 330" role="img" aria-label="Your profit as a function of your bid B, for the chosen V and R"></svg>
+    <div class="legend"><span><i style="background:var(--math)"></i>bid = value</span><span><i style="background:var(--you)"></i>your bid B</span><span><i style="background:var(--robo)"></i>rival bid R</span></div>
+    <div class="row" style="margin-top:20px">
+      <span class="field">Quiz: your value is <b class="you" id="au-q-v">$60</b>. What should you bid? $<input type="number" id="au-q-in" min="0" max="100" step="1"></span>
+      <button class="btn btn-math" id="au-q-go" type="button">Check</button>
+    </div>
+    <div class="status" id="au-q-status"></div>
+  </div>
+
+  <div class="prose">
+    <p>Slide <span class="var">R</span> anywhere. The yellow dot, your profit when you bid <span class="var">V</span>, is never below any other point on the curve. Other bids sometimes tie it. None beat it. Here is the proof, in two cases.</p>
+  </div>
+  <div class="proof">
+    <ol>
+      <li><b>Case 1: <span class="var">R</span> is below <span class="var">V</span>.</b> Bidding <span class="var">V</span> wins, and you pay <span class="var">R</span>, so your profit is <span class="var">V</span> − <span class="var">R</span>, a positive number. Any other bid above <span class="var">R</span> gives the exact same result: you still win, you still pay <span class="var">R</span>. Any bid at or below <span class="var">R</span> loses and earns 0. So no bid beats <span class="var">V</span>.</li>
+      <li><b>Case 2: <span class="var">R</span> is above <span class="var">V</span>.</b> Bidding <span class="var">V</span> loses: profit 0. Any other bid below <span class="var">R</span> also loses: 0 again. A bid above <span class="var">R</span> wins, but you pay <span class="var">R</span>, which is more than the card is worth to you, so your profit is <span class="var">V</span> − <span class="var">R</span>, a negative number. So no bid beats <span class="var">V</span>.</li>
+      <li>If <span class="var">R</span> equals <span class="var">V</span>, every bid earns 0: lose and get nothing, or win and pay exactly what it is worth. So in every case, bidding <span class="var">V</span> is at least as good as anything else. That is what <b>dominant</b> means.</li>
+    </ol>
+  </div>
+  <div class="prose">
+    <p>Notice the trick. Your bid decides <i>whether</i> you win, but never <i>what</i> you pay. Since your bid cannot touch your price, there is nothing to gain by lying about it. Now play it for real. The robots bid their true values; they have read the proof.</p>
+  </div>
+
+  <div class="board">
+    <div class="board-head"><h3>Second price, ten rounds</h3><span class="rules">Highest bid wins and pays the second-highest bid. Robots bid their true values.</span></div>
+    <div class="row">
+      <div class="stat"><span class="k">Round</span><span class="v" id="au-s-round">1 of 10</span></div>
+      <div class="stat"><span class="k">Your value</span><span class="v you" id="au-s-val">$60</span></div>
+      <div class="stat"><span class="k">Total profit</span><span class="v" id="au-s-total">$0</span></div>
+    </div>
+    <div class="row">
+      <span class="field">Your bid $<input type="number" id="au-s-bid" min="0" max="100" step="1" value="60"></span>
+      <button class="btn btn-you" id="au-s-go" type="button">Seal it</button>
+      <button class="btn btn-math btn-sm" id="au-s-hint" type="button">Hint</button>
+      <span style="flex:1 0 12px"></span>
+      <button class="btn btn-sm" id="au-s-new" type="button">Start over</button>
+    </div>
+    <div class="status" id="au-s-status"></div>
+    <div class="scroll"><table class="data au-tbl" id="au-s-tbl"></table></div>
+    <div class="au-hist" id="au-s-hist"></div>
+  </div>
+</section>
+
+<section>
+  <h2>Going down</h2>
+  <div class="prose">
+    <p>One more. In a <span class="term">Dutch auction</span> the price starts high and falls. A clock ticks down from $100, and the first bidder to shout "Mine" takes the card at whatever the clock says. Flower sellers in the Netherlands have sold their flowers this way for more than a century, which is where the name comes from.</p>
+    <p>It looks like a different game from sealed envelopes. It is not. Before the clock starts you have to decide the number you are waiting for: the price at which you will shout. Shout too early and you pay too much; wait too long and a robot beats you to it. That waiting number <i>is</i> your sealed bid. The first-price auction and the Dutch auction are the same game in different clothes: the highest number wins, and the winner pays their own number. The robots below wait for three quarters of their value, just as before. Try it by hand first, then type a waiting number and let the clock shout for you.</p>
+  </div>
+
+  <div class="board">
+    <div class="board-head"><h3>The falling clock</h3><span class="rules">Price falls $1 at a time. First to shout takes it at that price.</span></div>
+    <div class="row">
+      <div class="stat"><span class="k">Your value</span><span class="v you" id="au-d-val">$60</span></div>
+      <span class="au-clock" id="au-d-price">$100</span>
+      <span style="flex:1 0 12px"></span>
+      <div class="stat"><span class="k">Total profit</span><span class="v" id="au-d-total">$0</span></div>
+    </div>
+    <div class="row">
+      <button class="btn" id="au-d-start" type="button">Start the clock</button>
+      <button class="btn btn-you btn-big" id="au-d-mine" type="button" disabled>Mine!</button>
+      <span class="field">Or wait for $<input type="number" id="au-d-auto" min="0" max="100" step="1" placeholder="none"></span>
+    </div>
+    <div class="status" id="au-d-status"></div>
+    <div class="log" id="au-d-log"></div>
+  </div>
+</section>
+
+<div class="idea">
+  <span class="tag">Big idea</span>
+  <p>How the auction is run changes how you should bid. When the winner pays their own number (first-price, Dutch), you have to shade below your value and gamble on the tradeoff. When the winner pays a price set by someone else (English, second-price), the right bid is simply your true value, and no cleverness can beat it.</p>
+</div>
+
+<div class="try">
+  <span class="tag">Try it on paper</span>
+  <p><b>1.</b> A second-price auction. The bids are 40, 65, and 80. Who wins, and what do they pay?</p>
+  <details class="reveal"><summary>Answer</summary><p>The 80 bid wins and pays the second-highest bid, 65.</p></details>
+  <p><b>2.</b> Second-price again. Your value is 60 and you bid 60. The others bid 30 and 70. What happens? Would bidding 75 have helped?</p>
+  <details class="reveal"><summary>Answer</summary><p>The 70 beats you: profit 0. Bidding 75 would have won, but you would pay the second-highest bid, 70, for a card worth 60 to you: profit −10. Losing was the better result.</p></details>
+  <p><b>3.</b> A first-price auction. Your value is 80. If you win with a bid of 60, what is your profit? If you win with a bid of 78?</p>
+  <details class="reveal"><summary>Answer</summary><p>80 − 60 = 20 with the low bid, 80 − 78 = 2 with the high one. The high bid wins far more often, but each win is worth only 2. Which is better depends on how often each wins: the expected-profit question from the Math corner.</p></details>
+</div>
+
+<div class="challenge">
+  <span class="tag">Challenge</span>
+  <p>So far every bidder had a value of their own. Now suppose the card is worth exactly the same to everyone: it will sell next week for one fixed price, and nobody knows what. Each bidder makes a guess; the guesses scatter around the truth, some high, some low. Everyone bids from their own guess in a first-price auction. Strange fact: the winner usually loses money, even though nobody bids above their guess. Why?</p>
+  <p>Then test it. Put a handful of coins in a jar without counting. Four people guess the total and bid their guess, sealed; the highest bid takes the jar. Count the coins. Do five jars and keep score of the winner's profit.</p>
+  <details class="reveal"><summary>Answer</summary>
+    <p>Winning means your guess was the highest of four. The highest of several guesses that scatter around the truth is usually <i>above</i> the truth: for the top guess to be too low, all four guesses would have to be too low at once. So winning is bad news about your own guess. This is called the <span class="term">winner's curse</span>. The cure: bid as if you already know you will win, so assume your guess is the high one and shade it down. Petroleum engineers gave the curse its name in 1971 after watching oil companies overpay for the right to drill in the Gulf of Mexico.</p>
+  </details>
+</div>
+
+<div class="story">
+  <span class="tag">True story</span>
+  <p>William Vickrey published the second-price idea in 1961. In October 1996 he won the Nobel Prize in economics, partly for that paper, and died three days later, at 82, on his way to a conference. The idea was older than anyone knew: stamp collectors were running second-price auctions by mail in the 1890s, decades before the theory existed. eBay's automatic bidding, where you type in the most you would pay and the site bids for you, is a second-price auction in disguise. Google sells its search ads with a generalized second-price auction, and that auction runs billions of times a day.</p>
+</div><section class="chapter-stars"><h3>Stars in this chapter</h3><p class="note" style="margin-top:0">Earn them by doing the clever thing, not by clicking around.</p><ul class="starlist"><li data-star="au-english"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg><span>Win an English auction with a positive profit</span></li><li data-star="au-shade"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg><span>Finish 10 rounds of the first-price auction with a positive total profit</span></li><li data-star="au-honest"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg><span>Answer the Vickrey quiz correctly, then win a Vickrey round with a profit</span></li></ul></section>
+<nav class="pager" aria-label="Chapters"><a class="prev" href="fair-division.html"><span class="lab">← Chapter 12</span><span class="t">Fair division</span></a><a class="next" href="voting.html"><span class="lab">Chapter 14 →</span><span class="t">How to pick a winner when nobody agrees</span></a></nav>
 </main>
 <footer class="site wrap">
   <span>Winning Moves · a game theory playground. Play these with real things too: coins, a chocolate bar, a cookie to cut.</span>
   <a href="./grown-ups.html">For grown-ups</a>
 </footer>
 <div id="toast" role="status" aria-live="polite"></div>
-<script src="./assets/site.js?v=54185305"></script>
-
+<script src="./assets/site.js?v=7837293e"></script>
+<script src="assets/ch/auctions.js?v=7837293e"></script>
 </body>
 </html>

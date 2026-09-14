@@ -191,7 +191,7 @@ label.chk{ display:inline-flex; align-items:center; gap:8px; font:500 .95rem var
 input[type=checkbox],input[type=radio]{ width:20px; height:20px; accent-color:var(--robo) }
 input[type=range]{ width:100%; accent-color:var(--robo) }
 input[type=number],input[type=text],select{ font:600 1rem var(--f-mono); padding:.35em .5em; border:2px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); width:5.5em }
-input[type=text]{ width:auto }
+input[type=text],select{ width:auto; max-width:100% }
 .field{ display:inline-flex; align-items:center; gap:8px; font:500 .95rem var(--f-display) }
 .seg{ display:inline-flex; border:3px solid var(--line); border-radius:12px; overflow:hidden; box-shadow:4px 4px 0 var(--drop); background:var(--surface) }
 .seg button{ font:600 .95rem var(--f-display); padding:.5em .9em; border:0; background:var(--surface); color:var(--ink); cursor:pointer }

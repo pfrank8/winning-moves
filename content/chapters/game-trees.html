@@ -1,28 +1,15 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>7. Seeing the whole tree · Winning Moves</title>
-<meta name="description" content="How a computer plays tic-tac-toe perfectly by drawing every possible future, how big that drawing is, and the trick for skipping most of it.">
-<link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="./assets/site.css?v=7837293e">
-<script>window.WM_CHAPTERS = [{"slug":"what-is-a-game","num":1,"title":"What is a game?","stars":[{"id":"wg-ten","label":"Play ten rounds and read the grid"},{"id":"wg-exploit","label":"Win 7 of 10 against Pattern Robo"},{"id":"wg-balance","label":"Build a fair five-weapon game"}]},{"slug":"payoff-grids","num":2,"title":"The Cookie Game","stars":[{"id":"pg-play","label":"Work out the dominant strategy, then play the Cookie Game"},{"id":"pg-best","label":"Mark every best response in a 3 by 3 grid"},{"id":"pg-cross","label":"Cross out the whole grid down to one box"}]},{"slug":"nash-equilibrium","num":3,"title":"Nobody wants to switch","stars":[{"id":"ne-hunt","label":"Solve all five equilibrium puzzles"},{"id":"ne-predict","label":"Predict the number of equilibria in five random games in a row"},{"id":"ne-three","label":"Design a 2 by 2 game with exactly three equilibria"}]},{"slug":"mixed-strategies","num":4,"title":"Being unpredictable","stars":[{"id":"ms-exploit","label":"Win 7 of 10 rounds against a Robo with a favorite"},{"id":"ms-safe","label":"Find the plan Robo cannot beat, then test it 100 times"},{"id":"ms-solve","label":"Solve a fresh penalty-kick game to within 3 percent"}]},{"slug":"thinking-backwards","num":5,"title":"Thinking backwards","stars":[{"id":"tb-win","label":"Beat a perfect Robo at the 21 Game"},{"id":"tb-labels","label":"Label every position from 0 to 21 correctly"},{"id":"tb-misere","label":"Win the version where the last stone loses"}]},{"slug":"nim-and-binary","num":6,"title":"Nim and binary","stars":[{"id":"nb-win","label":"Beat a perfect Robo at three-pile Nim"},{"id":"nb-xor","label":"Get five nim-sums right in the column tool"},{"id":"nb-move","label":"Find the winning move in three positions in a row"}]},{"slug":"game-trees","num":7,"title":"Seeing the whole tree","stars":[{"id":"gt-draw","label":"Hold a perfect Robo to a draw"},{"id":"gt-tree","label":"Pick the best move in three tree puzzles"},{"id":"gt-shallow","label":"Beat a Robo that only looks two moves ahead"}]},{"slug":"chomp","num":8,"title":"A proof that you can win","stars":[{"id":"ch-win","label":"Beat a perfect Robo at Chomp on a 4 by 6 bar"},{"id":"ch-square","label":"Beat Robo on a square bar using the mirror trick"},{"id":"ch-count","label":"Count the shapes of a bar with the formula"}]},{"slug":"hex","num":9,"title":"Hex","stars":[{"id":"hx-win","label":"Beat Robo on a 6 by 6 board or bigger, without hints"},{"id":"hx-chain","label":"Trace the winning chain on three random full boards"},{"id":"hx-bridge","label":"Win a game against Robo in which you built a bridge"}]},{"slug":"every-game-is-nim","num":10,"title":"Every game is secretly Nim","stars":[{"id":"gr-mex","label":"Get all five mex problems right"},{"id":"gr-labels","label":"Grundy-label a subtraction game up to 12 or more"},{"id":"gr-sum","label":"Beat a perfect Robo at a sum of two games"}]},{"slug":"repeated-games","num":11,"title":"Playing again and again","stars":[{"id":"rg-coop","label":"Score 60 in 20 rounds against Tit for Tat"},{"id":"rg-guess","label":"Work out which strategy Mystery Robo is using"},{"id":"rg-noise","label":"Run a tournament with 5 or more strategies and 5% noise or more"}]},{"slug":"fair-division","num":12,"title":"Fair division","stars":[]},{"slug":"auctions","num":13,"title":"Going once, going twice","stars":[{"id":"au-english","label":"Win an English auction with a positive profit"},{"id":"au-shade","label":"Finish 10 rounds of the first-price auction with a positive total profit"},{"id":"au-honest","label":"Answer the Vickrey quiz correctly, then win a Vickrey round with a profit"}]},{"slug":"voting","num":14,"title":"How to pick a winner when nobody agrees","stars":[{"id":"vo-three","label":"Build a profile where plurality, instant runoff, and Borda pick three different winners"},{"id":"vo-cycle","label":"Build a Condorcet cycle from scratch"},{"id":"vo-strategic","label":"Find the strategic vote in the Borda election"}]},{"slug":"bargaining","num":15,"title":"Bargaining","stars":[]},{"slug":"hawks-and-doves","num":16,"title":"Hawks and doves","stars":[{"id":"hd-predict","label":"Predict the hawk fraction before the simulation finds it"},{"id":"hd-allhawk","label":"Set a prize worth fighting for and call the hawk takeover"},{"id":"hd-cycle","label":"Watch the lizards cycle for 200 generations"}]},{"slug":"monty-hall","num":17,"title":"Monty hall","stars":[]},{"slug":"common-knowledge","num":18,"title":"Common knowledge","stars":[]},{"slug":"traffic","num":19,"title":"Traffic","stars":[]},{"slug":"commons","num":20,"title":"Commons","stars":[]},{"slug":"ice-cream-carts","num":21,"title":"Ice cream carts","stars":[]}];</script>
-</head>
-<body class="chapter-game-trees">
-<nav class="topbar" aria-label="Site">
-  <a class="brand" href="./">Winning Moves</a>
-  <span class="crumb">Part II · Chapter 7</span>
-  <span class="spacer"></span>
-  <a class="pill" href="./arcade.html">Arcade</a>
-  <a class="pill" href="./glossary.html">Big words</a>
-  <a class="pill" href="./#progress" title="Your stars"><span class="star">★</span> <span id="star-count">0</span>/<span id="star-total">0</span></a>
-</nav>
-<main class="wrap chapter">
-<header class="chapter-head part-2"><div class="num">7</div><div><span class="kicker">Part II · Games with turns</span><h1>Seeing the whole tree</h1><p class="lede">Tic-tac-toe is small enough that Robo can look at every possible future before it moves. That is not a figure of speech. This chapter shows how a computer plays a game perfectly by drawing the tree of everything that could happen, how big that tree is, and the trick that lets it skip most of the branches.</p></div></header><style>
+<!--meta {
+  "title": "Seeing the whole tree",
+  "kicker": "Game trees, minimax, and pruning",
+  "description": "How a computer plays tic-tac-toe perfectly by drawing every possible future, how big that drawing is, and the trick for skipping most of it.",
+  "lede": "Tic-tac-toe is small enough that Robo can look at every possible future before it moves. That is not a figure of speech. This chapter shows how a computer plays a game perfectly by drawing the tree of everything that could happen, how big that tree is, and the trick that lets it skip most of the branches.",
+  "stars": [
+    {"id": "gt-draw", "label": "Hold a perfect Robo to a draw"},
+    {"id": "gt-tree", "label": "Pick the best move in three tree puzzles"},
+    {"id": "gt-shallow", "label": "Beat a Robo that only looks two moves ahead"}
+  ]
+} -->
+<style>
   .gt-ttt{ display:grid; grid-template-columns:repeat(3, 84px); gap:8px; margin:14px 0 }
   .gt-ttt button{ width:84px; height:84px; border:3px solid var(--line); border-radius:12px; background:var(--surface-2); font:700 2.6rem var(--f-display); cursor:pointer; color:var(--ink); line-height:1 }
   .gt-ttt button:hover:not(:disabled){ background:var(--math-soft) }
@@ -134,15 +121,4 @@
 <div class="story">
   <span class="tag">True story</span>
   <p>In 1950 Claude Shannon, the engineer who invented the mathematics of information, wrote the first paper on programming a computer to play chess and worked out that the chess tree was hopelessly large: the estimate 10<sup>120</sup> is still called the Shannon number. Two years later, a Cambridge student named Sandy Douglas wrote a tic-tac-toe program called OXO for the EDSAC computer, one of the first computer games ever made. In 1997 IBM's Deep Blue, examining 200 million positions per second, beat the world chess champion Garry Kasparov. It used minimax with pruning, the very ideas on this page, plus a great deal of engineering.</p>
-</div><section class="chapter-stars"><h3>Stars in this chapter</h3><p class="note" style="margin-top:0">Earn them by doing the clever thing, not by clicking around.</p><ul class="starlist"><li data-star="gt-draw"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg><span>Hold a perfect Robo to a draw</span></li><li data-star="gt-tree"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg><span>Pick the best move in three tree puzzles</span></li><li data-star="gt-shallow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg><span>Beat a Robo that only looks two moves ahead</span></li></ul></section>
-<nav class="pager" aria-label="Chapters"><a class="prev" href="nim-and-binary.html"><span class="lab">← Chapter 6</span><span class="t">Nim and binary</span></a><a class="next" href="chomp.html"><span class="lab">Chapter 8 →</span><span class="t">A proof that you can win</span></a></nav>
-</main>
-<footer class="site wrap">
-  <span>Winning Moves · a game theory playground. Play these with real things too: coins, a chocolate bar, a cookie to cut.</span>
-  <a href="./grown-ups.html">For grown-ups</a>
-</footer>
-<div id="toast" role="status" aria-live="polite"></div>
-<script src="./assets/site.js?v=7837293e"></script>
-<script src="assets/ch/game-trees.js?v=7837293e"></script>
-</body>
-</html>
+</div>

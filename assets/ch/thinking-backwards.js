@@ -17,7 +17,7 @@ function labels(N, takes, misere){
 }
 
 /* ================= the game ================= */
-const g = { start: 21, takes: [1, 2, 3], misere: false, n: 21, turn: 'you', over: false, busy: false, first: 'you', log: [], W: [] };
+const g = { start: 21, takes: [1, 2, 3], misere: false, n: 21, turn: 'you', over: false, busy: false, first: 'you', log: [], W: [], id: 0 };
 const goofOn = () => $('#tb-goof').checked;
 
 function winningMoves(n){ return g.takes.filter(m => m <= n && !g.W[n - m]); }
@@ -49,7 +49,7 @@ function newGame(){
   g.start = Math.min(40, Math.max(8, +$('#tb-stones').value || 21)); $('#tb-stones').value = g.start;
   g.takes = parseTakes($('#tb-takes-in').value); $('#tb-takes-in').value = g.takes.join(', ');
   g.W = labels(g.start, g.takes, g.misere);
-  g.n = g.start; g.over = false; g.busy = false; g.log = []; g.turn = g.first;
+  g.n = g.start; g.over = false; g.busy = false; g.log = []; g.turn = g.first; g.id++;
   render();
   if (g.turn === 'you') status('Your turn. How many will you take?');
   else { status('Robo goes first...'); roboMove(); }
@@ -67,7 +67,9 @@ function finish(lastTaker){
 }
 async function roboMove(){
   g.turn = 'robo'; g.busy = true; render();
+  const id = g.id;
   await wait(750);
+  if (id !== g.id) return;   // a new game started while Robo was thinking
   const wins = winningMoves(g.n);
   const goof = goofOn() && Math.random() < 0.5;
   const m = (wins.length && !goof) ? pick(wins) : pick(legalMoves(g.n));
