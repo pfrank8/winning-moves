@@ -8,6 +8,7 @@ docs/ (the GitHub Pages source folder). No third-party dependencies.
 
 Usage: python3 build.py            # build to docs/
        python3 build.py --check    # build, then fail on broken internal links
+       python3 build.py --out DIR  # build somewhere else (parallel authors use .scratch/<slug>/out)
 """
 from __future__ import annotations
 
@@ -276,6 +277,9 @@ def check_links(out_dir: Path) -> int:
 
 
 def main(argv: list[str]) -> int:
+    global OUT
+    if "--out" in argv:
+        OUT = Path(argv[argv.index("--out") + 1]).resolve()
     site = load_site()
     template = TEMPLATE.read_text(encoding="utf-8")
     digest = hashlib.sha1()
