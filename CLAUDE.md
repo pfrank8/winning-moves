@@ -33,7 +33,7 @@ GitHub org because the `pfrank8` personal account was billing-locked on
 2026-09-14 and could not run Actions or Pages builds; move it back with a
 repo transfer once that clears. Live URL: https://leapwave.github.io/winning-moves/ . The custom domain (if any) is
 `domain` in `content/site.json`, which writes `docs/CNAME`; the registrar
-needs a CNAME record pointing at `pfrank8.github.io` first.
+needs a CNAME record pointing at `leapwave.github.io` first.
 
 ## Verifying
 
