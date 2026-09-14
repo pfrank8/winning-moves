@@ -1,0 +1,263 @@
+<!--meta {
+  "title": "Every game is secretly Nim",
+  "kicker": "The Sprague-Grundy theorem",
+  "description": "One number per position, the mex rule that finds it, and why any pile of games played at once is just Nim in disguise.",
+  "lede": "Chapter 5 labeled positions W or L. Chapter 6 turned Nim piles into binary. This chapter joins them: every position in every game like these is secretly a Nim pile, and one number, its Grundy value, tells you how big. Once you can find that number, you can play several games at once and still never lose to Robo.",
+  "stars": [
+    {"id": "gr-mex", "label": "Get all five mex problems right"},
+    {"id": "gr-labels", "label": "Grundy-label a subtraction game up to 12 or more"},
+    {"id": "gr-sum", "label": "Beat a perfect Robo at a sum of two games"}
+  ]
+} -->
+<style>
+  /* mex calculator */
+  .gr-line{ display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 6px }
+  .gr-lc{ width:36px; height:36px; border-radius:50%; border:3px solid var(--line); display:grid; place-items:center; font:600 .85rem var(--f-mono); color:var(--ink) }
+  .gr-lc.in{ background:var(--ink); color:var(--paper) }
+  .gr-lc.out{ border-style:dashed; color:var(--ink-soft) }
+  .gr-lc.mex{ background:var(--math-soft); border-color:var(--math); box-shadow:0 0 0 4px var(--math-soft); border-style:solid; color:var(--ink) }
+  .gr-mexans{ font:600 1.15rem var(--f-display); min-height:1.6em; margin-top:10px }
+  .gr-mq{ display:grid; gap:10px; margin-top:16px }
+  .gr-mq-row{ display:flex; flex-wrap:wrap; align-items:center; gap:10px }
+  .gr-mq-row .q{ font:600 1.05rem var(--f-mono); min-width:15ch }
+  .gr-mq-row input{ width:4.5em }
+  .gr-mq-row .fb{ font:600 .95rem var(--f-display); min-width:8ch }
+  .gr-mq-row.ok .fb{ color:var(--win) } .gr-mq-row.bad .fb{ color:var(--you) }
+  .gr-mq-row.ok input{ border-color:var(--win); background:var(--win-soft) } .gr-mq-row.bad input{ border-color:var(--you); background:var(--you-soft) }
+
+  /* Grundy labeler */
+  .gr-cells{ display:flex; flex-wrap:wrap; gap:6px; margin:12px 0 }
+  .gr-cell{ width:54px; border:3px solid var(--line); border-radius:10px; background:var(--surface-2); display:grid; gap:2px; padding:3px 0 4px; justify-items:center }
+  .gr-cell .n{ font:600 .75rem var(--f-mono); color:var(--ink-soft) }
+  .gr-cell input{ width:40px; text-align:center; font:700 1.15rem var(--f-display); padding:.1em 0; border-radius:8px; border-width:2px }
+  .gr-cell .pm{ display:flex; gap:3px }
+  .gr-cell .pm button{ width:20px; height:20px; border:2px solid var(--line); border-radius:6px; background:var(--surface); color:var(--ink); font:700 .8rem var(--f-mono); padding:0; cursor:pointer; line-height:1 }
+  .gr-cell.ok{ background:var(--win-soft); border-color:var(--win) } .gr-cell.bad{ background:var(--you-soft); border-color:var(--you) }
+  .gr-cell.zero input{ color:var(--you) }
+  .gr-cell.cur{ outline:4px solid var(--math); outline-offset:-2px }
+  .gr-explain{ min-height:2.6em; font-size:1rem; margin-top:8px }
+
+  /* sum of two games */
+  .gr-game{ background:var(--surface-2); border-radius:14px; padding:12px 14px 14px }
+  .gr-game-head{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; flex-wrap:wrap }
+  .gr-game-head h4{ margin:0 }
+  .gr-game-head .r{ font-size:.9rem; color:var(--ink-soft) }
+  .gr-game .stones{ margin:10px 0 6px }
+  .gr-game .stone{ width:32px; height:32px; font-size:.75rem }
+  .gr-game .bigcount{ font-size:2.4rem }
+  .gr-val{ display:inline-block; font:600 .9rem var(--f-mono); padding:3px 10px; border-radius:999px; background:var(--math-soft); border:2px solid var(--math); color:var(--ink); white-space:nowrap }
+  .gr-val[hidden]{ display:none }
+  .gr-game input[type=number]{ width:4.5em }
+  .gr-total{ font:600 1.05rem var(--f-mono); margin-top:14px; padding:8px 12px; border-radius:10px; background:var(--math-soft); border-left:6px solid var(--math) }
+  .gr-total[hidden]{ display:none }
+
+  /* Kayles */
+  .gr-pins{ display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; margin:16px 0 8px; min-height:74px }
+  .gr-pin{ width:30px; height:70px; border:3px solid var(--line); border-radius:15px 15px 9px 9px; background:var(--surface-2); cursor:pointer; position:relative; padding:0; transition:transform .25s, opacity .25s; transform-origin:50% 100%; display:grid; align-content:end; justify-items:center; font:600 .7rem var(--f-mono); color:var(--ink-soft); padding-bottom:4px }
+  .gr-pin::before{ content:""; position:absolute; top:6px; left:50%; width:12px; height:12px; margin-left:-6px; border-radius:50%; background:var(--you) }
+  .gr-pin:hover:not(:disabled){ background:var(--math-soft) }
+  .gr-pin.sel{ outline:4px solid var(--math); outline-offset:2px; background:var(--math-soft) }
+  .gr-pin.down{ opacity:.22; transform:rotate(70deg); border-style:dashed; cursor:default }
+  .gr-pin.down::before{ background:var(--ink-soft) }
+  .gr-pin:disabled:not(.down){ cursor:default }
+</style>
+
+<section>
+  <div class="prose">
+    <p>Chapter 5 gave every position a letter: <b class="win-c">W</b> if the player whose turn it is can force a win, <b class="you">L</b> if they cannot. Chapter 6 gave every Nim position a number: write the piles in binary, add the columns without carrying, and if that nim-sum is 0 you are standing on an L. Two different tools, and it looked as if the second one only worked for Nim.</p>
+    <p>Here is a puzzle that breaks the first tool. Put two games on the table at once. Game A is a pile of 6 stones where a move takes 1, 2, or 3. Game B is a pile of 4 stones where a move takes 1, 3, or 4. On your turn you move in <b>one</b> of the games, whichever you like. When it is your turn and you cannot move anywhere, you lose. Each game on its own is a W for the player to move: 6 mod 4 is not 0, and 4 is not one of the L positions from Chapter 5's challenge. But put them together and the player to move <i>loses</i>. Change Game B to 5 stones, still a W on its own, and the player to move <i>wins</i>. W plus W is sometimes L and sometimes W. Letters cannot tell these two apart.</p>
+    <p>You need something finer than a letter: a number. Finding it takes one new idea, and the idea has a funny name.</p>
+  </div>
+
+  <h2>A number for every position</h2>
+  <div class="prose">
+    <p>Take any set of whole numbers and look for the smallest whole number that is <b>not</b> in it. For {0, 1, 2} the answer is 3. For {1, 2, 3} the answer is 0, because 0 is missing. For {0, 1, 3, 4} it is 2. This is the <span class="term">mex</span> of the set <span class="say">(say: mex, rhymes with checks)</span>, short for <b>m</b>inimum <b>ex</b>cluded value. Repeats do not matter and neither does the order: the mex of {3, 0, 0, 1} is 2. One case matters more than it looks. The mex of the <b>empty set</b>, the set with nothing in it, is 0, because 0 is the first number you look for and it is not there.</p>
+    <p>Try the calculator, then do the five problems without it.</p>
+  </div>
+
+  <div class="board">
+    <div class="board-head"><h3>The mex calculator</h3><span class="rules">Type a set. The smallest missing whole number lights up.</span></div>
+    <div class="row">
+      <span class="field">Set <input type="text" id="gr-mex-in" value="0, 1, 3" size="18" aria-label="A set of whole numbers"></span>
+      <span class="note">Whole numbers, separated by commas. Leave it blank for the empty set.</span>
+    </div>
+    <div class="gr-line" id="gr-mex-line"></div>
+    <div class="gr-mexans" id="gr-mex-ans"></div>
+    <div class="gr-mq" id="gr-mq"></div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn btn-win" id="gr-mq-check" type="button">Check my answers</button>
+      <span class="note" id="gr-mq-msg">Five problems. Get them all in one go.</span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>The Grundy rule</h2>
+  <div class="prose">
+    <p>Now give every position a number, called its <span class="term">Grundy value</span> <span class="say">(say: GRUN-dee)</span> and written <span class="var">G</span>. The rule looks like the W and L rule from Chapter 5, with mex doing the work:</p>
+  </div>
+  <div class="idea">
+    <span class="tag">The Grundy rule</span>
+    <p><span class="var">G</span>(position) = the <b>mex</b> of the Grundy values of every position you can move to.</p>
+    <p>A position with no moves left has <span class="var">G</span> = 0: the mex of the empty set.</p>
+  </div>
+  <div class="prose">
+    <p>Try it on the 21 Game, takes of 1, 2, or 3. From 0 there are no moves, so <code>G(0) = 0</code>. From 1 the only move is to 0, so <code>G(1) = mex{0} = 1</code>. From 2 you can reach 1 and 0, whose values are 1 and 0: <code>mex{1, 0} = 2</code>. From 3: <code>mex{2, 1, 0} = 3</code>. From 4 you can reach 3, 2, and 1, whose values are 3, 2, and 1. The set is {1, 2, 3}, 0 is missing, so <code>G(4) = 0</code>. Keep going and the values run 0, 1, 2, 3, 0, 1, 2, 3, and so on forever. You have seen that pattern before: <code>G(n) = n mod 4</code>.</p>
+    <p>Look at where the zeros landed: 0, 4, 8, 12. Those are exactly the L positions from Chapter 5. That is not luck. <b><span class="var">G</span> = 0 means L, and <span class="var">G</span> &gt; 0 means W</b>, in every game, and two sentences say why. If <span class="var">G</span> = 0, then 0 is missing from the set of values you can reach, so every move hands the other player a nonzero position. If <span class="var">G</span> &gt; 0, then 0 is not the mex, so 0 must be in the set: some move reaches a position worth 0, and you hand that one over. Zeros behave exactly like L (every move leads away from them) and nonzeros exactly like W (some move leads to a zero). A position with no moves is both L and 0, so the two labelings agree from the end of the game all the way back to the start.</p>
+    <p>So the Grundy values know everything the letters knew, and more. The extra information is what tells a 1 from a 2 from a 3, and the next section is where it pays off. First, label a game yourself. Type each value, or use the small buttons. "Check" tells you which cells are wrong without telling you the answer, and "Show me" works through the mex reasoning one position at a time.</p>
+  </div>
+
+  <div class="board">
+    <div class="board-head"><h3>Label the positions with Grundy values</h3><span class="rules">G(n) = mex of the values one move away. G(0) = 0.</span></div>
+    <div class="row">
+      <span class="field">Allowed takes <input type="text" id="gr-lab-takes" value="1, 2, 3" size="9"></span>
+      <span class="field">Up to <input type="number" id="gr-lab-n" min="6" max="30" value="15"></span>
+    </div>
+    <div class="gr-cells" id="gr-lab-cells"></div>
+    <div class="row">
+      <button class="btn btn-win" id="gr-lab-check" type="button">Check my labels</button>
+      <button class="btn btn-math" id="gr-lab-show" type="button">Show me</button>
+      <button class="btn btn-sm" id="gr-lab-clear" type="button">Clear</button>
+    </div>
+    <div class="gr-explain" id="gr-lab-explain">Fill in every cell, then check.</div>
+  </div>
+</section>
+
+<section>
+  <h2>Playing two games at once</h2>
+  <div class="prose">
+    <p>Back to the puzzle at the top. Playing two games side by side is called a <span class="term">sum of games</span>, and the rules of a sum are exactly what you would guess. On your turn you make one legal move in exactly one of the games. You lose when it is your turn and neither game has a move left. Nim itself is a sum: each pile is a tiny game of its own, and a Nim pile of <span class="var">n</span> stones has Grundy value <span class="var">n</span>, because from <span class="var">n</span> you can reach every smaller pile, and the mex of {0, 1, ..., <span class="var">n</span> − 1} is <span class="var">n</span>.</p>
+    <p>Here is the theorem this chapter is named for.</p>
+  </div>
+  <div class="idea">
+    <span class="tag">The Sprague-Grundy theorem</span>
+    <p>Take any game where two players take turns, both players have the same moves, there is no chance and nothing hidden, the game always ends, and the last player to move wins. Then every position has a Grundy value, and for two games played at once,</p>
+    <p><span class="var">G</span>(A + B) = <span class="var">G</span>(A) XOR <span class="var">G</span>(B).</p>
+  </div>
+  <div class="prose">
+    <p>Games that fit that description are called <span class="term">impartial games</span> <span class="say">(say: im-PAR-shul)</span>. The important word is impartial: both players have the same moves from every position. Every subtraction game is impartial, and so is Nim. Chess is not, because you may only move your own pieces.</p>
+    <p>Read the theorem again slowly, because it says something surprising. A position with Grundy value 2 combines with other games exactly the way a Nim pile of 2 stones would. That is the sense in which every game is secretly Nim. To play a sum of games, replace each game by a Nim pile of size <span class="var">G</span>, then use Chapter 6's rule: work out the nim-sum, and move so that it becomes 0.</p>
+    <p>Now the puzzle at the top makes sense. Game A, 6 stones with takes of 1, 2, 3, has <code>G = 6 mod 4 = 2</code>. Game B, 4 stones with takes of 1, 3, 4, has <code>G = 2</code> as well (the Math corner works it out). Two piles of 2: <code>2 XOR 2 = 0</code>, a loss for the player to move. Change B to 5 stones and its value becomes 3. Now <code>2 XOR 3 = 1</code>, a win, and the winning move is to bring B's value down from 3 to 2 by taking 1 stone. The two games have different rules and you cannot copy a move from one into the other, but the numbers see straight through that.</p>
+    <p>Play it. Robo does this arithmetic silently unless you tick "Show the secret". The hint tells you which game to fix, what value to aim for, and which stones get you there.</p>
+  </div>
+
+  <div class="board">
+    <div class="board-head"><h3>Two games at once</h3><span class="rules">Move in one game per turn. If you cannot move anywhere, you lose.</span></div>
+    <div class="row">
+      <div class="seg" id="gr-sum-first"><button class="on" data-v="you">I go first</button><button data-v="robo">Robo goes first</button></div>
+      <button class="btn btn-sm" id="gr-sum-new" type="button">New game</button>
+      <button class="btn btn-math btn-sm" id="gr-sum-hint" type="button">Hint</button>
+    </div>
+    <div class="row">
+      <label class="chk"><input type="checkbox" id="gr-sum-secret"> Show the secret</label>
+      <label class="chk"><input type="checkbox" id="gr-sum-goof"> Robo goofs sometimes</label>
+    </div>
+    <div class="two" style="margin-top:16px">
+      <div class="gr-game" id="gr-game-a">
+        <div class="gr-game-head"><h4>Game A</h4><span class="r" data-rule></span></div>
+        <div class="stones" data-stones></div>
+        <div class="row"><span class="bigcount" data-count>10</span><span style="font-family:var(--f-display);font-weight:600">stones</span><span class="gr-val" data-val hidden></span></div>
+        <div class="row" data-takes></div>
+        <div class="row" style="margin-top:12px">
+          <span class="field">Stones <input type="number" data-n min="1" max="24" value="10"></span>
+          <span class="field">Takes <input type="text" data-takes-in value="1, 2, 3" size="7"></span>
+        </div>
+      </div>
+      <div class="gr-game" id="gr-game-b">
+        <div class="gr-game-head"><h4>Game B</h4><span class="r" data-rule></span></div>
+        <div class="stones" data-stones></div>
+        <div class="row"><span class="bigcount" data-count>9</span><span style="font-family:var(--f-display);font-weight:600">stones</span><span class="gr-val" data-val hidden></span></div>
+        <div class="row" data-takes></div>
+        <div class="row" style="margin-top:12px">
+          <span class="field">Stones <input type="number" data-n min="1" max="24" value="9"></span>
+          <span class="field">Takes <input type="text" data-takes-in value="1, 3, 4" size="7"></span>
+        </div>
+      </div>
+    </div>
+    <div class="gr-total" id="gr-sum-total" hidden></div>
+    <div class="status" id="gr-sum-status"></div>
+    <div class="log" id="gr-sum-log"></div>
+  </div>
+</section>
+
+<div class="math">
+  <span class="tag">Math corner</span>
+  <p><b>The formulas.</b> For a set <span class="var">S</span> of whole numbers, mex(<span class="var">S</span>) is the smallest whole number not in <span class="var">S</span>. If a position <span class="var">p</span> has options <span class="var">p</span><sub>1</sub>, <span class="var">p</span><sub>2</sub>, ..., <span class="var">p</span><sub>k</sub> (the positions one move away), then</p>
+  <div class="formula">G(p) = mex{ G(p<sub>1</sub>), G(p<sub>2</sub>), ..., G(p<sub>k</sub>) }</div>
+  <p>and for two games played at once</p>
+  <div class="formula">G(A + B) = G(A) ⊕ G(B)</div>
+  <p>where ⊕ <span class="say">(say: oh-plus)</span> is the nim-sum from Chapter 6: write both numbers in binary and add each column without carrying, which is the same as XOR. Mathematicians call Grundy values <span class="term">nimbers</span>, and in some books a Nim pile of 3 is written <code>*3</code> and read "star three".</p>
+  <p><b>The starting position on the board.</b> Game A: 10 stones, takes {1, 2, 3}. The values from 0 upward are 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, so <code>G(10) = 2</code>. Game B: 9 stones, takes {1, 3, 4}. Work upward one row at a time:</p>
+  <div class="scroll">
+  <table class="data">
+    <tr><th>n</th><th>can reach</th><th>their values</th><th>G(n)</th></tr>
+    <tr><td>0</td><td>nothing</td><td>{ }</td><td>0</td></tr>
+    <tr><td>1</td><td>0</td><td>{0}</td><td>1</td></tr>
+    <tr><td>2</td><td>1</td><td>{1}</td><td>0</td></tr>
+    <tr><td>3</td><td>2, 0</td><td>{0, 0}</td><td>1</td></tr>
+    <tr><td>4</td><td>3, 1, 0</td><td>{1, 1, 0}</td><td>2</td></tr>
+    <tr><td>5</td><td>4, 2, 1</td><td>{2, 0, 1}</td><td>3</td></tr>
+    <tr><td>6</td><td>5, 3, 2</td><td>{3, 1, 0}</td><td>2</td></tr>
+    <tr><td>7</td><td>6, 4, 3</td><td>{2, 2, 1}</td><td>0</td></tr>
+    <tr><td>8</td><td>7, 5, 4</td><td>{0, 3, 2}</td><td>1</td></tr>
+    <tr class="hl"><td>9</td><td>8, 6, 5</td><td>{1, 2, 3}</td><td>0</td></tr>
+  </table>
+  </div>
+  <p>The sequence 0, 1, 0, 1, 2, 3, 2 then repeats every 7, and its zeros (0, 2, 7, 9, 14, 16, ...) are exactly the L positions from Chapter 5's challenge. So <code>G(9) = 0</code>. The starting position is worth <code>2 ⊕ 0 = 2</code>, in binary <code>10 ⊕ 00 = 10</code>, so the player to move wins. Which move? Chapter 6's rule: the nim-sum's leftmost 1 is in the 2s column, and Game A's value is the one with a 1 there, so fix Game A. Aim it at <code>2 ⊕ 2 = 0</code>: take 2 stones, leaving 8, which is worth 0. Now the position is worth <code>0 ⊕ 0 = 0</code>, and Robo is on the losing side.</p>
+  <p><b>Why XOR?</b> Here is the idea of the proof, in three steps.</p>
+  <div class="proof">
+    <ol>
+      <li>A Nim pile of <span class="var">g</span> stones can move to any smaller pile: 0, 1, ..., <span class="var">g</span> − 1. A position with Grundy value <span class="var">g</span> can also reach every value below <span class="var">g</span> (they are all in its set, or <span class="var">g</span> would not be the mex), and it can never reach a value of <span class="var">g</span> itself.</li>
+      <li>The only difference is that a position might also have moves to values <i>bigger</i> than <span class="var">g</span>. Those moves are useless to the player who makes them. If your opponent jumps from <span class="var">g</span> up to some bigger value <span class="var">h</span>, then <span class="var">g</span> is below <span class="var">h</span>, so you can move straight back to a position worth <span class="var">g</span>. The value is where it was, and because the game always ends, the bouncing cannot go on forever.</li>
+      <li>So inside a sum, a position worth <span class="var">g</span> is a Nim pile of <span class="var">g</span> plus some extra moves that never help. Whoever wins Nim with piles <span class="var">G</span>(A) and <span class="var">G</span>(B) wins A + B by the matching moves, and Chapter 6 says the Nim winner is decided by the nim-sum.</li>
+    </ol>
+  </div>
+</div>
+
+<div class="idea">
+  <span class="tag">Big idea</span>
+  <p>Every position in an impartial game is secretly a Nim pile. Its size is the Grundy value: the mex of the values one move away, and 0 for a position with no moves. To play several games at once, nim-sum the Grundy values, and move so that the nim-sum becomes 0.</p>
+</div>
+
+<div class="try">
+  <span class="tag">Try it on paper</span>
+  <p><b>1.</b> Find the mex of {0, 1, 2, 4, 5}, and the mex of {1, 2, 3, 4}.</p>
+  <details class="reveal"><summary>Answer</summary><p>3 and 0. In the second set 0 is missing, and the mex does not care how many bigger numbers are present.</p></details>
+  <p><b>2.</b> In the subtraction game where a move takes 2 or 3 stones (never 1), find G(0) through G(8). Careful: 1 is a position with no moves.</p>
+  <details class="reveal"><summary>Answer</summary><p>0, 0, 1, 1, 2, 0, 0, 1, 1. From 1 you cannot move, so <code>G(1) = 0</code>, and 1 is an L position: the player who faces a single stone is stuck. From 4 you can reach 2 and 1, worth 1 and 0, so <code>G(4) = 2</code>. From 5 you reach 3 and 2, both worth 1, so <code>G(5) = 0</code>. The pattern repeats every 5.</p></details>
+  <p><b>3.</b> You face a sum: a pile of 6 stones with takes of 1, 2, 3, next to a plain Nim pile of 2 stones. It is your turn. Who wins, and what is the move?</p>
+  <details class="reveal"><summary>Answer</summary><p><code>G(6) = 6 mod 4 = 2</code>, and the Nim pile is worth 2. <code>2 ⊕ 2 = 0</code>: you are on a losing position and there is no winning move. Whatever you do, Robo can answer to bring the nim-sum back to 0. Take 1 from the 6 (now worth 1) and Robo takes 1 from the Nim pile (now worth 1). If the Nim pile had 3 stones instead, <code>2 ⊕ 3 = 1</code> and you would win by taking 1 from the Nim pile.</p></details>
+</div>
+
+<div class="challenge">
+  <span class="tag">Challenge</span>
+  <p><b>Kayles.</b> A row of bowling pins. On your turn you knock down one pin, or two pins standing next to each other. Last move wins. Knocking down a pin in the middle of a row splits it into two shorter rows that never touch again, and that is a sum. So one number per row length is enough to play perfectly: <span class="var">G</span>(row of <span class="var">n</span>) is the mex, over every possible knock-down, of the nim-sum of the two pieces left behind. Work out the values for rows of length 0 to 8. Then say who wins a row of 5 pins, and what the first move is. Use the board below to check.</p>
+  <details class="reveal"><summary>Answer</summary>
+    <p>The values are 0, 1, 2, 3, 1, 4, 3, 2, 1. For a row of 4, for example: knock down an end pin and a row of 3 is left (worth 3); knock down a middle pin and rows of 1 and 2 are left (<code>1 ⊕ 2 = 3</code>); knock down the two end pins and a row of 2 is left (worth 2); knock down the middle two and rows of 1 and 1 are left (<code>1 ⊕ 1 = 0</code>). <code>mex{3, 3, 2, 0} = 1</code>.</p>
+    <p>A row of 5 is worth 4, so the first player wins. The move: knock down the middle pin, leaving 2 + 2, worth <code>2 ⊕ 2 = 0</code>, then copy whatever Robo does in the other row. That mirror trick works for a single row of any length (middle pin if the row is odd, middle pair if it is even), so every single row is a first-player win. The values still earn their keep: once the rows are unequal, only the numbers can tell you what to do. Richard Guy and Cedric Smith computed the Kayles values in 1956 using exactly this theorem. Beyond 70 pins the values repeat every 12.</p>
+  </details>
+
+  <div class="board">
+    <div class="board-head"><h3>Kayles</h3><span class="rules">Knock down one pin, or two standing next to each other. Last move wins.</span></div>
+    <div class="row">
+      <div class="seg" id="gr-k-first"><button class="on" data-v="you">I go first</button><button data-v="robo">Robo goes first</button></div>
+      <span class="field">Pins <input type="number" id="gr-k-n" min="3" max="16" value="8"></span>
+      <button class="btn btn-sm" id="gr-k-new" type="button">New game</button>
+      <button class="btn btn-math btn-sm" id="gr-k-hint" type="button">Hint</button>
+      <label class="chk"><input type="checkbox" id="gr-k-secret"> Show the values</label>
+    </div>
+    <div class="gr-pins" id="gr-k-pins"></div>
+    <div class="row">
+      <button class="btn btn-you btn-sm" id="gr-k-one" type="button" disabled>Knock down the picked pin</button>
+      <span class="note">Click a pin to pick it. Press the button to knock down just that one, or click its neighbor to knock down both.</span>
+    </div>
+    <div class="gr-total" id="gr-k-total" hidden></div>
+    <div class="status" id="gr-k-status"></div>
+    <div class="log" id="gr-k-log"></div>
+  </div>
+</div>
+
+<div class="story">
+  <span class="tag">True story</span>
+  <p>Roland Sprague, a mathematician in Germany, published this theorem in 1935. Patrick Grundy, then a student at Cambridge, found it again in 1939 and published it in <i>Eureka</i>, the student mathematics magazine there. Neither knew about the other's work, which is why the theorem carries both names. In 1982 Elwyn Berlekamp, John Conway, and Richard Guy published <i>Winning Ways for Your Mathematical Plays</i>, which uses this theory to solve hundreds of games, Kayles included. It has jokes, pictures, and serious mathematics on the same page, and it is the book to read when you are about 15.</p>
+</div>

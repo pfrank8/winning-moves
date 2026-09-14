@@ -1,0 +1,130 @@
+<!--meta {
+  "title": "The Cookie Game",
+  "kicker": "Payoff grids and dominant strategies",
+  "description": "Payoffs become numbers, a choice that is best no matter what gets a name, and the most famous puzzle in game theory shows up with cookies.",
+  "lede": "Now the payoffs are numbers, which means you can compare them. That one change lets you find choices that are best no matter what the other player does, cross out choices that are never best, and stumble into the most famous puzzle in all of game theory. It involves cookies.",
+  "stars": [
+    {"id": "pg-play", "label": "Work out the dominant strategy, then play the Cookie Game"},
+    {"id": "pg-best", "label": "Mark every best response in a 3 by 3 grid"},
+    {"id": "pg-cross", "label": "Cross out the whole grid down to one box"}
+  ]
+} -->
+<style>
+  .pg-mark td{ cursor:pointer }
+  .pg-mark td .arrow-you,.pg-mark td .arrow-robo{ font-size:1.3rem; line-height:1 }
+  .pg-cross th.click{ cursor:pointer; text-decoration:underline dotted; text-underline-offset:4px }
+  .pg-cross th.click:hover{ background:var(--math-soft); border-radius:8px }
+  .pg-cross th.dead{ opacity:.3; text-decoration:line-through }
+</style>
+
+<section>
+  <div class="prose">
+    <p>You and <b class="robo">Robo</b> each find a plate of cookies. At the same time, and in secret, each of you chooses <b>Share</b> or <b>Grab</b>.</p>
+    <ul>
+      <li>Both share: <b>3 cookies each</b>.</li>
+      <li>One grabs while the other shares: the grabber gets <b>5</b>, the sharer gets <b>0</b>.</li>
+      <li>Both grab: you fight over the plate and most of the cookies crumble. <b>1 each</b>.</li>
+    </ul>
+    <p>In every box, the <b class="you">red number</b> is your cookies and the <b class="robo">blue number</b> is Robo's. Before you play, check two things: which choice is better for you <i>if Robo shares</i>? And which is better <i>if Robo grabs</i>?</p>
+  </div>
+
+  <div class="board">
+    <div class="board-head"><h3>Share or Grab?</h3><span class="rules">You pick the row. Robo picks the column.</span></div>
+    <div class="two">
+      <div class="scroll"><table class="pay" id="pg-cookie"></table></div>
+      <div class="stack">
+        <div class="row">
+          <button class="btn btn-robo btn-sm" type="button" id="pg-if-share">What if Robo shares?</button>
+          <button class="btn btn-robo btn-sm" type="button" id="pg-if-grab">What if Robo grabs?</button>
+        </div>
+        <div id="pg-msg" class="note">The green outline will show your bigger number in that column.</div>
+        <div id="pg-dominant" hidden>
+          <p><b>Grab wins both times.</b> A choice that is at least as good <i>no matter what</i> the other player does is called a <span class="term">dominant strategy</span> <span class="say">(say: DOM-in-ent)</span>. Robo has done the same math. Now play for real.</p>
+          <div class="row">
+            <button class="btn btn-you" type="button" data-cookie="Share">Share</button>
+            <button class="btn btn-you" type="button" data-cookie="Grab">Grab</button>
+          </div>
+          <div class="status" id="pg-result"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prose">
+    <p>Look at what happened. You both did the smart thing, and you both got one cookie, when sharing would have given you three each. Nobody made a mistake. The game is built so that being clever, one player at a time, makes everyone worse off. This puzzle is called the <span class="term">Prisoner's Dilemma</span>, and seventy years after it was invented, scientists still argue about it. Chapter 11 shows the way out: play the game more than once.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Reading a grid like a mathematician</h2>
+  <div class="prose">
+    <p>The trick you just used works on any grid. To find <i>your</i> best choice against one particular Robo choice, look <b>down</b> that column and pick the biggest red number. To find Robo's best choice against one of yours, look <b>across</b> that row and pick the biggest blue number. Each of those picks is called a <span class="term">best response</span>.</p>
+    <p>Here is a 3 by 3 game with made-up numbers. Mark every best response: click a box once for a red mark (your best response in that column), twice for a blue mark (Robo's best response in that row), three times for both, and a fourth time to clear it. There should be exactly three red marks and three blue marks when you are done.</p>
+  </div>
+  <div class="board">
+    <div class="board-head"><h3>Find the best responses</h3><span class="rules">Down a column for red. Across a row for blue.</span></div>
+    <div class="two">
+      <div class="scroll"><table class="pay pg-mark" id="pg-mark"></table></div>
+      <div class="stack">
+        <div class="row"><button class="btn btn-win" type="button" id="pg-mark-check">Check my marks</button><button class="btn btn-sm" type="button" id="pg-mark-clear">Clear</button></div>
+        <div class="note" id="pg-mark-msg">Six marks in total.</div>
+      </div>
+    </div>
+  </div>
+  <div class="prose">
+    <p>Did any box end up with <i>both</i> marks? In this game, none does. There is no box where you are happy with your row and Robo is happy with its column at the same time. Chapter 3 is about what that means, and what to do about it.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Crossing out bad choices</h2>
+  <div class="prose">
+    <p>In the Cookie Game, Share was worse than Grab in every column. A strategy that is worse than another one no matter what the other player does is called <span class="term">dominated</span>, and a dominated strategy can be crossed out: a sensible player would never use it. Here is the clever part. Once a row is crossed out, Robo knows you will never play it, so Robo only has to compare its numbers in the rows that are left. That can make one of Robo's columns dominated, which you can cross out too. Then maybe another of your rows goes. Keep going and sometimes the whole grid collapses to a single box.</p>
+    <p>Try it. Click a row name or a column name to cross it out. The board will only let you cross out something that is genuinely dominated given what is still standing.</p>
+  </div>
+  <div class="board">
+    <div class="board-head"><h3>Cross it out</h3><span class="rules">Rows are your choices. Columns are Robo's.</span></div>
+    <div class="two">
+      <div class="scroll"><table class="pay pg-cross" id="pg-cross"></table></div>
+      <div class="stack">
+        <div class="note" id="pg-cross-msg">Find a row that is worse than another row in every column, or a column that is worse for Robo than another column in every row.</div>
+        <button class="btn btn-sm" type="button" id="pg-cross-reset">Reset</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="math">
+  <span class="tag">Math corner</span>
+  <p><b>Payoff functions.</b> Mathematicians write the payoff as a function. <code>u(Grab, Share) = 5</code> means "your payoff when you Grab and Robo Shares is 5". The first slot is your choice, the second is Robo's.</p>
+  <p><b>Dominance, precisely.</b> Row A <b>strictly dominates</b> row B if, in every column, A's number is bigger than B's: <code>u(A, c) &gt; u(B, c)</code> for every column <span class="var">c</span>. If it is only "bigger or equal" (with at least one "bigger"), A <b>weakly</b> dominates B. Grab strictly dominates Share, because 5 &gt; 3 and 1 &gt; 0.</p>
+  <p><b>The dilemma in letters.</b> Call the four payoffs T (temptation, 5), R (reward for sharing, 3), P (punishment for both grabbing, 1), and S (the sucker's payoff, 0). The game is a Prisoner's Dilemma whenever <code>T &gt; R &gt; P &gt; S</code>. Any four numbers in that order make one.</p>
+</div>
+
+<div class="idea">
+  <span class="tag">Big idea</span>
+  <p>Once payoffs are numbers you can compare choices column by column. A strategy that wins every comparison is dominant; one that loses every comparison is dominated and can be crossed out. And the Prisoner's Dilemma shows that two players each doing the individually smart thing can end up worse than if both had done the "dumb" thing.</p>
+</div>
+
+<div class="try">
+  <span class="tag">Try it on paper</span>
+  <p><b>1.</b> Change the Cookie Game so that grabbing when the other shares gets you 4 instead of 5. Is Grab still dominant?</p>
+  <details class="reveal"><summary>Answer</summary><p>Yes. 4 &gt; 3 and 1 &gt; 0, so Grab still beats Share in both columns. The dilemma survives.</p></details>
+  <p><b>2.</b> Now change it so that both grabbing gets 0 each instead of 1 each. Is Grab still dominant?</p>
+  <details class="reveal"><summary>Answer</summary><p>No. If Robo grabs, Share gives you 0 and Grab gives you 0: a tie. Grab is now only <i>weakly</i> dominant. It is never worse, but it is not always better.</p></details>
+  <p><b>3.</b> In a grid where you have 4 rows and Robo has 4 columns, what is the most rows and columns you could cross out and still have a game left?</p>
+  <details class="reveal"><summary>Answer</summary><p>You can cross out at most 3 rows and 3 columns, leaving exactly one box. A game needs at least one box.</p></details>
+</div>
+
+<div class="challenge">
+  <span class="tag">Challenge</span>
+  <p>Invent your own Prisoner's Dilemma with four different numbers, where each player has a dominant strategy and the outcome of both playing it is the worst total on the whole grid. Then check one more condition that real Prisoner's Dilemmas need: taking turns being the grabber should not beat sharing. In letters: <code>2R &gt; T + S</code>. Do your numbers pass?</p>
+  <details class="reveal"><summary>Answer</summary>
+    <p>Any T &gt; R &gt; P &gt; S works for the first part; for example T = 10, R = 6, P = 2, S = 0. For the second part, 2R = 12 and T + S = 10, so 12 &gt; 10 passes. If you had picked T = 10, R = 4, S = 0, then 2R = 8 &lt; 10 fails: two players who alternate grabbing would do better than two who always share, which makes it a different kind of game.</p>
+  </details>
+</div>
+
+<div class="story">
+  <span class="tag">True story</span>
+  <p>The Prisoner's Dilemma was invented in 1950 by two mathematicians, Merrill Flood and Melvin Dresher, at the RAND Corporation, a think tank in California that spent the Cold War thinking about nuclear strategy. It had no story and no name. Later that year a Princeton mathematician named Albert Tucker had to explain it to a room of psychologists at Stanford, so he made up a story about two prisoners being questioned separately, each offered a deal to confess. The story stuck, and so did the name. Tucker's most famous student was John Nash, who you will meet in the next chapter.</p>
+</div>
