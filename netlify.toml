@@ -1,0 +1,10 @@
+# Netlify hosting: the built site in docs/ is committed, so no build step is needed.
+[build]
+  publish = "docs"
+  command = ""
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
