@@ -397,7 +397,7 @@ function mpSplitText(){
   const pie = mpPie(), robo = mp.pending ? mp.pending.robo : Math.min(pie, Number(sliderEl.value));
   $('#mp-split').innerHTML = `<span class="you">You keep ${fmt(pie - robo)}</span> · <span class="robo">Robo gets ${fmt(robo)}</span>`;
 }
-const mpSlider = slider(sliderEl, v => fmt(v), () => { if (!mp.over && !mp.pending) mpDraw(); mpSplitText(); });
+const mpSlider = slider(sliderEl, v => fmt(v), () => { if (!mp.sol) return; if (!mp.over && !mp.pending) mpDraw(); mpSplitText(); });
 function mpRender(){
   $('#mp-round').textContent = String(Math.min(mp.round, mp.rounds)); $('#mp-total').textContent = String(mp.rounds);
   $('#mp-left').textContent = mp.puddle ? '0' : fmt(mp.pending && mp.pending.done ? mp.pending.pie : mpPie());
