@@ -27,13 +27,19 @@ real mathematics. Published with GitHub Pages from `docs/`.
 
 ## Deploy
 
-`git push` to `main` runs `.github/workflows/pages.yml`, which uploads `docs/`
-as the Pages artifact and deploys it (Pages is set to `build_type: workflow`). The repo is `pfrank8/winning-moves`
-and must stay under Peter's personal account (not any company org). As of
-2026-09-14 the pfrank8 account was billing-locked, which blocks Actions and
-Pages builds until Peter clears it at github.com/settings/billing. The custom domain (if any) is
-`domain` in `content/site.json`, which writes `docs/CNAME`; the registrar
-needs a CNAME record pointing at `pfrank8.github.io` first.
+Hosting is Netlify (free tier), site name `winning-moves`
+(https://winning-moves.netlify.app), on the Netlify team that belongs to
+peter.franklin@gmail.com ("my team", my-team-vvih-ds). Custom domain:
+https://gametheory.primori.com (DNS at Namecheap: CNAME `gametheory` ->
+`winning-moves.netlify.app`, plus a `subdomain-owner-verification` TXT that
+Netlify required because primori.com itself is registered to a different
+Netlify account). Deploy = build, zip `docs/`, and drop the zip on the
+project's "Production deploys" panel at
+https://app.netlify.com/projects/winning-moves/deploys (or `netlify deploy
+--prod --dir docs` once the CLI is logged in; `netlify.toml` already points at
+`docs/`). GitHub Pages (`.github/workflows/pages.yml`) is a fallback only; the
+pfrank8 account was billing-locked on 2026-09-14 so it could not build. Never
+host this under a company org (Peter, 2026-09-14).
 
 ## Verifying
 
