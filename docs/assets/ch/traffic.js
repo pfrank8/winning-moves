@@ -63,8 +63,8 @@ const NARROW = ['SA', 'BE'];
 function closeRate(r, s){ return NARROW.filter(e => EDGE_OF[r].includes(e) !== EDGE_OF[s].includes(e)).length / SLOPE; }
 
 /* Best-response dynamics, one round. Routes take turns: the drivers on a route look at the best switch open to them
-   and some of them take it: a third of the number that would close the gap while the gap is big (so the reader can
-   watch it shrink), and the whole number once the gap is under 0.3 minutes (so the tail does not crawl one car at a time).
+   and some of them take it: half the number that would close the gap while the gap is big (so the reader can watch
+   it shrink), and the whole number once the gap is under 0.3 minutes (so the tail does not crawl one car at a time).
    Handling the routes one at a time, with fresh times after each move, keeps the crowd from overshooting. */
 function stepDynamics(f, bridge){
   const cur = Object.assign({}, f); const moves = [];
@@ -73,7 +73,7 @@ function stepDynamics(f, bridge){
     const s = bestMove(cur, r, bridge); if (!s) continue;
     const t = routeTimes(cur); const gap = t[r] - t[s];
     const exact = gap / closeRate(r, s);
-    const k = cl(Math.round(gap > 0.3 ? exact / 3 : exact), 1, cur[r]);
+    const k = cl(Math.round(gap > 0.3 ? exact / 2 : exact), 1, cur[r]);
     cur[r] -= k; cur[s] += k; moves.push({ from: r, to: s, k });
   }
   return { flows: cur, moves, settled: moves.length === 0 };
@@ -133,6 +133,7 @@ const MINE_EDGE = { a: 'AE', b: 'SB', c: 'AB' };
 const MAX_DOTS = 20;
 function drawMap(svg, o){
   const e = edgeFlows(o.flows), t = edgeTimes(o.flows);
+  const k = o.phone ? 1.45 : 1;   // on a phone the labels are drawn bigger (CSS), so push them further from the roads
   let roads = '', cars = '', labels = '';
   for (const ed of EDGES){
     const isBridge = ed.id === 'AB';
@@ -152,11 +153,11 @@ function drawMap(svg, o){
     if (isBridge){
       labels += closed
         ? `<text class="tr-lab-f" x="${mx + 16}" y="${my}">bridge closed</text>`
-        : `<text class="tr-lab-t" x="${mx + 16}" y="${my - 9}">0 min</text><text class="tr-lab-f" x="${mx + 16}" y="${my + 11}">${ed.f}</text>`;
+        : `<text class="tr-lab-t" x="${mx + 16}" y="${my - 9 * k}">0 min</text><text class="tr-lab-f" x="${mx + 16}" y="${my + 11 * k}">${ed.f}</text>`;
     } else {
-      const d = ed.kind === 'wide' ? 30 : 26;
+      const d = (ed.kind === 'wide' ? 30 : 26) * k;
       const lx = (mx + px * d * ed.side).toFixed(1), ly = my + py * d * ed.side;
-      const fy = ly + (ed.side < 0 ? -19 : 19);
+      const fy = ly + (ed.side < 0 ? -19 : 19) * k;
       labels += `<text class="tr-lab-t" text-anchor="middle" x="${lx}" y="${ly.toFixed(1)}">${mins(t[ed.id])}</text>` +
                 `<text class="tr-lab-f" text-anchor="middle" x="${lx}" y="${fy.toFixed(1)}">${ed.f}</text>`;
     }
@@ -166,7 +167,7 @@ function drawMap(svg, o){
     const [x, y] = NODE[k];
     nodes += `<circle class="tr-node" cx="${x}" cy="${y}" r="20"/><text class="tr-node-t" x="${x}" y="${y}">${k}</text>`;
   }
-  nodes += `<text class="tr-cap" x="${NODE.S[0]}" y="${NODE.S[1] + 36}">start</text><text class="tr-cap" x="${NODE.E[0]}" y="${NODE.E[1] + 36}">end</text>`;
+  nodes += `<text class="tr-cap" x="${NODE.S[0]}" y="${NODE.S[1] + 34 + 6 * k}">start</text><text class="tr-cap" x="${NODE.E[0]}" y="${NODE.E[1] + 34 + 6 * k}">end</text>`;
   let you = '';
   if (o.mine && (o.bridge || o.mine !== 'c')){
     const ed = EDGES.find(x => x.id === MINE_EDGE[o.mine]);
@@ -177,6 +178,10 @@ function drawMap(svg, o){
 }
 
 /* ---------- a board with sliders over the network (boards 1 to 3 share this) ---------- */
+const PHONE = matchMedia('(max-width: 640px)');
+const RENDERS = [];
+let resizeTimer = null;
+window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => RENDERS.forEach(f => f()), 150); });
 function makeBoard(id, opts){
   const q = s => $(`#${id}-${s}`);
   const bd = {
@@ -210,14 +215,13 @@ function makeBoard(id, opts){
     const delta = v - bd.flows[r];
     bd.flows[r] = v;
     if (others.length === 1){ bd.flows[others[0]] = bd.N - v; return; }
-    const [o1, o2] = others, f1 = bd.flows[o1], f2 = bd.flows[o2], sum = f1 + f2;
+    const [o1, o2] = others, f1 = bd.flows[o1], sum = f1 + bd.flows[o2];
     let d1 = sum > 0 ? Math.round(-delta * f1 / sum) : Math.round(-delta / 2);
     d1 = cl(d1, -f1, bd.N);
     bd.flows[o1] = f1 + d1;
     bd.flows[o2] = bd.N - v - bd.flows[o1];
     if (bd.flows[o2] < 0){ bd.flows[o1] += bd.flows[o2]; bd.flows[o2] = 0; }
     if (bd.flows[o1] < 0){ bd.flows[o2] += bd.flows[o1]; bd.flows[o1] = 0; }
-    void f2;
   }
 
   function statusText(){
@@ -255,7 +259,7 @@ function makeBoard(id, opts){
     const num = q('num'); if (num){ num.value = f.a; num.max = bd.N; }
     const nIn = q('n'); if (nIn) nIn.value = bd.N;
     fixMine();
-    drawMap(q('map'), { flows: f, N: bd.N, bridge: bd.bridge, ghost: !!opts.toggle, mine: bd.mine });
+    drawMap(q('map'), { flows: f, N: bd.N, bridge: bd.bridge, ghost: !!opts.toggle, mine: bd.mine, phone: PHONE.matches });
     const tile = (k, v) => { const el = q(k); if (el) el.textContent = v; };
     tile('ta', mins(t.a)); tile('tb', mins(t.b)); tile('tc', bd.bridge ? mins(t.c) : 'closed');
     tile('avg', mins(avgTime(f))); tile('tot', fmtNum(Math.round(totalTime(f))) + ' car-min');
@@ -402,6 +406,7 @@ function makeBoard(id, opts){
   }));
 
   defaults(); render();
+  RENDERS.push(render);
   return bd;
 }
 
