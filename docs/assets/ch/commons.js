@@ -141,14 +141,15 @@ function pondReset(){
 }
 function playSeason(){
   const you = clamp(Math.round(+$('#cm-catch').value) || 0, 0, 10);
-  const asks = [{ ask: you, cheats: pond.quota && you > pond.q }, robotAsk(1), robotAsk(2), robotAsk(3)];
+  const asks = [{ ask: you }, robotAsk(1), robotAsk(2), robotAsk(3)];
   const before = pond.F;
   const o = season(pond.F, asks.map(a => a.ask));
   const parts = [];
   for (let i = 0; i < 4; i++){
     pond.caught[i] += o.caught[i]; pond.this[i] = o.caught[i];
     let p = `${NAMES[i]} ${fmt(o.caught[i])}`;
-    if (asks[i].cheats){ pond.fines[i] += pond.fine; p += ` (over the quota, fined ${pond.fine})`; }
+    /* the fine is for what you actually landed over the quota, not for what you asked for */
+    if (pond.quota && o.caught[i] > pond.q + 1e-9){ pond.fines[i] += pond.fine; p += ` (over the quota, fined ${pond.fine})`; }
     parts.push(p);
   }
   pond.lastYou = you; pond.F = o.next; pond.s++; pond.path.push(pond.F); pond.bars.push(o.caught.reduce((a, b) => a + b, 0));
@@ -158,10 +159,13 @@ function playSeason(){
 function pondFinish(){
   pond.over = true; pond.busy = false; renderPond();
   const alive = pond.F >= 40, mine = net(0);
+  const tamed = pond.type === 'greedy' && pond.quota && alive && mine >= 40;
   let s = `Twenty seasons are done. The pond has <b>${fmt(pond.F)}</b> fish and you caught <b class="you">${fmt(mine)}</b>. `;
   if (alive && mine >= 70){
     s += `<span class="win-c">Pond alive, and 70 or more for you. That is the sustainable way to be a little greedy.</span>`;
     earn('cm-alive');
+  } else if (tamed){
+    s += `<span class="win-c">Three Greedy robots, tamed by a rule.</span> The fine made obeying the quota their best move.`;
   } else if (alive){
     s += `The pond is fine, but you caught less than 70. The pond can spare about 12.5 a season in total. How much of that is going to the robots?`;
   } else if (pond.F < 0.5){
@@ -169,10 +173,7 @@ function pondFinish(){
   } else {
     s += `<span class="you">The pond is below 40.</span> Too much was taken, too often. Try a smaller catch, or a quota.`;
   }
-  if (pond.type === 'greedy' && pond.quota && alive && mine >= 40){
-    s += ` <span class="win-c">Three Greedy robots, tamed by a rule.</span>`;
-    earn('cm-rules');
-  }
+  if (tamed) earn('cm-rules');
   pstatus(s);
 }
 async function nextSeason(){
