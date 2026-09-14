@@ -167,7 +167,7 @@ function sealedBoard(pfx, kind, hooks){
     el('bid').value = String(kind === 'first' ? Math.round(SHADE * S.value) : S.value);
     el('bid').disabled = false;
     el('go').textContent = 'Seal it';
-    el('tbl').innerHTML = '';
+    el('tbl').innerHTML = ''; el('tbl').parentElement.hidden = true;
     status(`Round ${S.round}. Your value is <b>${money(S.value)}</b>. Write your number and seal it.`);
     renderHist();
     if (hooks.onValue) hooks.onValue(S.value);
@@ -188,7 +188,7 @@ function sealedBoard(pfx, kind, hooks){
       const result = win ? `wins, pays ${money(res.pay)}, profit ${moneyS(r2(values[i] - res.pay))}` : 'loses';
       h += `<tr class="${win ? 'hl' : ''}"><td class="${cls}">${NAMES[i]}</td><td>${money(values[i])}</td><td>${money(b)}</td><td>${result}</td></tr>`;
     });
-    el('tbl').innerHTML = h;
+    el('tbl').innerHTML = h; el('tbl').parentElement.hidden = false;
     if (you){
       if (profit > 0) status(`<span class="win-c">You win at ${money(res.pay)}. Profit ${moneyS(profit)}!</span>` + (hooks.onWin ? hooks.onWin(profit) : ''));
       else if (profit === 0) status(`<span class="you">You win at ${money(res.pay)}, exactly your value. Profit $0.</span> ${kind === 'first' ? 'Bidding your full value can never earn anything.' : 'The second-highest bid happened to equal your value.'}`);

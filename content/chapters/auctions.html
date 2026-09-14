@@ -20,6 +20,7 @@
   .au-b.out{ opacity:.4 }
   .au-b.won{ border-color:var(--win); background:var(--win-soft); opacity:1 }
   .au-tbl td.rb{ color:var(--robo) } .au-tbl td.yb{ color:var(--you); font-weight:700 }
+  .au-tbl td:last-child{ text-align:left }
   .au-chart{ width:100%; max-width:640px; height:auto; display:block; border:3px solid var(--line); border-radius:12px; background:var(--surface); margin-top:6px }
   .au-chart .ax{ stroke:var(--line); stroke-width:2 }
   .au-chart .gl{ stroke:var(--grid); stroke-width:1 }
@@ -136,7 +137,7 @@
     <svg class="au-chart" id="au-chart" viewBox="0 0 640 330" role="img" aria-label="Your profit as a function of your bid B, for the chosen V and R"></svg>
     <div class="legend"><span><i style="background:var(--math)"></i>bid = value</span><span><i style="background:var(--you)"></i>your bid B</span><span><i style="background:var(--robo)"></i>rival bid R</span></div>
     <div class="row" style="margin-top:20px">
-      <span class="field">Quiz: your value is <b class="you" id="au-q-v">$60</b>. What should you bid? $<input type="number" id="au-q-in" min="0" max="100" step="1"></span>
+      <span class="field"><span>Quiz: your value is <b class="you" id="au-q-v">$60</b>. What should you bid? $</span><input type="number" id="au-q-in" min="0" max="100" step="1"></span>
       <button class="btn btn-math" id="au-q-go" type="button">Check</button>
     </div>
     <div class="status" id="au-q-status"></div>

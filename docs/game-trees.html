@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="./assets/site.css?v=7837293e">
+<link rel="stylesheet" href="./assets/site.css?v=6b882d0e">
 <script>window.WM_CHAPTERS = [{"slug":"what-is-a-game","num":1,"title":"What is a game?","stars":[{"id":"wg-ten","label":"Play ten rounds and read the grid"},{"id":"wg-exploit","label":"Win 7 of 10 against Pattern Robo"},{"id":"wg-balance","label":"Build a fair five-weapon game"}]},{"slug":"payoff-grids","num":2,"title":"The Cookie Game","stars":[{"id":"pg-play","label":"Work out the dominant strategy, then play the Cookie Game"},{"id":"pg-best","label":"Mark every best response in a 3 by 3 grid"},{"id":"pg-cross","label":"Cross out the whole grid down to one box"}]},{"slug":"nash-equilibrium","num":3,"title":"Nobody wants to switch","stars":[{"id":"ne-hunt","label":"Solve all five equilibrium puzzles"},{"id":"ne-predict","label":"Predict the number of equilibria in five random games in a row"},{"id":"ne-three","label":"Design a 2 by 2 game with exactly three equilibria"}]},{"slug":"mixed-strategies","num":4,"title":"Being unpredictable","stars":[{"id":"ms-exploit","label":"Win 7 of 10 rounds against a Robo with a favorite"},{"id":"ms-safe","label":"Find the plan Robo cannot beat, then test it 100 times"},{"id":"ms-solve","label":"Solve a fresh penalty-kick game to within 3 percent"}]},{"slug":"thinking-backwards","num":5,"title":"Thinking backwards","stars":[{"id":"tb-win","label":"Beat a perfect Robo at the 21 Game"},{"id":"tb-labels","label":"Label every position from 0 to 21 correctly"},{"id":"tb-misere","label":"Win the version where the last stone loses"}]},{"slug":"nim-and-binary","num":6,"title":"Nim and binary","stars":[{"id":"nb-win","label":"Beat a perfect Robo at three-pile Nim"},{"id":"nb-xor","label":"Get five nim-sums right in the column tool"},{"id":"nb-move","label":"Find the winning move in three positions in a row"}]},{"slug":"game-trees","num":7,"title":"Seeing the whole tree","stars":[{"id":"gt-draw","label":"Hold a perfect Robo to a draw"},{"id":"gt-tree","label":"Pick the best move in three tree puzzles"},{"id":"gt-shallow","label":"Beat a Robo that only looks two moves ahead"}]},{"slug":"chomp","num":8,"title":"A proof that you can win","stars":[{"id":"ch-win","label":"Beat a perfect Robo at Chomp on a 4 by 6 bar"},{"id":"ch-square","label":"Beat Robo on a square bar using the mirror trick"},{"id":"ch-count","label":"Count the shapes of a bar with the formula"}]},{"slug":"hex","num":9,"title":"Hex","stars":[{"id":"hx-win","label":"Beat Robo on a 6 by 6 board or bigger, without hints"},{"id":"hx-chain","label":"Trace the winning chain on three random full boards"},{"id":"hx-bridge","label":"Win a game against Robo in which you built a bridge"}]},{"slug":"every-game-is-nim","num":10,"title":"Every game is secretly Nim","stars":[{"id":"gr-mex","label":"Get all five mex problems right"},{"id":"gr-labels","label":"Grundy-label a subtraction game up to 12 or more"},{"id":"gr-sum","label":"Beat a perfect Robo at a sum of two games"}]},{"slug":"repeated-games","num":11,"title":"Playing again and again","stars":[{"id":"rg-coop","label":"Score 60 in 20 rounds against Tit for Tat"},{"id":"rg-guess","label":"Work out which strategy Mystery Robo is using"},{"id":"rg-noise","label":"Run a tournament with 5 or more strategies and 5% noise or more"}]},{"slug":"fair-division","num":12,"title":"Fair division","stars":[]},{"slug":"auctions","num":13,"title":"Going once, going twice","stars":[{"id":"au-english","label":"Win an English auction with a positive profit"},{"id":"au-shade","label":"Finish 10 rounds of the first-price auction with a positive total profit"},{"id":"au-honest","label":"Answer the Vickrey quiz correctly, then win a Vickrey round with a profit"}]},{"slug":"voting","num":14,"title":"How to pick a winner when nobody agrees","stars":[{"id":"vo-three","label":"Build a profile where plurality, instant runoff, and Borda pick three different winners"},{"id":"vo-cycle","label":"Build a Condorcet cycle from scratch"},{"id":"vo-strategic","label":"Find the strategic vote in the Borda election"}]},{"slug":"bargaining","num":15,"title":"Bargaining","stars":[]},{"slug":"hawks-and-doves","num":16,"title":"Hawks and doves","stars":[{"id":"hd-predict","label":"Predict the hawk fraction before the simulation finds it"},{"id":"hd-allhawk","label":"Set a prize worth fighting for and call the hawk takeover"},{"id":"hd-cycle","label":"Watch the lizards cycle for 200 generations"}]},{"slug":"monty-hall","num":17,"title":"Monty hall","stars":[]},{"slug":"common-knowledge","num":18,"title":"Common knowledge","stars":[]},{"slug":"traffic","num":19,"title":"Traffic","stars":[]},{"slug":"commons","num":20,"title":"Commons","stars":[]},{"slug":"ice-cream-carts","num":21,"title":"Ice cream carts","stars":[]}];</script>
 </head>
 <body class="chapter-game-trees">
@@ -47,7 +47,7 @@
     <p>You are <b class="you">X</b>. Robo is <b class="robo">O</b>. Robo plays perfectly, and it does it in the most honest way possible: before every move it works out every game that could still happen from here, all the way to the end, and picks the move whose <i>worst</i> ending is as good as possible. That plan has a name, <span class="term">minimax</span> <span class="say">(say: MIN-ee-max)</span>: assume the other player will play their best, and choose your best against that.</p>
     <p>Nobody can beat a minimax player at tic-tac-toe. But you can hold it to a draw, and the counter below tells you how much thinking it took.</p>
   </div>
-  <div class="board">
+  <div class="board" id="board-1">
     <div class="board-head"><h3>Tic-tac-toe</h3><span class="rules">You are <b class="you">X</b>. Robo is <b class="robo">O</b>.</span></div>
     <div class="row">
       <div class="seg" id="gt-first"><button class="on" data-v="you">I go first</button><button data-v="robo">Robo goes first</button></div>
@@ -73,7 +73,7 @@
     <p>A <span class="term">game tree</span> starts with the current position at the top. Each possible move is a branch down to a new position. Each of <i>those</i> positions branches again, and so on until every branch ends in a win, a loss, or a draw. To solve the tree, work from the bottom up, exactly like Chapter 5: a finished game gets its value (+1 if X wins, 0 for a draw, −1 if O wins); a position where X is to move gets the <b>biggest</b> value among its branches, because X will pick it; a position where O is to move gets the <b>smallest</b>, because O will. Max, then min, then max. Minimax.</p>
     <p>Here is a position with three empty squares, so the whole tree fits on the screen. It is X's move. Click the square you think is best. Then show the tree and see whether the values agree with you. Three right answers earn a star.</p>
   </div>
-  <div class="board">
+  <div class="board" id="board-2">
     <div class="board-head"><h3>Tree puzzle</h3><span class="rules" id="gt-puz-rules">X to move. Which square?</span></div>
     <div class="two">
       <div>
@@ -83,7 +83,7 @@
       </div>
       <div><div class="stat"><span class="k">Puzzles solved</span><span class="v" id="gt-solved">0</span></div></div>
     </div>
-    <div class="scroll"><svg class="gt-tree" id="gt-tree" viewBox="0 0 700 420" role="img" aria-label="The game tree of the puzzle position with minimax values"></svg></div>
+    <div class="scroll" id="gt-tree-wrap" hidden><svg class="gt-tree" id="gt-tree" viewBox="0 0 700 420" role="img" aria-label="The game tree of the puzzle position with minimax values"></svg></div>
   </div>
 </section>
 
@@ -92,9 +92,9 @@
   <div class="prose">
     <p>From an empty board the first move has 9 choices. Then 8 squares are left, then 7, and so on, so if every game went the full nine moves there would be <code>9 × 8 × 7 × 6 × 5 × 4 × 3 × 2 × 1 = 362,880</code> ways to play. Mathematicians write that as <code>9!</code> and say "nine factorial". Many games end early with a win, so the real number of different complete games is 255,168. Either way, a computer can check them all in a fraction of a second.</p>
     <p>Chess is different. A chess position has about 30 legal moves, and a game lasts about 80 moves in total, so the tree has roughly 30<sup>80</sup> branches. That is a 1 followed by about 120 zeros. There are only about 10<sup>80</sup> atoms in the observable universe. No computer will ever draw the chess tree, which is why chess programs need a smarter idea.</p>
-    <p><b>Skipping branches.</b> The smarter idea is called <span class="term">pruning</span>. Suppose Robo is considering a move and finds that one of your replies already makes it a losing move. Robo does not need to look at your other replies. That move is dead; on to the next one. Robo above does exactly this when the checkbox is on, and the counter shows how much work it saves. Done well, pruning lets a program look about twice as many moves ahead for the same amount of thinking.</p>
+    <p><b>Skipping branches.</b> The smarter idea is called <span class="term">pruning</span>. Suppose Robo is considering a move and finds that one of your replies already makes it a losing move. Robo does not need to look at your other replies. That move is dead; on to the next one. Robo above counts both ways after every move: the futures it actually examined, and how many it would have needed with pruning. Done well, pruning lets a program look about twice as many moves ahead for the same amount of thinking.</p>
   </div>
-  <div class="board">
+  <div class="board" id="board-3">
     <div class="board-head"><h3>Three kinds of first move</h3><span class="rules">Symmetry shrinks the tree.</span></div>
     <div class="prose"><p>Nine first moves, but a corner is a corner no matter which one, because turning or flipping the board changes nothing. So there are really only three different openings, and Robo only needs to think about those.</p></div>
     <svg class="gt-sym" id="gt-sym" viewBox="0 0 520 250" role="img" aria-label="The nine first moves are really three kinds: corner, edge, and center"></svg>
@@ -142,7 +142,7 @@
   <a href="./grown-ups.html">For grown-ups</a>
 </footer>
 <div id="toast" role="status" aria-live="polite"></div>
-<script src="./assets/site.js?v=7837293e"></script>
-<script src="assets/ch/game-trees.js?v=7837293e"></script>
+<script src="./assets/site.js?v=6b882d0e"></script>
+<script src="assets/ch/game-trees.js?v=6b882d0e"></script>
 </body>
 </html>

@@ -215,6 +215,39 @@ def chapter_page(site: Site, ch: Chapter, template: str, build_id: str) -> str:
     })
 
 
+BOARD_RE = re.compile(r'<div class="board"(?![^>]*\bid=)([^>]*)>(\s*<div class="board-head">\s*<h3>)(.*?)(</h3>)', re.S)
+
+
+@dataclass(frozen=True)
+class Board:
+    chapter: Chapter
+    title: str
+    anchor: str
+
+
+def anchor_boards(ch: Chapter) -> list[Board]:
+    """Give every game board in a chapter an id, and return the list for the Arcade."""
+    boards: list[Board] = []
+    counter = 0
+
+    def repl(m: re.Match[str]) -> str:
+        nonlocal counter
+        counter += 1
+        anchor = f"board-{counter}"
+        boards.append(Board(chapter=ch, title=re.sub(r"<[^>]+>", "", m.group(3)).strip(), anchor=anchor))
+        return f'<div class="board" id="{anchor}"{m.group(1)}>{m.group(2)}{m.group(3)}{m.group(4)}'
+
+    ch.body = BOARD_RE.sub(repl, ch.body)
+    return boards
+
+
+def arcade_html(boards: list[Board]) -> str:
+    cards = "".join(
+        f'<li><a class="card" href="{b.chapter.href}#{b.anchor}"><span class="n">Chapter {b.chapter.num} · {b.chapter.title}</span>'
+        f'<h3>{b.title}</h3><p>{b.chapter.description}</p></a></li>' for b in boards)
+    return f'<ul class="cards">{cards}</ul>'
+
+
 def chapter_map_html(site: Site) -> str:
     out: list[str] = []
     for part in site.parts:
@@ -231,8 +264,9 @@ def chapter_map_html(site: Site) -> str:
     return "".join(out)
 
 
-def page_page(site: Site, page: Page, template: str, build_id: str) -> str:
+def page_page(site: Site, page: Page, template: str, build_id: str, boards: list[Board]) -> str:
     body = page.body.replace("{{chapter_map}}", chapter_map_html(site))
+    body = body.replace("{{arcade}}", arcade_html(boards))
     body = body.replace("{{dedication}}", site.dedication)
     body = body.replace("{{tagline}}", site.tagline)
     script_path = ASSETS / "ch" / f"{page.slug}.js"
@@ -300,10 +334,12 @@ def main(argv: list[str]) -> int:
     if site.domain:
         (OUT / "CNAME").write_text(site.domain + "\n", encoding="utf-8")
 
+    boards: list[Board] = []
     for ch in site.chapters:
+        boards.extend(anchor_boards(ch))
         (OUT / ch.href).write_text(chapter_page(site, ch, template, build_id), encoding="utf-8")
     for page in load_pages():
-        (OUT / f"{page.slug}.html").write_text(page_page(site, page, template, build_id), encoding="utf-8")
+        (OUT / f"{page.slug}.html").write_text(page_page(site, page, template, build_id, boards), encoding="utf-8")
 
     print(f"built {len(site.chapters)} chapters + {len(list(PAGES_DIR.glob('*.html')))} pages -> {OUT} (build {build_id})")
     if "--check" in argv:

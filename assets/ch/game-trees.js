@@ -112,7 +112,7 @@ function puzzleNew(){
   const pool = POOL[kind].length ? POOL[kind] : POOL.now;
   pz.b = pick(pool).slice(); pz.kind = kind; pz.picked = null; pz.answered = false;
   $('#gt-puz-rules').textContent = kind === 'now' ? 'X to move. One square wins on the spot.' : kind === 'only' ? 'X to move. Two squares lose. One does not.' : 'X to move. No square wins right away, but one wins for sure.';
-  $('#gt-puz-status').textContent = 'Click a square.'; $('#gt-tree').innerHTML = '';
+  $('#gt-puz-status').textContent = 'Click a square.'; $('#gt-tree').innerHTML = ''; $('#gt-tree-wrap').hidden = true;
   miniRender();
 }
 function miniRender(){
@@ -173,7 +173,7 @@ $('#gt-show').addEventListener('click', () => {
   place(tree, 0, true);
   const depthMax = 3; const height = (depthMax + 1) * LEVEL + 10;
   s += `<text class="lbl" x="4" y="${20 + SIZE / 2}">X picks max</text><text class="lbl" x="4" y="${LEVEL + 20 + SIZE / 2}">O picks min</text><text class="lbl" x="4" y="${2 * LEVEL + 20 + SIZE / 2}">X picks max</text>`;
-  const svg = $('#gt-tree'); svg.setAttribute('viewBox', `0 0 ${width} ${height}`); svg.innerHTML = s;
+  const svg = $('#gt-tree'); svg.setAttribute('viewBox', `0 0 ${width} ${height}`); svg.innerHTML = s; $('#gt-tree-wrap').hidden = false;
   if (!pz.answered) $('#gt-puz-status').textContent = 'The yellow path is the best line of play. Values: +1 X wins, 0 draw, −1 O wins.';
 });
 $('#gt-next').addEventListener('click', puzzleNew);

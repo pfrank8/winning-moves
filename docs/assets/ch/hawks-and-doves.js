@@ -185,9 +185,9 @@ function drawLines(){
   if (ps < 1){
     const cy = f.y(EH(ps, V, C));
     c.beginPath(); c.arc(f.x(ps), cy, 8, 0, Math.PI * 2); c.fillStyle = t.math; c.fill(); c.strokeStyle = t.ink; c.lineWidth = 2; c.stroke();
-    label(c, `p* = ${V}/${C} = ${pct(ps)}`, f.x(ps), f.box.t + 12, t.ink, t, ps > .6 ? 'right' : 'left');
+    label(c, `p* = ${V}/${C} = ${pct(ps)}`, f.x(ps), f.box.b - 12, t.ink, t, ps > .6 ? 'right' : 'left');
   } else {
-    label(c, `V/C = ${num(V / C)} ≥ 1: hawks win everywhere`, f.x(0) + 4, f.box.t + 12, t.ink, t, 'left');
+    label(c, `V/C = ${num(V / C)} ≥ 1: hawks win everywhere`, f.x(1) - 4, f.box.t + 12, t.ink, t, 'right');
   }
   const eh = EH(p2, V, C), ed = ED(p2, V, C);
   $('#hd-eh').textContent = num(eh); $('#hd-ed').textContent = num(ed);

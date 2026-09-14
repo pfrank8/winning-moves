@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="./assets/site.css?v=7837293e">
+<link rel="stylesheet" href="./assets/site.css?v=6b882d0e">
 <script>window.WM_CHAPTERS = [{"slug":"what-is-a-game","num":1,"title":"What is a game?","stars":[{"id":"wg-ten","label":"Play ten rounds and read the grid"},{"id":"wg-exploit","label":"Win 7 of 10 against Pattern Robo"},{"id":"wg-balance","label":"Build a fair five-weapon game"}]},{"slug":"payoff-grids","num":2,"title":"The Cookie Game","stars":[{"id":"pg-play","label":"Work out the dominant strategy, then play the Cookie Game"},{"id":"pg-best","label":"Mark every best response in a 3 by 3 grid"},{"id":"pg-cross","label":"Cross out the whole grid down to one box"}]},{"slug":"nash-equilibrium","num":3,"title":"Nobody wants to switch","stars":[{"id":"ne-hunt","label":"Solve all five equilibrium puzzles"},{"id":"ne-predict","label":"Predict the number of equilibria in five random games in a row"},{"id":"ne-three","label":"Design a 2 by 2 game with exactly three equilibria"}]},{"slug":"mixed-strategies","num":4,"title":"Being unpredictable","stars":[{"id":"ms-exploit","label":"Win 7 of 10 rounds against a Robo with a favorite"},{"id":"ms-safe","label":"Find the plan Robo cannot beat, then test it 100 times"},{"id":"ms-solve","label":"Solve a fresh penalty-kick game to within 3 percent"}]},{"slug":"thinking-backwards","num":5,"title":"Thinking backwards","stars":[{"id":"tb-win","label":"Beat a perfect Robo at the 21 Game"},{"id":"tb-labels","label":"Label every position from 0 to 21 correctly"},{"id":"tb-misere","label":"Win the version where the last stone loses"}]},{"slug":"nim-and-binary","num":6,"title":"Nim and binary","stars":[{"id":"nb-win","label":"Beat a perfect Robo at three-pile Nim"},{"id":"nb-xor","label":"Get five nim-sums right in the column tool"},{"id":"nb-move","label":"Find the winning move in three positions in a row"}]},{"slug":"game-trees","num":7,"title":"Seeing the whole tree","stars":[{"id":"gt-draw","label":"Hold a perfect Robo to a draw"},{"id":"gt-tree","label":"Pick the best move in three tree puzzles"},{"id":"gt-shallow","label":"Beat a Robo that only looks two moves ahead"}]},{"slug":"chomp","num":8,"title":"A proof that you can win","stars":[{"id":"ch-win","label":"Beat a perfect Robo at Chomp on a 4 by 6 bar"},{"id":"ch-square","label":"Beat Robo on a square bar using the mirror trick"},{"id":"ch-count","label":"Count the shapes of a bar with the formula"}]},{"slug":"hex","num":9,"title":"Hex","stars":[{"id":"hx-win","label":"Beat Robo on a 6 by 6 board or bigger, without hints"},{"id":"hx-chain","label":"Trace the winning chain on three random full boards"},{"id":"hx-bridge","label":"Win a game against Robo in which you built a bridge"}]},{"slug":"every-game-is-nim","num":10,"title":"Every game is secretly Nim","stars":[{"id":"gr-mex","label":"Get all five mex problems right"},{"id":"gr-labels","label":"Grundy-label a subtraction game up to 12 or more"},{"id":"gr-sum","label":"Beat a perfect Robo at a sum of two games"}]},{"slug":"repeated-games","num":11,"title":"Playing again and again","stars":[{"id":"rg-coop","label":"Score 60 in 20 rounds against Tit for Tat"},{"id":"rg-guess","label":"Work out which strategy Mystery Robo is using"},{"id":"rg-noise","label":"Run a tournament with 5 or more strategies and 5% noise or more"}]},{"slug":"fair-division","num":12,"title":"Fair division","stars":[]},{"slug":"auctions","num":13,"title":"Going once, going twice","stars":[{"id":"au-english","label":"Win an English auction with a positive profit"},{"id":"au-shade","label":"Finish 10 rounds of the first-price auction with a positive total profit"},{"id":"au-honest","label":"Answer the Vickrey quiz correctly, then win a Vickrey round with a profit"}]},{"slug":"voting","num":14,"title":"How to pick a winner when nobody agrees","stars":[{"id":"vo-three","label":"Build a profile where plurality, instant runoff, and Borda pick three different winners"},{"id":"vo-cycle","label":"Build a Condorcet cycle from scratch"},{"id":"vo-strategic","label":"Find the strategic vote in the Borda election"}]},{"slug":"bargaining","num":15,"title":"Bargaining","stars":[]},{"slug":"hawks-and-doves","num":16,"title":"Hawks and doves","stars":[{"id":"hd-predict","label":"Predict the hawk fraction before the simulation finds it"},{"id":"hd-allhawk","label":"Set a prize worth fighting for and call the hawk takeover"},{"id":"hd-cycle","label":"Watch the lizards cycle for 200 generations"}]},{"slug":"monty-hall","num":17,"title":"Monty hall","stars":[]},{"slug":"common-knowledge","num":18,"title":"Common knowledge","stars":[]},{"slug":"traffic","num":19,"title":"Traffic","stars":[]},{"slug":"commons","num":20,"title":"Commons","stars":[]},{"slug":"ice-cream-carts","num":21,"title":"Ice cream carts","stars":[]}];</script>
 </head>
 <body class="chapter-every-game-is-nim">
@@ -22,7 +22,7 @@
   <a class="pill" href="./#progress" title="Your stars"><span class="star">★</span> <span id="star-count">0</span>/<span id="star-total">0</span></a>
 </nav>
 <main class="wrap chapter">
-<header class="chapter-head part-2"><div class="num">10</div><div><span class="kicker">Part II · Games with turns</span><h1>Every game is secretly Nim</h1><p class="lede">Chapter 5 labeled positions W or L. Chapter 6 turned Nim piles into binary. This chapter joins them: every position in every game like these is secretly a Nim pile, and one number, its Grundy value, tells you how big. Once you can find that number, you can play several games at once and still never lose to Robo.</p></div></header><style>
+<header class="chapter-head part-2"><div class="num">10</div><div><span class="kicker">Part II · Games with turns</span><h1>Every game is secretly Nim</h1><p class="lede">Chapter 5 labeled positions W or L. Chapter 6 turned Nim piles into binary. This chapter joins them: every position in every game like these is secretly a Nim pile, and one number, its Grundy value, tells you how big. Once you can find that number, you can play several games at once and still beat Robo.</p></div></header><style>
   /* mex calculator */
   .gr-line{ display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 6px }
   .gr-lc{ width:36px; height:36px; border-radius:50%; border:3px solid var(--line); display:grid; place-items:center; font:600 .85rem var(--f-mono); color:var(--ink) }
@@ -88,7 +88,7 @@
     <p>Try the calculator, then do the five problems without it.</p>
   </div>
 
-  <div class="board">
+  <div class="board" id="board-1">
     <div class="board-head"><h3>The mex calculator</h3><span class="rules">Type a set. The smallest missing whole number lights up.</span></div>
     <div class="row">
       <span class="field">Set <input type="text" id="gr-mex-in" value="0, 1, 3" size="18" aria-label="A set of whole numbers"></span>
@@ -120,7 +120,7 @@
     <p>So the Grundy values know everything the letters knew, and more: they tell a 1 from a 2 from a 3, and the next section is where that pays off. First, label a game yourself. Type each value or use the small buttons. "Check" marks the wrong cells without giving answers, and "Show me" walks through the mex reasoning one position at a time.</p>
   </div>
 
-  <div class="board">
+  <div class="board" id="board-2">
     <div class="board-head"><h3>Label the positions with Grundy values</h3><span class="rules">G(n) = mex of the values one move away. G(0) = 0.</span></div>
     <div class="row">
       <span class="field">Allowed takes <input type="text" id="gr-lab-takes" value="1, 2, 3" size="9"></span>
@@ -154,7 +154,7 @@
     <p>Play it. Robo does this arithmetic silently unless you tick "Show the secret". The hint tells you which game to fix, what value to aim for, and which stones get you there.</p>
   </div>
 
-  <div class="board">
+  <div class="board" id="board-3">
     <div class="board-head"><h3>Two games at once</h3><span class="rules">Move in one game per turn. If you cannot move anywhere, you lose.</span></div>
     <div class="row">
       <div class="seg" id="gr-sum-first"><button class="on" data-v="you">I go first</button><button data-v="robo">Robo goes first</button></div>
@@ -250,7 +250,7 @@
     <p>A row of 5 is worth 4, so the first player wins. The move: knock down the middle pin, leaving 2 + 2, worth <code>2 ⊕ 2 = 0</code>, then copy whatever Robo does in the other row. That mirror trick works for a single row of any length (middle pin if odd, middle pair if even), so every single row is a first-player win. The values still earn their keep: once the rows are unequal, only the numbers can tell you what to do. Richard Guy and Cedric Smith computed the Kayles values in 1956 using exactly this theorem. Beyond 70 pins the values repeat every 12.</p>
   </details>
 
-  <div class="board">
+  <div class="board" id="board-4">
     <div class="board-head"><h3>Kayles</h3><span class="rules">Knock down one pin, or two standing next to each other. Last move wins.</span></div>
     <div class="row">
       <div class="seg" id="gr-k-first"><button class="on" data-v="you">I go first</button><button data-v="robo">Robo goes first</button></div>
@@ -281,7 +281,7 @@
   <a href="./grown-ups.html">For grown-ups</a>
 </footer>
 <div id="toast" role="status" aria-live="polite"></div>
-<script src="./assets/site.js?v=7837293e"></script>
-<script src="assets/ch/every-game-is-nim.js?v=7837293e"></script>
+<script src="./assets/site.js?v=6b882d0e"></script>
+<script src="assets/ch/every-game-is-nim.js?v=6b882d0e"></script>
 </body>
 </html>

@@ -129,7 +129,11 @@ const { $, $$, rand, pick, wait, earn, seg, slider, grid, fmtN, fmtS, fmtNum, fr
 - Every interactive must be in a sensible resting state on load (a game ready
   to play, a simulation showing a real result), never an empty shell.
 - Robo moves after `await wait(600..800)` so the reader sees turns happen.
-  Guard against clicks during Robo's turn (a `busy` flag).
+  Guard against clicks during Robo's turn (a `busy` flag), AND guard against a
+  new game starting while Robo is thinking: keep a game id counter, bump it in
+  `newGame()`, capture it before the `await`, and bail out after the `await`
+  if it changed (`const id = g.id; await wait(700); if (id !== g.id) return;`).
+  Without this, changing a setting mid-turn spawns overlapping Robo moves.
 - Perfect play must actually be perfect. Compute it (minimax, DP, memoized
   search, exact formula), do not fake it with heuristics. For games too big to
   solve, say so in the prose and use a clearly described method (Monte Carlo

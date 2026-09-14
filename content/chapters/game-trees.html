@@ -70,7 +70,7 @@
       </div>
       <div><div class="stat"><span class="k">Puzzles solved</span><span class="v" id="gt-solved">0</span></div></div>
     </div>
-    <div class="scroll"><svg class="gt-tree" id="gt-tree" viewBox="0 0 700 420" role="img" aria-label="The game tree of the puzzle position with minimax values"></svg></div>
+    <div class="scroll" id="gt-tree-wrap" hidden><svg class="gt-tree" id="gt-tree" viewBox="0 0 700 420" role="img" aria-label="The game tree of the puzzle position with minimax values"></svg></div>
   </div>
 </section>
 
@@ -79,7 +79,7 @@
   <div class="prose">
     <p>From an empty board the first move has 9 choices. Then 8 squares are left, then 7, and so on, so if every game went the full nine moves there would be <code>9 × 8 × 7 × 6 × 5 × 4 × 3 × 2 × 1 = 362,880</code> ways to play. Mathematicians write that as <code>9!</code> and say "nine factorial". Many games end early with a win, so the real number of different complete games is 255,168. Either way, a computer can check them all in a fraction of a second.</p>
     <p>Chess is different. A chess position has about 30 legal moves, and a game lasts about 80 moves in total, so the tree has roughly 30<sup>80</sup> branches. That is a 1 followed by about 120 zeros. There are only about 10<sup>80</sup> atoms in the observable universe. No computer will ever draw the chess tree, which is why chess programs need a smarter idea.</p>
-    <p><b>Skipping branches.</b> The smarter idea is called <span class="term">pruning</span>. Suppose Robo is considering a move and finds that one of your replies already makes it a losing move. Robo does not need to look at your other replies. That move is dead; on to the next one. Robo above does exactly this when the checkbox is on, and the counter shows how much work it saves. Done well, pruning lets a program look about twice as many moves ahead for the same amount of thinking.</p>
+    <p><b>Skipping branches.</b> The smarter idea is called <span class="term">pruning</span>. Suppose Robo is considering a move and finds that one of your replies already makes it a losing move. Robo does not need to look at your other replies. That move is dead; on to the next one. Robo above counts both ways after every move: the futures it actually examined, and how many it would have needed with pruning. Done well, pruning lets a program look about twice as many moves ahead for the same amount of thinking.</p>
   </div>
   <div class="board">
     <div class="board-head"><h3>Three kinds of first move</h3><span class="rules">Symmetry shrinks the tree.</span></div>

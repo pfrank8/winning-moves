@@ -17,7 +17,7 @@
   .hx-svg .cell{ fill:var(--surface-2); stroke:var(--line); stroke-width:2.5; stroke-linejoin:round; transition:fill .12s }
   .hx-svg .cell.r{ fill:var(--you) } .hx-svg .cell.b{ fill:var(--robo) }
   .hx-svg.live .cell.e{ cursor:pointer } .hx-svg.live .cell.e:hover{ fill:var(--math-soft) }
-  .hx-svg.live .cell.r,.hx-svg.live .cell.b{ cursor:pointer }
+  .hx-svg.paint.live .cell.r,.hx-svg.paint.live .cell.b{ cursor:pointer }
   .hx-svg .cell.hint{ stroke:var(--math); stroke-width:7 }
   .hx-svg .cell.sel{ stroke:var(--math); stroke-width:7 }
   .hx-svg .chain-under{ fill:none; stroke:var(--surface); stroke-width:15; stroke-linejoin:round; stroke-linecap:round; opacity:.9 }
@@ -37,9 +37,9 @@
 
 <section>
   <div class="prose">
-    <p>Here is the board: a slanted diamond of hexagons. You are <b class="you">red</b>, and the top and bottom edges are yours. <b class="robo">Robo</b> is blue and owns the left and right edges. You take turns putting one stone of your color on any empty cell. Stones never move and never come off. You win the moment there is an unbroken chain of red cells from the top edge to the bottom edge. Robo wins with a blue chain from the left edge to the right. The four corner cells belong to both colors.</p>
-    <p>That is the whole game, and there is no such thing as a tie. Play until the board is full and exactly one player has connected. The next section proves it.</p>
-    <p>One more thing before you play. Robo cannot solve this game. Nobody can, once the board gets big, and even 6 by 6 is far beyond the look-at-every-game method from Chapter 7. So this Robo plays by <b>imagination</b>: before each move it plays thousands of random games in its head, some for every empty cell, and picks the cell that won most often. The last section explains the method. It is a real one, it is what the strongest game programs grew out of, and it is beatable.</p>
+    <p>Here is the board: a slanted diamond of hexagons. You are <b class="you">red</b>, and the top and bottom edges are yours. <b class="robo">Robo</b> is blue and owns the left and right edges. You take turns placing one stone of your color on any empty cell. Stones never move and never come off. You win the moment an unbroken chain of red cells joins the top edge to the bottom edge. Robo wins with a blue chain from left to right. The four corner cells belong to both colors.</p>
+    <p>That is the whole game, and there is no such thing as a tie: fill the board and exactly one player has connected. The next section proves it.</p>
+    <p>One more thing. Robo cannot solve this game. Nobody can, once the board gets big, and even 6 by 6 is far beyond the look-at-every-game method from Chapter 7. So this Robo plays by <b>imagination</b>: before each move it plays thousands of random games in its head, some for every empty cell, and picks the cell that won most often. The last section explains the method. It is real, and it is beatable.</p>
   </div>
 
   <div class="board">
@@ -72,7 +72,7 @@
 <section>
   <h2>No draws, ever</h2>
   <div class="prose">
-    <p>In tic-tac-toe the board fills up and nobody wins. Try to make that happen in Hex. Fill every cell with red and blue in any pattern at all, and there is always a winner. The button below fills a board at random; then you find the winning chain by clicking its cells, edge to edge. Or clear the board and paint it by hand, trying to build a full board with no winner. You will not manage it, and a few minutes of trying is the best way to feel why.</p>
+    <p>In tic-tac-toe the board fills up and nobody wins. Try to make that happen in Hex. Fill every cell with red and blue in any pattern at all, and there is always a winner. The button below fills a board at random; find the winning chain by clicking its cells, edge to edge. Or clear the board, paint it by hand, and try to build a full board with no winner. You will not manage it.</p>
   </div>
 
   <div class="board">
@@ -89,37 +89,37 @@
   </div>
 
   <div class="prose">
-    <p>Half of the fact is easy. There can never be <i>two</i> winners: a red chain from top to bottom is a wall, and a blue chain from left to right would have to cross it, but no cell is both red and blue. The other half, that there is always <i>at least</i> one winner, is the surprising half. Here is the picture to keep in mind. Think of the red cells as land and the blue cells as water. If there is no dry path from the top shore to the bottom shore, the water must get all the way across from left to right. That feels obvious. It is true, but a real proof takes care, and the shape of the cells matters. On a board of squares, where cells that touch only at a corner do not count as connected, a checkerboard pattern has no winner at all. Hexagons have no corner-touching problem: any two cells that touch share a whole edge.</p>
-    <p>In 1979 the mathematician David Gale proved something strange: this Hex fact is <b>equivalent</b> to a famous theorem of topology <span class="say">(say: tuh-POL-uh-jee)</span> called <span class="term">Brouwer's fixed point theorem</span>. Take two identical maps of Texas, crumple one up, and drop it on top of the flat one. Brouwer says some point on the crumpled map lies exactly above the same point on the flat map. Gale showed that each statement can be turned into the other: if every full Hex board has a winner, the crumpled map must have its fixed point, and the other way round.</p>
+    <p>Half of the fact is easy. There can never be <i>two</i> winners: a red chain from top to bottom is a wall, and a blue chain from left to right would have to cross it, but no cell is both colors. The other half, that there is always <i>at least</i> one, is the surprise. Think of the red cells as land and the blue cells as water. If no dry path runs from the top shore to the bottom shore, the water must get all the way across from left to right. It feels obvious. It is true, but a real proof takes care, and the shape of the cells matters: on a board of squares, where cells that touch only at a corner do not count as connected, a checkerboard has no winner at all. Two hexagons that touch always share a whole edge.</p>
+    <p>In 1979 the mathematician David Gale proved something strange: this Hex fact is <b>equivalent</b> to a famous theorem of topology <span class="say">(say: tuh-POL-uh-jee)</span> called <span class="term">Brouwer's fixed point theorem</span>. Take two identical maps of Texas, crumple one up, and drop it on top of the flat one. Brouwer says some point on the crumpled map lies exactly above the same point on the flat map. Gale showed that each statement can be turned into the other.</p>
   </div>
 </section>
 
 <section>
   <h2>The first player can always win, and nobody knows how</h2>
   <div class="prose">
-    <p>Here is a strange fact about Hex. On a board of any size, the player who moves first can force a win. We know this for certain. And on the 11 by 11 board that people actually play on, nobody knows what the winning first move is, let alone the plan that follows it. The proof has the same shape as the one for Chomp in Chapter 8: <span class="term">strategy stealing</span>.</p>
+    <p>Here is a strange fact about Hex. On a board of any size, the player who moves first can force a win. We know this for certain. And on the standard 11 by 11 board, nobody knows what the winning first move is, let alone the plan that follows it. The proof has the same shape as the one for Chomp in Chapter 8: <span class="term">strategy stealing</span>.</p>
   </div>
   <div class="proof">
     <p><b>Claim.</b> The first player has a winning strategy.</p>
     <ol>
-      <li><b>Suppose not.</b> Hex has no draws, so one of the two players must have a winning strategy (that is the rule from Chapter 5, and it needs the no-draw fact from the last section). If it is not the first player, it is the second: a rulebook that tells blue how to answer every red move and always end up connected.</li>
-      <li><b>Red steals it.</b> Red plays a stone anywhere, then pretends to be the second player. Red treats blue's reply as if it were the first move of the game and answers it from the rulebook, placing red stones wherever the rulebook says.</li>
-      <li><b>The spare stone.</b> Sometimes the rulebook will tell red to play on a cell where red already has a stone, the one from step 2. Then red plays anywhere else instead, and that new stone becomes the spare.</li>
-      <li><b>A spare stone never hurts.</b> If a set of red stones connects top to bottom, the same set plus one more red stone still connects, and the extra red stone gives blue nothing, because blue's chains are made of blue. So red, following blue's winning rulebook with one stone to spare, wins. But the rulebook was supposed to win for blue, and both players cannot win. The supposition in step 1 was wrong.</li>
+      <li><b>Suppose not.</b> Hex has no draws, so one of the two players must have a winning strategy (the rule from Chapter 5, and it needs the no-draw fact from the last section). If it is not the first player, it is the second: a rulebook that tells blue how to answer every red move and always end up connected.</li>
+      <li><b>Red steals it.</b> Red plays a stone anywhere, then pretends to be the second player: red treats blue's reply as the first move of the game and answers it from the rulebook.</li>
+      <li><b>The spare stone.</b> Sometimes the rulebook tells red to play on a cell where red already has a stone, the one from step 2. Then red plays anywhere else, and that new stone becomes the spare.</li>
+      <li><b>A spare stone never hurts.</b> If a set of red stones connects top to bottom, the same set plus one more red stone still connects, and the extra stone gives blue nothing, because blue's chains are made of blue. So red, following blue's winning rulebook with a stone to spare, wins. Both players cannot win, so step 1 was wrong.</li>
     </ol>
   </div>
   <div class="prose">
-    <p>Look at what the proof does not do. It never says which first move wins. It only shows that a winning plan for the second player is impossible. The step that makes it work is step 4, and it is the step that fails almost everywhere else. In chess an extra piece of your own can block your rook or get your king into trouble. In Hex an extra stone can only add chains, never remove them, and it never adds a blue one.</p>
-    <p>For small boards, computers have gone the rest of the way and found the winning moves: every board up to 9 by 9 is solved. The standard 11 by 11 board is still out of reach. The winning first move for it is out there, guaranteed by four lines of reasoning, and nobody has found it.</p>
+    <p>Look at what the proof does not do. It never says which first move wins. It only shows that a winning plan for the second player is impossible. Step 4 is what makes it work, and it is the step that fails almost everywhere else. In chess an extra piece can block your own rook. In Hex an extra stone can only add chains, never remove them, and never a blue one.</p>
+    <p>For small boards, computers have gone the rest of the way and found the winning moves: every board up to 9 by 9 is solved. The 11 by 11 board is still out of reach: its winning first move exists, and nobody has found it.</p>
   </div>
 </section>
 
 <section>
   <h2>How Robo thinks when it cannot think it through</h2>
   <div class="prose">
-    <p>Chapter 7's Robo solved tic-tac-toe by looking at every possible game. A 6 by 6 Hex board has 36 cells. Just the first ten moves can happen in <code>36 × 35 × 34 × ... × 27</code> ways, which is about 920 trillion (<code class="hx-nowrap">9.2 × 10<sup>14</sup></code>), and at that point the game has barely started. Looking at every game is not an option.</p>
-    <p>So Robo does something different, much dumber, and surprisingly effective. For each empty cell, Robo imagines putting its stone there and then finishing the game <b>at random</b>: the remaining cells get filled with red and blue stones in a random order, and Robo checks who won (someone always has). It does this <span class="var">N</span> times for each cell, counts how many of those finishes it won, and plays the cell with the most wins. The strength control above sets <span class="var">N</span>: 50, 200, or 800 random finishes per cell. This is the <span class="term">Monte Carlo method</span> <span class="say">(say: MON-tee CAR-lo)</span>, named after the casino town, because it turns gambling into measurement.</p>
-    <p>Why would that work at all? A random finish is a terrible game; both sides play nonsense. But a cell that is genuinely strong, one that sits on many possible chains, wins a little more often even in nonsense games, and a cell that is nearly useless loses a little more often. Robo cannot see a plan. It can only see a rate. That is why you can beat it: a quiet plan, like the bridge in the Challenge below, is invisible to it until the plan is already finished.</p>
+    <p>Chapter 7's Robo solved tic-tac-toe by looking at every possible game. A 6 by 6 Hex board has 36 cells. Just the first ten moves can happen in <code>36 × 35 × 34 × ... × 27</code> ways, about 920 trillion (<code class="hx-nowrap">9.2 × 10<sup>14</sup></code>), and at that point the game has barely started.</p>
+    <p>So Robo does something different, much dumber, and surprisingly effective. For each empty cell, Robo imagines putting its stone there and then finishing the game <b>at random</b>: the remaining cells are filled with red and blue stones in a random order, and Robo checks who won (someone always has). It does this <span class="var">N</span> times per cell, counts how many finishes it won, and plays the cell with the most wins. The strength control sets <span class="var">N</span>: 50, 200, or 800 finishes per cell. This is the <span class="term">Monte Carlo method</span> <span class="say">(say: MON-tee CAR-lo)</span>, named after the casino town, because it turns gambling into measurement.</p>
+    <p>Why would that work? A random finish is a terrible game; both sides play nonsense. But a genuinely strong cell wins a little more often even in nonsense games, and a nearly useless one loses a little more often. Robo cannot see a plan, only a rate. That is why you can beat it: a quiet plan, like the bridge in the Challenge below, is invisible to it until it is finished.</p>
   </div>
 
   <div class="board">
@@ -131,11 +131,11 @@
 
   <div class="math">
     <span class="tag">Math corner</span>
-    <p><b>Estimating a probability by counting.</b> Each candidate cell has a true win rate: the fraction of all possible random finishes that it wins. Robo cannot compute that fraction, so it samples <span class="var">N</span> finishes and counts:</p>
+    <p><b>Estimating a probability by counting.</b> Each cell has a true win rate: the fraction of all possible random finishes it wins. Robo cannot compute that fraction, so it samples <span class="var">N</span> finishes and counts:</p>
     <div class="formula">win rate ≈ wins ÷ N</div>
     <p>The estimate wobbles, and the wobble shrinks as <span class="var">N</span> grows, but slowly. For a rate near one half, the typical error is about</p>
     <div class="formula">1 ÷ (2 × √N)</div>
-    <p>which is 7 percentage points at <span class="var">N</span> = 50, 3.5 at <span class="var">N</span> = 200, and 1.8 at <span class="var">N</span> = 800. Notice the pattern: multiplying <span class="var">N</span> by 4 cuts the error in half. To be twice as accurate you need four times as many games. Press "Imagine again" and watch the top of the table shuffle. That is the wobble, and it is also why two candidate cells whose counts differ by only a few wins are really a coin flip.</p>
+    <p>which is 7 percentage points at <span class="var">N</span> = 50, 3.5 at <span class="var">N</span> = 200, and 1.8 at <span class="var">N</span> = 800. Multiplying <span class="var">N</span> by 4 cuts the error in half: to be twice as accurate you need four times as many games. Press "Imagine again" and watch the top of the table shuffle. That is the wobble, and it is why two cells a few wins apart are really a coin flip.</p>
   </div>
 
   <div class="idea">
@@ -148,24 +148,24 @@
   <span class="tag">Try it on paper</span>
   <p><b>1.</b> Hex on a 2 by 2 board. Red moves first. Which first moves win? Decide, then click a cell to check.</p>
   <div class="hx-puzzle tiny"><div class="hx-mini" id="hx-p1" data-n="2" data-pos=""></div><div class="hx-msg" id="hx-p1-msg">Red to move. Click your first move.</div></div>
-  <details class="reveal"><summary>Answer</summary><p>The two wide corners, b1 and a2. From b1, red touches both cells of the bottom row, a2 and b2, so blue can block only one. The two sharp corners lose: from a1 red can reach the bottom row only through a2, blue takes it, and blue's a2 already touches b1. On a 2 by 2 board the first player wins, but only from the right corners.</p></details>
-  <p><b>2.</b> The 5 by 5 board has one cell that is the same distance from all four edges. Which is it? Now spin the board half a turn. What happens to the red edges, the blue edges, and that cell?</p>
-  <details class="reveal"><summary>Answer</summary><p>c3, the center. Spin the board 180 degrees and it lands exactly on itself: the top edge goes to the bottom, the left edge to the right, every cell to its opposite, and c3 to c3. So the center is the one first move that reaches for both of your edges equally and keeps equally far from both of Robo's. Symmetry alone does not prove it is the best first move, but computers have checked: on every odd board that has been solved, up to 9 by 9, the center is a winning first move.</p></details>
-  <p><b>3.</b> Red to move on the 4 by 4 board below. There is exactly one winning move. Find it on paper, then click it. The board checks your answer with an exact search of every continuation, and if you are wrong it shows blue's winning reply.</p>
+  <details class="reveal"><summary>Answer</summary><p>The two wide corners, b1 and a2. From b1, red touches both cells of the bottom row, a2 and b2, so blue can block only one. The sharp corners lose: from a1 red can reach the bottom row only through a2, and blue takes it.</p></details>
+  <p><b>2.</b> The 5 by 5 board has one cell that is the same distance from all four edges. Which is it? Now spin the board half a turn. What happens to the edges, and to that cell?</p>
+  <details class="reveal"><summary>Answer</summary><p>c3, the center. Spin the board 180 degrees and it lands exactly on itself: top edge onto bottom, left onto right, every cell onto its opposite, and c3 onto itself. Symmetry does not prove it is the best move, but computers have checked: on every odd board that has been solved, up to 9 by 9, the center is a winning first move.</p></details>
+  <p><b>3.</b> Red to move on the 4 by 4 board below. There is exactly one winning move. Find it on paper, then click it. The board checks with an exact search and, if you are wrong, shows blue's winning reply.</p>
   <div class="hx-puzzle"><div class="hx-mini" id="hx-p3" data-n="4" data-pos="r:b2,b4 b:c1,d3"></div><div class="hx-msg" id="hx-p3-msg">Red to move. Click the winning cell.</div></div>
-  <details class="reveal"><summary>Answer</summary><p>c2. It touches b2, it reaches the top edge two ways (b1 and d1), and it makes a bridge down to b4 through b3 and c3. Blue can block only one thing per turn. Every other move loses; play one and the board shows you the reply that beats it.</p></details>
+  <details class="reveal"><summary>Answer</summary><p>c2. It touches b2, reaches the top edge two ways (b1 and d1), and makes a bridge down to b4 through b3 and c3. Blue can block only one thing per turn.</p></details>
 </div>
 
 <div class="challenge">
   <span class="tag">Challenge</span>
-  <p><b>The bridge.</b> Two stones of the same color that do not touch, with exactly two empty cells between them that touch both stones, are as good as connected: if Robo plays in one of those cells, you play in the other. Robo, playing by win rates, does not know this. Below, red to move, and there is exactly one winning move. It builds two bridges at once. Find it. Then win a real game against Robo in which you build at least one bridge; the game log tells you when you have.</p>
+  <p><b>The bridge.</b> Two stones of one color that do not touch, with exactly two empty cells between them that touch both stones, are as good as connected: if Robo plays in one of those cells, you play in the other. Robo, playing by win rates, does not know this. Below, red to move, and exactly one move wins. It builds two bridges at once. Find it. Then win a real game against Robo in which you build at least one bridge; the game log tells you when you have.</p>
   <div class="hx-puzzle"><div class="hx-mini" id="hx-p4" data-n="5" data-pos="r:d1,b2,e2,a5,b5,c5 b:b1,c1,b3,d3,d5,e5"></div><div class="hx-msg" id="hx-p4-msg">Red to move. Click the winning cell.</div></div>
   <details class="reveal"><summary>Answer</summary>
-    <p>c3. It makes a bridge up to d1 through c2 and d2, and a bridge down to b5 through b4 and c4. Blue can break neither: whichever cell of a bridge blue takes, red takes the other. Any other red move lets blue play c3 itself, and then blue's b3, c3, d3 wall has only two gaps left to close. The same trick works against an edge: a stone one row from your edge with two empty cells below it is already connected to that edge. Against Robo, build a chain of bridges from your top edge to your bottom edge and answer every intrusion in the other cell of that bridge.</p>
+    <p>c3. It bridges up to d1 through c2 and d2, and down to b5 through b4 and c4. Whichever cell of a bridge blue takes, red takes the other. Any other red move lets blue play c3 itself, leaving its b3, c3, d3 wall only two gaps from complete. It works against an edge too: a stone one row in, with two empty cells below it, is already connected. Against Robo, build a chain of bridges from your top edge to your bottom edge and answer every intrusion in the other cell.</p>
   </details>
 </div>
 
 <div class="story">
   <span class="tag">True story</span>
-  <p>Hex was invented in 1942 by Piet Hein, a Danish poet, designer, and inventor, who published it in the Copenhagen newspaper Politiken under the name Polygon. In 1948 John Nash, then a graduate student at Princeton, invented the same game again without knowing about Hein's. Princeton students called it Nash, and sometimes John, because it was played on the hexagonal tiles of a bathroom floor. Nash is also credited with the strategy-stealing proof above. In 1952 the game company Parker Brothers sold it under the name Hex, and that name stuck. Nash went on to win the Nobel Prize in economics in 1994 for the equilibrium idea from Chapter 3.</p>
+  <p>Hex was invented in 1942 by Piet Hein, a Danish poet, designer, and inventor, who published it in the Copenhagen newspaper Politiken under the name Polygon. In 1948 John Nash, then a graduate student at Princeton, invented the same game again without knowing about Hein's. Princeton students called it Nash, and sometimes John, because it was played on the hexagonal tiles of a bathroom floor. Nash is also credited with the strategy-stealing proof above. In 1952 Parker Brothers sold it as Hex, and that name stuck.</p>
 </div>

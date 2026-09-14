@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="./assets/site.css?v=7837293e">
+<link rel="stylesheet" href="./assets/site.css?v=6b882d0e">
 <script>window.WM_CHAPTERS = [{"slug":"what-is-a-game","num":1,"title":"What is a game?","stars":[{"id":"wg-ten","label":"Play ten rounds and read the grid"},{"id":"wg-exploit","label":"Win 7 of 10 against Pattern Robo"},{"id":"wg-balance","label":"Build a fair five-weapon game"}]},{"slug":"payoff-grids","num":2,"title":"The Cookie Game","stars":[{"id":"pg-play","label":"Work out the dominant strategy, then play the Cookie Game"},{"id":"pg-best","label":"Mark every best response in a 3 by 3 grid"},{"id":"pg-cross","label":"Cross out the whole grid down to one box"}]},{"slug":"nash-equilibrium","num":3,"title":"Nobody wants to switch","stars":[{"id":"ne-hunt","label":"Solve all five equilibrium puzzles"},{"id":"ne-predict","label":"Predict the number of equilibria in five random games in a row"},{"id":"ne-three","label":"Design a 2 by 2 game with exactly three equilibria"}]},{"slug":"mixed-strategies","num":4,"title":"Being unpredictable","stars":[{"id":"ms-exploit","label":"Win 7 of 10 rounds against a Robo with a favorite"},{"id":"ms-safe","label":"Find the plan Robo cannot beat, then test it 100 times"},{"id":"ms-solve","label":"Solve a fresh penalty-kick game to within 3 percent"}]},{"slug":"thinking-backwards","num":5,"title":"Thinking backwards","stars":[{"id":"tb-win","label":"Beat a perfect Robo at the 21 Game"},{"id":"tb-labels","label":"Label every position from 0 to 21 correctly"},{"id":"tb-misere","label":"Win the version where the last stone loses"}]},{"slug":"nim-and-binary","num":6,"title":"Nim and binary","stars":[{"id":"nb-win","label":"Beat a perfect Robo at three-pile Nim"},{"id":"nb-xor","label":"Get five nim-sums right in the column tool"},{"id":"nb-move","label":"Find the winning move in three positions in a row"}]},{"slug":"game-trees","num":7,"title":"Seeing the whole tree","stars":[{"id":"gt-draw","label":"Hold a perfect Robo to a draw"},{"id":"gt-tree","label":"Pick the best move in three tree puzzles"},{"id":"gt-shallow","label":"Beat a Robo that only looks two moves ahead"}]},{"slug":"chomp","num":8,"title":"A proof that you can win","stars":[{"id":"ch-win","label":"Beat a perfect Robo at Chomp on a 4 by 6 bar"},{"id":"ch-square","label":"Beat Robo on a square bar using the mirror trick"},{"id":"ch-count","label":"Count the shapes of a bar with the formula"}]},{"slug":"hex","num":9,"title":"Hex","stars":[{"id":"hx-win","label":"Beat Robo on a 6 by 6 board or bigger, without hints"},{"id":"hx-chain","label":"Trace the winning chain on three random full boards"},{"id":"hx-bridge","label":"Win a game against Robo in which you built a bridge"}]},{"slug":"every-game-is-nim","num":10,"title":"Every game is secretly Nim","stars":[{"id":"gr-mex","label":"Get all five mex problems right"},{"id":"gr-labels","label":"Grundy-label a subtraction game up to 12 or more"},{"id":"gr-sum","label":"Beat a perfect Robo at a sum of two games"}]},{"slug":"repeated-games","num":11,"title":"Playing again and again","stars":[{"id":"rg-coop","label":"Score 60 in 20 rounds against Tit for Tat"},{"id":"rg-guess","label":"Work out which strategy Mystery Robo is using"},{"id":"rg-noise","label":"Run a tournament with 5 or more strategies and 5% noise or more"}]},{"slug":"fair-division","num":12,"title":"Fair division","stars":[]},{"slug":"auctions","num":13,"title":"Going once, going twice","stars":[{"id":"au-english","label":"Win an English auction with a positive profit"},{"id":"au-shade","label":"Finish 10 rounds of the first-price auction with a positive total profit"},{"id":"au-honest","label":"Answer the Vickrey quiz correctly, then win a Vickrey round with a profit"}]},{"slug":"voting","num":14,"title":"How to pick a winner when nobody agrees","stars":[{"id":"vo-three","label":"Build a profile where plurality, instant runoff, and Borda pick three different winners"},{"id":"vo-cycle","label":"Build a Condorcet cycle from scratch"},{"id":"vo-strategic","label":"Find the strategic vote in the Borda election"}]},{"slug":"bargaining","num":15,"title":"Bargaining","stars":[]},{"slug":"hawks-and-doves","num":16,"title":"Hawks and doves","stars":[{"id":"hd-predict","label":"Predict the hawk fraction before the simulation finds it"},{"id":"hd-allhawk","label":"Set a prize worth fighting for and call the hawk takeover"},{"id":"hd-cycle","label":"Watch the lizards cycle for 200 generations"}]},{"slug":"monty-hall","num":17,"title":"Monty hall","stars":[]},{"slug":"common-knowledge","num":18,"title":"Common knowledge","stars":[]},{"slug":"traffic","num":19,"title":"Traffic","stars":[]},{"slug":"commons","num":20,"title":"Commons","stars":[]},{"slug":"ice-cream-carts","num":21,"title":"Ice cream carts","stars":[]}];</script>
 </head>
 <body class="chapter-auctions">
@@ -33,6 +33,7 @@
   .au-b.out{ opacity:.4 }
   .au-b.won{ border-color:var(--win); background:var(--win-soft); opacity:1 }
   .au-tbl td.rb{ color:var(--robo) } .au-tbl td.yb{ color:var(--you); font-weight:700 }
+  .au-tbl td:last-child{ text-align:left }
   .au-chart{ width:100%; max-width:640px; height:auto; display:block; border:3px solid var(--line); border-radius:12px; background:var(--surface); margin-top:6px }
   .au-chart .ax{ stroke:var(--line); stroke-width:2 }
   .au-chart .gl{ stroke:var(--grid); stroke-width:1 }
@@ -59,7 +60,7 @@
     <p>The auction you probably picture is the <span class="term">English auction</span>: the auctioneer calls a price, everyone willing to pay it stays in, and the price climbs by $5 until one bidder is left. That bidder pays the last price called. Play a few. Each time a price is called, stay in or drop out.</p>
   </div>
 
-  <div class="board">
+  <div class="board" id="board-1">
     <div class="board-head"><h3>The English auction</h3><span class="rules">Price climbs by $5. Last bidder standing pays the last price called.</span></div>
     <div class="row">
       <div class="stat"><span class="k">Your value</span><span class="v you" id="au-e-val">$60</span></div>
@@ -97,7 +98,7 @@
     <p>The robots know this. Each one <span class="term">shades</span> its bid: it writes down three quarters of its value. A robot that values the card at $80 writes $60. Your job: pick a bid, ten rounds in a row, and finish ahead.</p>
   </div>
 
-  <div class="board">
+  <div class="board" id="board-2">
     <div class="board-head"><h3>First price, ten rounds</h3><span class="rules">Highest bid wins and pays its own bid. Robots bid 3/4 of their value.</span></div>
     <div class="row">
       <div class="stat"><span class="k">Round</span><span class="v" id="au-f-round">1 of 10</span></div>
@@ -137,7 +138,7 @@
     <p>That is a strong claim, so test it before you believe it. Set your value <span class="var">V</span>. Set <span class="var">R</span>, the highest number anyone else wrote (only the highest matters, because that is the price you would pay). Then slide your own bid <span class="var">B</span> around and watch your profit.</p>
   </div>
 
-  <div class="board">
+  <div class="board" id="board-3">
     <div class="board-head"><h3>Why honesty wins</h3><span class="rules">Second price: if B beats R you win and pay R. Ties go to the other bidder.</span></div>
     <div class="three">
       <div class="slider"><label class="lab" for="au-v"><span class="you">Your value V</span><span class="v" data-for="au-v">$60</span></label><input type="range" id="au-v" min="0" max="100" value="60"></div>
@@ -149,7 +150,7 @@
     <svg class="au-chart" id="au-chart" viewBox="0 0 640 330" role="img" aria-label="Your profit as a function of your bid B, for the chosen V and R"></svg>
     <div class="legend"><span><i style="background:var(--math)"></i>bid = value</span><span><i style="background:var(--you)"></i>your bid B</span><span><i style="background:var(--robo)"></i>rival bid R</span></div>
     <div class="row" style="margin-top:20px">
-      <span class="field">Quiz: your value is <b class="you" id="au-q-v">$60</b>. What should you bid? $<input type="number" id="au-q-in" min="0" max="100" step="1"></span>
+      <span class="field"><span>Quiz: your value is <b class="you" id="au-q-v">$60</b>. What should you bid? $</span><input type="number" id="au-q-in" min="0" max="100" step="1"></span>
       <button class="btn btn-math" id="au-q-go" type="button">Check</button>
     </div>
     <div class="status" id="au-q-status"></div>
@@ -169,7 +170,7 @@
     <p>Notice the trick. Your bid decides <i>whether</i> you win, but never <i>what</i> you pay. Since your bid cannot touch your price, there is nothing to gain by lying about it. Now play it for real. The robots bid their true values; they have read the proof.</p>
   </div>
 
-  <div class="board">
+  <div class="board" id="board-4">
     <div class="board-head"><h3>Second price, ten rounds</h3><span class="rules">Highest bid wins and pays the second-highest bid. Robots bid their true values.</span></div>
     <div class="row">
       <div class="stat"><span class="k">Round</span><span class="v" id="au-s-round">1 of 10</span></div>
@@ -196,7 +197,7 @@
     <p>It looks like a different game from sealed envelopes. It is not. Before the clock starts you have to decide the number you are waiting for: the price at which you will shout. Shout too early and you pay too much; wait too long and a robot beats you to it. That waiting number <i>is</i> your sealed bid. The first-price auction and the Dutch auction are the same game in different clothes: the highest number wins, and the winner pays their own number. The robots below wait for three quarters of their value, just as before. Try it by hand first, then type a waiting number and let the clock shout for you.</p>
   </div>
 
-  <div class="board">
+  <div class="board" id="board-5">
     <div class="board-head"><h3>The falling clock</h3><span class="rules">Price falls $1 at a time. First to shout takes it at that price.</span></div>
     <div class="row">
       <div class="stat"><span class="k">Your value</span><span class="v you" id="au-d-val">$60</span></div>
@@ -249,7 +250,7 @@
   <a href="./grown-ups.html">For grown-ups</a>
 </footer>
 <div id="toast" role="status" aria-live="polite"></div>
-<script src="./assets/site.js?v=7837293e"></script>
-<script src="assets/ch/auctions.js?v=7837293e"></script>
+<script src="./assets/site.js?v=6b882d0e"></script>
+<script src="assets/ch/auctions.js?v=6b882d0e"></script>
 </body>
 </html>

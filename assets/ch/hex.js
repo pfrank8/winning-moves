@@ -170,7 +170,7 @@ function makeView(host, n, opts){
   opts = opts || {};
   const g = geo(n, opts.labels !== false);
   host.innerHTML = '';
-  const svg = svgEl('svg', { viewBox: `0 0 ${g.width.toFixed(0)} ${g.height.toFixed(0)}`, class: 'hx-svg' + (opts.small ? ' small' : ''), role: 'img' });
+  const svg = svgEl('svg', { viewBox: `0 0 ${g.width.toFixed(0)} ${g.height.toFixed(0)}`, class: 'hx-svg' + (opts.small ? ' small' : '') + (opts.paint ? ' paint' : ''), role: 'img' });
   svg.setAttribute('aria-label', `${n} by ${n} Hex board`);
   // coloured edges, drawn under the cells so half the band shows outside the rhombus
   const top = [], bottom = [], left = [], right = [];
@@ -381,7 +381,7 @@ function fillClick(i){
   if (colours.size > 1) st2(`${fill.sel.length} cells selected, but they are not all one colour. A chain is one colour only.`);
   else st2(`${fill.sel.length} cell${fill.sel.length === 1 ? '' : 's'} selected. Keep going until the chain touches both of its edges with no gaps.`);
 }
-function fillNew(){ fill.s = makeScratch(fill.n); view2 = makeView($('#hx-fill-board'), fill.n); view2.onCell(fillClick); fillRandom(); }
+function fillNew(){ fill.s = makeScratch(fill.n); view2 = makeView($('#hx-fill-board'), fill.n, { paint: true }); view2.onCell(fillClick); fillRandom(); }
 $('#hx-fill-random').addEventListener('click', fillRandom);
 $('#hx-fill-clear').addEventListener('click', fillClear);
 $('#hx-fill-show').addEventListener('click', fillShow);
@@ -408,8 +408,7 @@ $$('.hx-mini').forEach(host => {
     if (spans(c, n, RED, s)){ draw(chainOf(c, n, RED, s)); msg.innerHTML = `<span class="win-c">${cellName(n, i)} connects top to bottom right away.</span>`; return; }
     if (wins.indexOf(i) >= 0){
       draw();
-      const threats = winningMoves(c, n, RED, s, memo).length;
-      msg.innerHTML = `<span class="win-c">${cellName(n, i)} wins.</span> Whatever blue does now, red has an answer that keeps a winning position` + (threats > 1 ? `: red has ${threats} winning replies in reserve` : '') + `. ${wins.length === 1 ? 'It is the only winning move.' : `(${wins.length} first moves win here: ${wins.map(x => cellName(n, x)).join(', ')}.)`}`;
+      msg.innerHTML = `<span class="win-c">${cellName(n, i)} wins.</span> Whatever blue does now, red has an answer that keeps a winning position, all the way to the end. ${wins.length === 1 ? 'It is the only winning move.' : `(${wins.length} first moves win here: ${wins.map(x => cellName(n, x)).join(', ')}.)`}`;
     } else {
       const reply = winningMoves(c, n, BLUE, s, memo);
       draw();

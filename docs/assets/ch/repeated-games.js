@@ -82,7 +82,7 @@ const idx = m => (m === S ? 0 : 1);
 const word = m => (m === S ? 'shared' : 'grabbed');
 
 /* ---------- board 1: twenty rounds against Robo ---------- */
-const g = { pickKey: 'tft', strat: null, mystery: false, you: [], robo: [], yourScore: 0, roboScore: 0, over: false, busy: false, guessed: false };
+const g = { pickKey: 'tft', strat: null, mystery: false, you: [], robo: [], yourScore: 0, roboScore: 0, over: false, busy: false, guessed: false, id: 0 };
 const status = html => { $('#rg-status').innerHTML = html; };
 
 function tile(who, m, pending){
@@ -118,7 +118,7 @@ function newGame(){
   g.pickKey = $('#rg-strat').value;
   g.mystery = g.pickKey === 'mystery';
   g.strat = g.mystery ? pick(STRATS) : (byKey(g.pickKey) || STRATS[0]);
-  g.you = []; g.robo = []; g.yourScore = 0; g.roboScore = 0; g.over = false; g.busy = false; g.guessed = false;
+  g.you = []; g.robo = []; g.yourScore = 0; g.roboScore = 0; g.over = false; g.busy = false; g.guessed = false; g.id++;
   $('#rg-desc').innerHTML = g.mystery
     ? 'Robo has picked one of the seven strategies in secret. Watch how it answers you. At the end you get one guess.'
     : `<b class="robo">${g.strat.name}:</b> ${g.strat.desc}`;
@@ -131,10 +131,12 @@ async function play(m){
   if (g.over || g.busy) return;
   g.busy = true;
   const rm = g.strat.move(g.robo, g.you);       // Robo decides from the rounds so far, at the same time as you
+  const id = g.id;
   g.you.push(m);
   render(true);
   status(`Round ${g.you.length}: you ${word(m)}. Robo is choosing...`);
   await wait(600);
+  if (id !== g.id) return;                       // a new game started while Robo was choosing
   g.robo.push(rm);
   const yp = pay(m, rm), rp = pay(rm, m);
   g.yourScore += yp; g.roboScore += rp;
