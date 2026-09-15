@@ -27,19 +27,19 @@ real mathematics. Published with GitHub Pages from `docs/`.
 
 ## Deploy
 
-Hosting is Netlify (free tier), site name `winning-moves`
-(https://winning-moves.netlify.app), on the Netlify team that belongs to
-peter.franklin@gmail.com ("my team", my-team-vvih-ds). Custom domain:
-https://gametheory.primori.com (DNS at Namecheap: CNAME `gametheory` ->
-`winning-moves.netlify.app`, plus a `subdomain-owner-verification` TXT that
-Netlify required because primori.com itself is registered to a different
-Netlify account). Deploy = `scripts/deploy.sh` (build, smoke test, `netlify deploy --prod
---dir docs`); it needs a one-time `netlify login` + `netlify link --name
-winning-moves`. Fallback without the CLI: zip `docs/` and drop it on the
-project's "Production deploys" panel at
-https://app.netlify.com/projects/winning-moves/deploys. GitHub Pages (`.github/workflows/pages.yml`) is a fallback only; the
-pfrank8 account was billing-locked on 2026-09-14 so it could not build. Never
-host this under a company org (Peter, 2026-09-14).
+Hosting is Netlify, on the East 11 team (`east11`, slug `peter-jmo8kve`,
+login peter@east11ventures.com; East 11 is Primori Global LLC's dba, so this is
+Peter's own account). Site `gametheory-primori` (id
+50e354f7-94b8-4d11-b9cc-cc8739e18172, https://gametheory-primori.netlify.app),
+custom domain https://gametheory.primori.com. The repo directory is linked
+(`.netlify/state.json`, gitignored), so `scripts/deploy.sh` publishes with
+`netlify deploy --prod --dir docs` after the build and smoke tests. DNS for
+primori.com is Namecheap BasicDNS: CNAME `gametheory` -> the site's
+netlify.app hostname, plus the `subdomain-owner-verification` TXT Netlify asked
+for on 2026-09-14. A first copy of the site lived on the free team of
+peter.franklin@gmail.com (site `winning-moves`); it is being retired. GitHub
+Pages (`.github/workflows/pages.yml`) is a fallback only. Never host this under
+a company org other than Peter's own (Peter, 2026-09-14).
 
 ## Verifying
 

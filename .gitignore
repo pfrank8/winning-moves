@@ -2,3 +2,6 @@
 __pycache__/
 *.pyc
 .scratch/
+
+# Local Netlify folder
+.netlify
