@@ -67,6 +67,11 @@ Peter's own (Peter, 2026-09-14).
   slider, and fails on any JS error; `--phone` also fails on horizontal
   overflow at 400px; `--only slug,slug` narrows it; `--out DIR` points it at a
   private build.
+- `python3 scripts/ux_audit.py` is the game UX gate (Peter, 2026-09-20: "you have to scroll down to pick
+  your choice and that's not really obvious"). It fails a board with no "your move" strip, a hidden or
+  below-the-fold play control, or a grid that says "you pick the row" but is not clickable; `--play`
+  also makes a first move on every board and flags strips that do not react. It writes a screenshot
+  of every board to `.scratch/ux/shots/`: look at them. `scripts/deploy.sh` runs it before publishing.
 - `python3 scripts/verify_live.py` checks the deployed site (25 pages, all assets, no link
   leaving `/gametheory/`). The local smoke test cannot see deploy-time rewrites; this can.
 - Parallel authors build with `python3 build.py --out .scratch/<slug>/out` so
