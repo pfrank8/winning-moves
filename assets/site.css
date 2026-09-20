@@ -199,6 +199,7 @@ input[type=text],select{ width:auto; max-width:100% }
 .seg button{ font:600 .95rem var(--f-display); padding:.5em .9em; border:0; background:var(--surface); color:var(--ink); cursor:pointer }
 .seg button + button{ border-left:3px solid var(--line) }
 .seg button.on{ background:var(--ink); color:var(--paper) }
+.seg button:disabled{ opacity:.45; cursor:not-allowed }
 .slider{ display:grid; gap:4px; margin-bottom:14px }
 .slider .lab{ display:flex; justify-content:space-between; gap:12px; font:600 1rem var(--f-display) }
 .slider .lab .v{ font-family:var(--f-mono); font-weight:600; white-space:nowrap }

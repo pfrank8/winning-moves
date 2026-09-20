@@ -134,7 +134,8 @@ are the reference implementation. `scripts/ux_audit.py` enforces the measurable 
    click), `robo` while Robo thinks or moves, `win` / `lose` for an outcome, `math` for tools with
    no opponent. After an outcome, the same strip says how to go again ("Click a row to play again",
    "Press New game"). Pass `tag` when the default label is wrong for the moment: `'Solved'`,
-   `'Not yet'`, `'Result'`, `'Round 3 of 10'`. The strip is sticky, so on a tall board the
+   `'Not yet'`, `'Result'`, `'Round 3 of 10'`. The default `lose` tag reads "Robo wins": for an outcome nobody
+   won (a ruined pond, a spoiled round, a team loss) use `math` with the tag `'Result'`. The strip is sticky, so on a tall board the
    instruction and the result stay on screen. A detailed `.status`, `.log` or `.note` may stay for
    the long version, but the headline lives in the strip, and no board keeps two competing
    "what to do" messages.
