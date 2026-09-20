@@ -10,7 +10,9 @@
   ]
 } -->
 <style>
-  .hx-svg{ width:100%; max-width:600px; height:auto; display:block; margin:14px auto 6px }
+  /* the strip keeps room for two lines, so the play area does not jump when the message changes length */
+  .board > .turn{ min-height:4.3rem; align-content:center }
+  .hx-svg{ width:100%; max-width:520px; height:auto; display:block; margin:0 auto 6px }
   .hx-svg.small{ max-width:340px; margin:10px 0 4px }
   .hx-svg .band{ fill:none; stroke-width:24; stroke-linejoin:round; stroke-linecap:round }
   .hx-svg .band-you{ stroke:var(--you) } .hx-svg .band-robo{ stroke:var(--robo) }
@@ -18,6 +20,7 @@
   .hx-svg .cell.r{ fill:var(--you) } .hx-svg .cell.b{ fill:var(--robo) }
   .hx-svg.live .cell.e{ cursor:pointer } .hx-svg.live .cell.e:hover{ fill:var(--math-soft) }
   .hx-svg.paint.live .cell.r,.hx-svg.paint.live .cell.b{ cursor:pointer }
+  .hx-svg .cell:focus{ outline:none } .hx-svg .cell:focus-visible{ stroke:var(--focus); stroke-width:6 }
   .hx-svg .cell.hint{ stroke:var(--math); stroke-width:7 }
   .hx-svg .cell.sel{ stroke:var(--math); stroke-width:7 }
   .hx-svg .chain-under{ fill:none; stroke:var(--surface); stroke-width:15; stroke-linejoin:round; stroke-linecap:round; opacity:.9 }
@@ -33,6 +36,17 @@
   @media (max-width:640px){ .hx-puzzle{ grid-template-columns:1fr } }
   .hx-puzzle.tiny{ grid-template-columns:minmax(0,200px) 1fr }
   .hx-puzzle .hx-svg.small{ margin-top:4px }
+  /* the game: board on the left, Robo's numbers beside it, so the whole thing fits one laptop screen */
+  .hx-play{ display:grid; grid-template-columns:minmax(0,1fr) 236px; gap:6px 20px; align-items:start }
+  @media (max-width:700px){ .hx-play{ grid-template-columns:1fr } }
+  .hx-stats{ display:grid; grid-template-columns:1fr 1fr; gap:8px }
+  .hx-stats .stat{ min-width:0; padding:8px 10px }
+  .hx-stats .stat .k{ font-size:.66rem; letter-spacing:.04em }
+  .hx-stats .stat .v{ font-size:1.2rem }
+  .hx-play .log{ margin-top:12px; min-height:4.8em }
+  .hx-head{ display:grid; grid-template-columns:auto minmax(0,1fr); gap:6px 22px; align-items:start }
+  @media (max-width:640px){ .hx-head{ grid-template-columns:1fr } }
+  .hx-head .note{ margin-top:0 }
 </style>
 
 <section>
@@ -44,28 +58,33 @@
 
   <div class="board">
     <div class="board-head"><h3>Hex</h3><span class="rules" id="hx-rules">6 by 6. Red joins top to bottom. Blue joins left to right. No draws.</span></div>
-    <div class="row">
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Click any empty cell to place a red stone. Join the red top edge to the red bottom edge.</span></div>
+    <div class="controls">
       <div class="seg" id="hx-first"><button class="on" data-v="you">I go first</button><button data-v="robo">Robo goes first</button></div>
       <div class="seg" id="hx-size"><button data-v="5">5 by 5</button><button class="on" data-v="6">6 by 6</button><button data-v="7">7 by 7</button></div>
       <button class="btn btn-sm" id="hx-new" type="button">New game</button>
-    </div>
-    <div class="row">
-      <span class="field">Robo strength</span>
-      <div class="seg" id="hx-strength"><button data-v="50">50</button><button class="on" data-v="200">200</button><button data-v="800">800</button></div>
-      <span class="note" style="margin-top:0">random finishes per empty cell</span>
-      <span style="flex:1 0 12px"></span>
       <button class="btn btn-math btn-sm" id="hx-hint" type="button">Hint</button>
     </div>
-    <div id="hx-board"></div>
-    <div class="hx-legend"><span class="y"><i></i>You: top to bottom</span><span class="b"><i></i>Robo: left to right</span></div>
-    <div class="status" id="hx-status"></div>
-    <div class="stats" style="margin-top:10px">
-      <div class="stat"><span class="k">Games imagined</span><span class="v" id="hx-imagined">0</span></div>
-      <div class="stat"><span class="k">Robo's pick</span><span class="v" id="hx-pick">none yet</span></div>
-      <div class="stat"><span class="k">Its win rate</span><span class="v" id="hx-rate">0%</span></div>
-      <div class="stat"><span class="k">Thinking time</span><span class="v" id="hx-ms">0 ms</span></div>
+    <div class="controls">
+      <span class="lab">Robo strength</span>
+      <div class="seg" id="hx-strength"><button data-v="50">50</button><button class="on" data-v="200">200</button><button data-v="800">800</button></div>
+      <span class="note" style="margin-top:0">random finishes per empty cell</span>
     </div>
-    <div class="log" id="hx-log"></div>
+    <div class="hx-play">
+      <div>
+        <div id="hx-board"></div>
+        <div class="hx-legend"><span class="y"><i></i>You: top to bottom</span><span class="b"><i></i>Robo: left to right</span></div>
+      </div>
+      <div>
+        <div class="stats hx-stats">
+          <div class="stat"><span class="k">Games imagined</span><span class="v" id="hx-imagined">0</span></div>
+          <div class="stat"><span class="k">Robo's pick</span><span class="v" id="hx-pick">none yet</span></div>
+          <div class="stat"><span class="k">Its win rate</span><span class="v" id="hx-rate">0%</span></div>
+          <div class="stat"><span class="k">Thinking time</span><span class="v" id="hx-ms">0 ms</span></div>
+        </div>
+        <div class="log" id="hx-log"></div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -77,15 +96,16 @@
 
   <div class="board">
     <div class="board-head"><h3>Fill the board</h3><span class="rules">Every full board has exactly one winner. Find the chain, or try to build a board without one.</span></div>
-    <div class="row">
-      <button class="btn btn-math" id="hx-fill-random" type="button">Fill the board randomly</button>
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">This board is full, so somebody won. Click every cell of the winning chain, from one of its edges to the other.</span></div>
+    <div class="controls">
+      <button class="btn btn-math btn-sm" id="hx-fill-random" type="button">Fill the board randomly</button>
       <button class="btn btn-sm" id="hx-fill-show" type="button">Show the winning chain</button>
       <button class="btn btn-sm" id="hx-fill-clear" type="button">Clear and paint by hand</button>
+      <span class="lab">Size</span>
       <div class="seg" id="hx-fill-size"><button data-v="5">5</button><button class="on" data-v="6">6</button><button data-v="7">7</button></div>
     </div>
     <div id="hx-fill-board"></div>
-    <div class="status" id="hx-fill-status"></div>
-    <p class="note" id="hx-traced">Chains traced: 0 of 3</p>
+    <p class="note" id="hx-traced" style="text-align:center">Chains traced: 0 of 3</p>
   </div>
 
   <div class="prose">
@@ -124,9 +144,12 @@
 
   <div class="board">
     <div class="board-head"><h3>Inside Robo's head</h3><span class="rules">The five best cells from Robo's latest move in the game above, with the counts that chose them.</span></div>
-    <div class="scroll"><table class="data" id="hx-table"></table></div>
-    <p class="note" id="hx-table-note"></p>
-    <div class="row"><button class="btn btn-robo btn-sm" id="hx-again" type="button">Imagine again</button><span class="note" style="margin-top:0">Same position, fresh random games. Watch the numbers move.</span></div>
+    <div class="turn" data-who="math"><span class="turn-tag">Try it</span><span class="turn-text">Press Imagine again. Same position, fresh random games: watch the numbers move.</span></div>
+    <div class="controls"><button class="btn btn-robo btn-sm" id="hx-again" type="button">Imagine again</button></div>
+    <div class="hx-head">
+      <div class="scroll"><table class="data" id="hx-table"></table></div>
+      <p class="note" id="hx-table-note"></p>
+    </div>
   </div>
 
   <div class="math">

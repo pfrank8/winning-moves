@@ -10,6 +10,8 @@
   ]
 } -->
 <style>
+  /* the strip keeps room for two lines, so the play area does not jump when the message changes length */
+  .board > .turn{ min-height:4.3rem; align-content:center }
   .ch-bar{ display:grid; gap:5px; margin:14px 0; width:max-content; max-width:100% }
   .ch-bar button{ width:46px; height:46px; border:3px solid #3B2314; border-radius:8px; background:#7A4A22; cursor:pointer; position:relative; box-shadow:inset 0 -5px 0 rgba(0,0,0,.25), inset 0 3px 0 rgba(255,255,255,.15); color:#FFE9C8; font:700 1rem var(--f-display) }
   .ch-bar button.poison{ background:#3E9C55; border-color:#1D4F29; color:#FFFFFF; font-size:1.3rem }
@@ -17,8 +19,9 @@
   .ch-bar button.will:not(.eaten){ filter:brightness(1.35); outline:3px solid var(--math); outline-offset:-3px }
   .ch-bar button.hint:not(.eaten){ outline:4px solid var(--win); outline-offset:-3px }
   .ch-bar button:disabled:not(.eaten){ cursor:default }
+  .ch-bar button.eaten.ch-robo{ border-color:var(--robo); background:var(--robo-soft) }
   @media (max-width:420px){ .ch-bar button{ width:38px; height:38px } }
-  .ch-stairs{ width:100%; max-width:360px; height:auto; display:block; margin:10px 0; color:var(--ink) }
+  .ch-stairs{ width:100%; max-width:360px; height:auto; display:block; margin:0 0 10px; color:var(--ink) }
 </style>
 
 <section>
@@ -28,19 +31,19 @@
   </div>
   <div class="board">
     <div class="board-head"><h3>Chomp</h3><span class="rules">Do not eat the poison.</span></div>
-    <div class="row">
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Click any brown square to take a bite. You eat that square and everything to its right and below it.</span></div>
+    <div class="controls">
       <div class="seg" id="ch-first"><button class="on" data-v="you">I go first</button><button data-v="robo">Robo goes first</button></div>
       <button class="btn btn-sm" type="button" id="ch-new">New bar</button>
       <button class="btn btn-math btn-sm" type="button" id="ch-hint">Hint</button>
       <label class="chk"><input type="checkbox" id="ch-goof"> Robo goofs sometimes</label>
     </div>
-    <div class="row">
+    <div class="controls">
       <span class="field">Rows <input type="number" id="ch-rows" min="2" max="5" value="4"></span>
       <span class="field">Columns <input type="number" id="ch-cols" min="2" max="7" value="6"></span>
       <button class="btn btn-sm" type="button" id="ch-square-btn">Make it square (5 by 5)</button>
     </div>
     <div class="ch-bar" id="ch-bar"></div>
-    <div class="status" id="ch-status"></div>
     <p class="note" id="ch-note">Robo knows the winning move for every shape of this bar. That is different from knowing a rule for it.</p>
   </div>
 </section>
@@ -81,15 +84,18 @@
   <div class="formula">C(10, 4) = 10! / (4! × 6!) = 210</div>
   <div class="board">
     <div class="board-head"><h3>How many shapes?</h3><span class="rules">A bar with r rows and c columns has C(r + c, r) shapes.</span></div>
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">How many shapes can a <b>3 by 5</b> bar make? Type the number and press Check.</span></div>
+    <div class="controls">
+      <span class="field">Shapes <input type="number" id="ch-quiz" min="0" max="100000" style="width:7em" aria-label="Number of shapes"></span>
+      <button class="btn btn-win btn-sm" type="button" id="ch-quiz-check">Check</button>
+      <button class="btn btn-sm" type="button" id="ch-quiz-new">Another bar</button>
+    </div>
     <div class="two">
       <div>
         <svg class="ch-stairs" id="ch-stairs" viewBox="0 0 360 275" role="img" aria-label="A staircase shape and the path along its edge"></svg>
         <p class="note">Each shape is a path: left steps and down steps in some order. The poison square alone is a shape too, and so is the empty bar.</p>
       </div>
       <div>
-        <p id="ch-quiz-q">How many shapes can a <b>3 by 5</b> bar make?</p>
-        <div class="row"><input type="number" id="ch-quiz" min="0" max="100000" style="width:7em"><button class="btn btn-win btn-sm" type="button" id="ch-quiz-check">Check</button><button class="btn btn-sm" type="button" id="ch-quiz-new">Another</button></div>
-        <div class="note" id="ch-quiz-msg" style="min-height:3em"></div>
         <table class="data" id="ch-table"></table>
       </div>
     </div>

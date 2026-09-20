@@ -10,18 +10,20 @@
   ]
 } -->
 <style>
+  /* the strip keeps room for two lines, so the play area does not jump when the message changes length */
+  .board > .turn{ min-height:4.3rem; align-content:center }
   /* mex calculator */
   .gr-line{ display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 6px }
   .gr-lc{ width:36px; height:36px; border-radius:50%; border:3px solid var(--line); display:grid; place-items:center; font:600 .85rem var(--f-mono); color:var(--ink) }
   .gr-lc.in{ background:var(--ink); color:var(--paper) }
   .gr-lc.out{ border-style:dashed; color:var(--ink-soft) }
   .gr-lc.mex{ background:var(--math-soft); border-color:var(--math); box-shadow:0 0 0 4px var(--math-soft); border-style:solid; color:var(--ink) }
-  .gr-mexans{ font:600 1.15rem var(--f-display); min-height:1.6em; margin-top:10px }
-  .gr-mq{ display:grid; gap:10px; margin-top:16px }
+  .gr-mexans{ font:700 1.25rem var(--f-display); padding:2px 12px; border-radius:999px; background:var(--math-soft); border:2px solid var(--math); white-space:nowrap }
+  .gr-mq{ display:grid; gap:8px }
   .gr-mq-row{ display:flex; flex-wrap:wrap; align-items:center; gap:10px }
-  .gr-mq-row .q{ font:600 1.05rem var(--f-mono); min-width:25ch }
-  .gr-mq-row input{ width:4.5em }
-  .gr-mq-row .fb{ font:600 .95rem var(--f-display); min-width:8ch }
+  .gr-mq-row .q{ font:600 .98rem var(--f-mono); min-width:24ch }
+  .gr-mq-row input{ width:3.6em }
+  .gr-mq-row .fb{ font:600 .9rem var(--f-display) }
   .gr-mq-row.ok .fb{ color:var(--win) } .gr-mq-row.bad .fb{ color:var(--you) }
   .gr-mq-row.ok input{ border-color:var(--win); background:var(--win-soft) } .gr-mq-row.bad input{ border-color:var(--you); background:var(--you-soft) }
 
@@ -35,19 +37,22 @@
   .gr-cell.ok{ background:var(--win-soft); border-color:var(--win) } .gr-cell.bad{ background:var(--you-soft); border-color:var(--you) }
   .gr-cell.zero input{ color:var(--you) }
   .gr-cell.cur{ outline:4px solid var(--math); outline-offset:-2px }
-  .gr-explain{ min-height:2.6em; font-size:1rem; margin-top:8px }
 
   /* sum of two games */
   .gr-game{ background:var(--surface-2); border-radius:14px; padding:12px 14px 14px }
   .gr-game-head{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; flex-wrap:wrap }
   .gr-game-head h4{ margin:0 }
   .gr-game-head .r{ font-size:.9rem; color:var(--ink-soft) }
-  .gr-game .stones{ margin:10px 0 6px }
+  .gr-game .stones{ margin:12px 0 6px }
+  .gr-game .gr-takes{ margin-top:10px }
+  .gr-game .gr-setup{ margin-top:12px; padding-top:10px; border-top:2px dashed var(--grid); gap:8px 12px }
+  .gr-game .gr-setup .field{ font-size:.85rem }
+  .gr-game.moved{ outline:3px solid var(--robo); outline-offset:-3px }
   .gr-game .stone{ width:32px; height:32px; font-size:.75rem }
   .gr-game .bigcount{ font-size:2.4rem }
   .gr-val{ display:inline-block; font:600 .9rem var(--f-mono); padding:3px 10px; border-radius:999px; background:var(--math-soft); border:2px solid var(--math); color:var(--ink); white-space:nowrap }
   .gr-val[hidden]{ display:none }
-  .gr-game input[type=number]{ width:4.5em }
+  .gr-game input[type=number]{ width:3.8em }
   .gr-total{ font:600 1.05rem var(--f-mono); margin-top:14px; padding:8px 12px; border-radius:10px; background:var(--math-soft); border-left:6px solid var(--math) }
   .gr-total[hidden]{ display:none }
 
@@ -60,6 +65,7 @@
   .gr-pin.down{ height:26px; opacity:.35; border-style:dashed; border-radius:8px; cursor:default; padding-bottom:2px }
   .gr-pin.down::before{ display:none }
   .gr-pin:disabled:not(.down){ cursor:default }
+  .gr-pin.down.robo{ border-color:var(--robo); background:var(--robo-soft); opacity:.8 }
 </style>
 
 <section>
@@ -77,16 +83,23 @@
 
   <div class="board">
     <div class="board-head"><h3>The mex calculator</h3><span class="rules">Type a set. The smallest missing whole number lights up.</span></div>
-    <div class="row">
-      <span class="field">Set <input type="text" id="gr-mex-in" value="0, 1, 3" size="18" aria-label="A set of whole numbers"></span>
-      <span class="note">Whole numbers, separated by commas. Leave it blank for the empty set.</span>
-    </div>
-    <div class="gr-line" id="gr-mex-line"></div>
-    <div class="gr-mexans" id="gr-mex-ans"></div>
-    <div class="gr-mq" id="gr-mq"></div>
-    <div class="row" style="margin-top:14px">
-      <button class="btn btn-win" id="gr-mq-check" type="button">Check my answers</button>
-      <span class="note" id="gr-mq-msg">Five problems. Get them all in one go.</span>
+    <div class="turn" data-who="math"><span class="turn-tag">Try it</span><span class="turn-text">Type any whole numbers in the Set box and watch the smallest missing one light up. Then answer the five problems and press Check my answers.</span></div>
+    <div class="two">
+      <div>
+        <div class="controls">
+          <span class="field">Set <input type="text" id="gr-mex-in" value="0, 1, 3" size="14" aria-label="A set of whole numbers"></span>
+          <span class="gr-mexans" id="gr-mex-ans">mex = 2</span>
+        </div>
+        <div class="gr-line" id="gr-mex-line"></div>
+        <p class="note">Whole numbers, separated by commas. Leave it blank for the empty set.</p>
+      </div>
+      <div>
+        <div class="controls">
+          <button class="btn btn-win btn-sm" id="gr-mq-check" type="button">Check my answers</button>
+          <span class="note" id="gr-mq-msg" style="margin-top:0">0 of 5 answered.</span>
+        </div>
+        <div class="gr-mq" id="gr-mq"></div>
+      </div>
     </div>
   </div>
 </section>
@@ -109,17 +122,15 @@
 
   <div class="board">
     <div class="board-head"><h3>Label the positions with Grundy values</h3><span class="rules">G(n) = mex of the values one move away. G(0) = 0.</span></div>
-    <div class="row">
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Type the Grundy value in the box under each number, or tap its + and − buttons. Start at 0 and work up, then press Check my labels.</span></div>
+    <div class="controls">
+      <button class="btn btn-win btn-sm" id="gr-lab-check" type="button">Check my labels</button>
+      <button class="btn btn-math btn-sm" id="gr-lab-show" type="button">Show me</button>
+      <button class="btn btn-sm" id="gr-lab-clear" type="button">Clear</button>
       <span class="field">Allowed takes <input type="text" id="gr-lab-takes" value="1, 2, 3" size="9"></span>
       <span class="field">Up to <input type="number" id="gr-lab-n" min="6" max="30" value="15"></span>
     </div>
     <div class="gr-cells" id="gr-lab-cells"></div>
-    <div class="row">
-      <button class="btn btn-win" id="gr-lab-check" type="button">Check my labels</button>
-      <button class="btn btn-math" id="gr-lab-show" type="button">Show me</button>
-      <button class="btn btn-sm" id="gr-lab-clear" type="button">Clear</button>
-    </div>
-    <div class="gr-explain" id="gr-lab-explain">Fill in every cell, then check.</div>
   </div>
 </section>
 
@@ -143,39 +154,39 @@
 
   <div class="board">
     <div class="board-head"><h3>Two games at once</h3><span class="rules">Move in one game per turn. If you cannot move anywhere, you lose.</span></div>
-    <div class="row">
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Press one red Take button, in Game A or in Game B. Whoever takes the very last stone wins.</span></div>
+    <div class="controls">
       <div class="seg" id="gr-sum-first"><button class="on" data-v="you">I go first</button><button data-v="robo">Robo goes first</button></div>
       <button class="btn btn-sm" id="gr-sum-new" type="button">New game</button>
       <button class="btn btn-math btn-sm" id="gr-sum-hint" type="button">Hint</button>
-    </div>
-    <div class="row">
       <label class="chk"><input type="checkbox" id="gr-sum-secret"> Show the secret</label>
       <label class="chk"><input type="checkbox" id="gr-sum-goof"> Robo goofs sometimes</label>
     </div>
-    <div class="two" style="margin-top:16px">
+    <div class="two">
       <div class="gr-game" id="gr-game-a">
         <div class="gr-game-head"><h4>Game A</h4><span class="r" data-rule></span></div>
+        <div class="row gr-takes" data-takes></div>
         <div class="stones" data-stones></div>
         <div class="row"><span class="bigcount" data-count>10</span><span style="font-family:var(--f-display);font-weight:600">stones</span><span class="gr-val" data-val hidden></span></div>
-        <div class="row" data-takes></div>
-        <div class="row" style="margin-top:12px">
+        <div class="row gr-setup">
+          <span class="note" style="margin-top:0">Set up:</span>
           <span class="field">Stones <input type="number" data-n min="1" max="24" value="10"></span>
           <span class="field">Takes <input type="text" data-takes-in value="1, 2, 3" size="7"></span>
         </div>
       </div>
       <div class="gr-game" id="gr-game-b">
         <div class="gr-game-head"><h4>Game B</h4><span class="r" data-rule></span></div>
+        <div class="row gr-takes" data-takes></div>
         <div class="stones" data-stones></div>
         <div class="row"><span class="bigcount" data-count>9</span><span style="font-family:var(--f-display);font-weight:600">stones</span><span class="gr-val" data-val hidden></span></div>
-        <div class="row" data-takes></div>
-        <div class="row" style="margin-top:12px">
+        <div class="row gr-setup">
+          <span class="note" style="margin-top:0">Set up:</span>
           <span class="field">Stones <input type="number" data-n min="1" max="24" value="9"></span>
           <span class="field">Takes <input type="text" data-takes-in value="1, 3, 4" size="7"></span>
         </div>
       </div>
     </div>
     <div class="gr-total" id="gr-sum-total" hidden></div>
-    <div class="status" id="gr-sum-status"></div>
     <div class="log" id="gr-sum-log"></div>
   </div>
 </section>
@@ -239,20 +250,20 @@
 
   <div class="board">
     <div class="board-head"><h3>Kayles</h3><span class="rules">Knock down one pin, or two standing next to each other. Last move wins.</span></div>
-    <div class="row">
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Click a pin to pick it. Then click it again to knock down just that one, or click the pin next to it to knock down both.</span></div>
+    <div class="controls">
       <div class="seg" id="gr-k-first"><button class="on" data-v="you">I go first</button><button data-v="robo">Robo goes first</button></div>
       <span class="field">Pins <input type="number" id="gr-k-n" min="3" max="16" value="8"></span>
       <button class="btn btn-sm" id="gr-k-new" type="button">New game</button>
       <button class="btn btn-math btn-sm" id="gr-k-hint" type="button">Hint</button>
       <label class="chk"><input type="checkbox" id="gr-k-secret"> Show the values</label>
     </div>
-    <div class="gr-pins" id="gr-k-pins"></div>
-    <div class="row">
+    <div class="controls">
       <button class="btn btn-you btn-sm" id="gr-k-one" type="button" disabled>Knock down the picked pin</button>
-      <span class="note">Click a pin to pick it. Press the button to knock down just that one, or click its neighbor to knock down both.</span>
+      <span class="note" style="margin-top:0">Lights up once you have picked a pin.</span>
     </div>
+    <div class="gr-pins" id="gr-k-pins"></div>
     <div class="gr-total" id="gr-k-total" hidden></div>
-    <div class="status" id="gr-k-status"></div>
     <div class="log" id="gr-k-log"></div>
   </div>
 </div>
