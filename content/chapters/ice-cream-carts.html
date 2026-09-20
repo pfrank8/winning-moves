@@ -10,7 +10,7 @@
   ]
 } -->
 <style>
-  .ic-scene{ position:relative; padding:0 30px; margin:4px 0 12px; user-select:none; -webkit-user-select:none }
+  .ic-scene{ position:relative; padding:0 30px; margin:0 0 10px; user-select:none; -webkit-user-select:none }
   .ic-carts{ position:relative; height:64px }
   .ic-scene[data-carts="3"] .ic-carts{ height:92px }
   .ic-cart{
@@ -21,10 +21,19 @@
   .ic-cart .n{ font:600 .78rem var(--f-mono) }
   .ic-cart::after{ content:""; position:absolute; left:50%; top:100%; transform:translateX(-50%); border:6px solid transparent; border-top-color:var(--line); border-bottom:0 }
   .ic-c0{ background:var(--you); cursor:grab; touch-action:none; z-index:1 }
+  .ic-c0 .nm::before{ content:"\2194\FE0E\00a0" }   /* a left-right arrow: this cart is the one you can drag */
+  .ic-c0:hover,.ic-c0:focus-visible{ box-shadow:3px 4px 0 var(--drop); filter:brightness(1.08) }
   .ic-c0.drag{ cursor:grabbing; transition:none; z-index:3 }
   .ic-c1{ background:var(--robo) }
   .ic-c2{ background:var(--p3) }
-  .ic-strip{ position:relative; height:42px; background:#EFD99C; border:2px solid var(--line); border-bottom:0; border-radius:6px 6px 0 0; cursor:pointer; touch-action:pan-y }
+  /* the sand is a big button: shadow like every other button, a hover fill, and a ghost marker that follows the mouse */
+  .ic-beach{ border-radius:6px; box-shadow:4px 4px 0 var(--drop) }
+  .ic-strip{ position:relative; height:42px; background:#EFD99C; border:2px solid var(--line); border-bottom:0; border-radius:6px 6px 0 0; cursor:pointer; touch-action:pan-y; transition:background .12s }
+  .ic-strip:hover{ background:#F6E6B4 }
+  .ic-scene[data-skin="vote"] .ic-strip:hover{ background:var(--you-soft) }
+  .ic-ghost{ position:absolute; top:-2px; bottom:0; width:0; border-left:2px dashed var(--you); transform:translateX(-1px); pointer-events:none; display:none; z-index:2 }
+  .ic-ghost span{ position:absolute; bottom:100%; left:0; transform:translateX(-50%); margin-bottom:3px; padding:0 6px; border-radius:6px; background:var(--you); color:var(--on-accent); font:600 .72rem var(--f-mono); white-space:nowrap }
+  .ic-strip:hover .ic-ghost.on{ display:block }
   .ic-water{ height:12px; background:#86C5E3; border:2px solid var(--line); border-top:0; border-radius:0 0 6px 6px }
   .ic-scene[data-skin="vote"] .ic-strip{ background:var(--surface-2); border-bottom:2px solid var(--line); border-radius:6px }
   .ic-scene[data-skin="vote"] .ic-water{ display:none }
@@ -38,11 +47,15 @@
   .ic-axis span{ position:absolute; top:7px; transform:translateX(-50%); white-space:nowrap }
   .ic-tick{ position:absolute; top:0; width:2px; height:6px; background:var(--line); transform:translateX(-50%) }
   .ic-p3c{ color:var(--p3) }
-  .ic-stats{ margin-top:14px }
-  .ic-note{ min-height:1.2em }
-  .ic-quiz{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:14px; padding-top:12px; border-top:2px dashed var(--line) }
+  .ic-stats{ margin-top:4px; gap:8px }
+  .ic-stats .stat{ min-width:0; padding:8px 11px; flex:0 1 auto }
+  .ic-stats .stat .k{ letter-spacing:.02em; font-size:.72rem; white-space:nowrap }
+  .ic-stats .stat .v{ font-size:1.3rem }
+  .ic-note:empty{ display:none }
+  .controls .slider{ margin-bottom:0; flex:1 1 220px; min-width:0 }
+  .ic-you-slider{ margin-bottom:10px }
+  .ic-quiz{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:12px; padding-top:10px; border-top:2px dashed var(--line) }
   .ic-quiz .q{ font:600 1rem var(--f-display); flex:1 1 100% }
-  .ic-quiz-msg{ flex:1 1 100%; font-size:.95rem; min-height:1.2em }
 </style>
 
 <section>
@@ -54,6 +67,7 @@
 
   <div class="board">
     <div class="board-head"><h3>The beach</h3><span class="rules">Every customer walks to the nearest cart. A halfway customer counts half for each.</span></div>
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Drag your red cart, or click anywhere on the sand, to park it. Then press <b>Robo moves</b>.</span></div>
     <div id="ic-b1"></div>
   </div>
 </section>
@@ -78,6 +92,7 @@
 
   <div class="board">
     <div class="board-head"><h3>Where the crowd is</h3><span class="rules">Same rules. The crowd bunches toward the right end.</span></div>
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Park your red cart on the median customer: drag it, or click the sand. Then press <b>Take turns</b>.</span></div>
     <div id="ic-b2"></div>
   </div>
 </section>
@@ -92,6 +107,7 @@
 
   <div class="board">
     <div class="board-head"><h3>Three carts, no rest</h3><span class="rules">Turn order: Robo, Robo 2, you. Each cart moves only when it can gain.</span></div>
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Press <b>Take turns</b> and watch the three carts chase each other. To park your red cart somewhere else first, drag it or click the sand.</span></div>
     <div id="ic-b3"></div>
   </div>
 </section>
@@ -106,6 +122,7 @@
 
   <div class="board">
     <div class="board-head"><h3>The voters</h3><span class="rules">Same board, new labels. Each voter picks the closer candidate.</span></div>
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Drag the <b>Voters lean</b> slider left or right. Then press <b>Take turns</b> and watch where the two candidates land.</span></div>
     <div id="ic-b4"></div>
   </div>
 </section>

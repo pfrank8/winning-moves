@@ -14,31 +14,41 @@
   .cm-stats .stat.cm-you .v{ color:var(--you) }
   .cm-stats .stat.cm-robo .v{ color:var(--robo) }
   .cm-stats .stat .s{ font:500 .8rem var(--f-mono); color:var(--ink-soft) }
-  .cm-sliders{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px 22px; align-items:end; flex:1 1 320px }
-  .cm-sliders .slider{ margin-bottom:0 }
-  .cm-sliders .slider.off{ opacity:.35 }
+  .cm-stats .stat{ padding:8px 12px }
+  .cm-stats .stat .k{ letter-spacing:.03em; font-size:.7rem; white-space:nowrap }
+  .controls .slider{ margin-bottom:0; flex:1 1 220px; min-width:0 }
+  .controls .slider.cm-mini{ flex:1 1 104px }
+  .controls .slider.cm-mini .lab{ font-size:.9rem; gap:6px }
+  .controls .slider.off{ opacity:.4 }
+  .cm-seg button{ padding:.45em .7em }
+  .cm-views{ margin-top:0 }
+  .cm-legend{ gap:4px 16px; font-size:.85rem; margin:6px 0 12px }
+  .cm-log{ margin:12px 0 0 } .cm-log .log{ margin-top:4px }
+  .cm-punish .lab{ color:var(--ink-soft); font-weight:500 }
   @media (max-width:640px){
-    .cm-sliders{ grid-template-columns:1fr }
+    .cm-stats .stat .k{ white-space:normal }
     .cm-seg{ display:grid; grid-template-columns:1fr 1fr }
     .cm-seg button + button{ border-left:0 }
     .cm-seg button:nth-child(even){ border-left:3px solid var(--line) }
     .cm-seg button:nth-child(n+3){ border-top:3px solid var(--line) }
   }
-  .cm-quiz{ background:var(--math-soft); border:2px dashed var(--math); border-radius:12px; padding:12px 16px; margin:14px 0 }
-  .cm-quiz p{ margin:0 0 8px; font-weight:600; font-family:var(--f-display) }
-  .cm-quiz .msg{ min-height:1.5em; font-size:.98rem; margin-top:8px }
+  .cm-quiz{ display:flex; flex-wrap:wrap; gap:8px 10px; align-items:center; background:var(--math-soft); border:2px dashed var(--math); border-radius:12px; padding:10px 14px; margin:0 0 16px }
+  .cm-quiz p{ margin:0; font:600 1rem var(--f-display); flex:1 1 300px }
+  .cm-quiz .msg{ flex:1 1 100%; font-size:.95rem }
+  .cm-quiz .msg:empty{ display:none }
+  .cm-quiz button.right{ background:var(--win); color:var(--on-accent) }
   .cm-quiz.done{ border-style:solid; border-color:var(--win); background:var(--win-soft) }
   .cm-table td,.cm-table th{ white-space:nowrap }
   .cm-table td.you{ color:var(--you); font-weight:600 } .cm-table td.robo{ color:var(--robo) }
   .cm-table tr.hl td{ background:var(--math-soft) }
-  .cm-table td .bar{ width:90px; height:8px; margin-top:3px; margin-left:auto }
+  .cm-table th,.cm-table td{ padding:4px 10px }
+  .cm-table td .bar{ display:inline-block; vertical-align:middle; width:72px; height:8px; margin:0 0 2px 10px }
   .cm-calc.two{ grid-template-columns:minmax(0,5fr) minmax(0,7fr) }
   @media (max-width:640px){
     .cm-calc.two{ grid-template-columns:1fr }
-    .cm-table{ font-size:.8rem } .cm-table th{ white-space:normal; font-size:.8rem } .cm-table td .bar{ width:64px }
+    .cm-table{ font-size:.8rem } .cm-table th{ white-space:normal; font-size:.8rem } .cm-table td .bar{ width:40px; margin-left:6px }
     .cm-table th,.cm-table td{ padding:5px 7px }
   }
-  .cm-punish{ margin-top:12px }
   .cm-preset{ margin:4px 0 18px }
 </style>
 
@@ -53,33 +63,27 @@
 
   <div class="board">
     <div class="board-head"><h3>The pond</h3><span class="rules">Four fishers, 20 seasons. The pond regrows after every catch.</span></div>
-    <div class="row">
-      <span class="field">Robots <div class="seg cm-seg" id="cm-type"><button data-v="greedy">Greedy</button><button class="on" data-v="careful">Careful</button><button data-v="copycat">Copycat</button><button data-v="mixed">Mixed</button></div></span>
-      <button class="btn btn-sm" id="cm-reset" type="button">Reset</button>
-    </div>
-    <div class="row">
-      <div class="cm-sliders">
-        <div class="slider"><label class="lab" for="cm-catch"><span>My catch this season</span><span class="v" data-for="cm-catch">3</span></label><input type="range" id="cm-catch" min="0" max="10" step="1" value="3"></div>
-        <div class="slider off" id="cm-q-wrap"><label class="lab" for="cm-q"><span>Quota (max per fisher)</span><span class="v" data-for="cm-q">3</span></label><input type="range" id="cm-q" min="1" max="10" step="1" value="3"></div>
-        <div class="slider off" id="cm-fine-wrap"><label class="lab" for="cm-fine"><span>Fine for breaking it</span><span class="v" data-for="cm-fine">5 fish</span></label><input type="range" id="cm-fine" min="0" max="10" step="1" value="5"></div>
-      </div>
-    </div>
-    <div class="row">
+    <div class="turn" data-who="you"><span class="turn-tag">Season 1 of 20</span><span class="turn-text">The pond has 60 fish. Drag <b>My catch this season</b> to choose how many to take, then press <b>Next season</b>.</span></div>
+    <div class="controls">
+      <div class="slider"><label class="lab" for="cm-catch"><span>My catch this season</span><span class="v" data-for="cm-catch">3</span></label><input type="range" id="cm-catch" min="0" max="10" step="1" value="3"></div>
       <button class="btn btn-you" id="cm-next" type="button">Next season</button>
       <button class="btn" id="cm-run" type="button">Run 20 seasons</button>
       <button class="btn btn-math btn-sm" id="cm-hint" type="button">Hint</button>
-      <label class="chk"><input type="checkbox" id="cm-quota"> Quota on (rules in the section below)</label>
+      <button class="btn btn-sm" id="cm-reset" type="button">Reset</button>
     </div>
-    <div class="two" style="margin-top:16px">
-      <div><canvas class="sim" id="cm-pond" width="400" height="250"></canvas></div>
-      <div>
-        <canvas class="sim" id="cm-chart" width="400" height="250"></canvas>
-        <div class="legend"><span><i style="background:var(--p4)"></i>fish in the pond</span><span><i style="background:var(--math)"></i>50: fastest growth</span><span><i style="background:var(--win)"></i>40: your goal</span><span><i style="background:var(--ink-soft)"></i>total catch</span></div>
-      </div>
+    <div class="controls">
+      <span class="field">Robots <div class="seg cm-seg" id="cm-type"><button data-v="greedy" type="button">Greedy</button><button class="on" data-v="careful" type="button">Careful</button><button data-v="copycat" type="button">Copycat</button><button data-v="mixed" type="button">Mixed</button></div></span>
+      <label class="chk"><input type="checkbox" id="cm-quota"> Quota on</label>
+      <div class="slider cm-mini off" id="cm-q-wrap"><label class="lab" for="cm-q"><span>Max each</span><span class="v" data-for="cm-q">3</span></label><input type="range" id="cm-q" min="1" max="10" step="1" value="3" disabled></div>
+      <div class="slider cm-mini off" id="cm-fine-wrap"><label class="lab" for="cm-fine"><span>Fine</span><span class="v" data-for="cm-fine">5 fish</span></label><input type="range" id="cm-fine" min="0" max="10" step="1" value="5" disabled></div>
     </div>
-    <div class="stats cm-stats" id="cm-stats" style="margin-top:16px"></div>
-    <div class="status" id="cm-status"></div>
-    <div class="log" id="cm-log"></div>
+    <div class="two cm-views">
+      <div><canvas class="sim" id="cm-pond" width="400" height="200"></canvas></div>
+      <div><canvas class="sim" id="cm-chart" width="400" height="200"></canvas></div>
+    </div>
+    <div class="legend cm-legend"><span><i style="background:var(--p4)"></i>fish in the pond</span><span><i style="background:var(--math)"></i>50: fastest growth</span><span><i style="background:var(--win)"></i>40: your goal</span><span><i style="background:var(--ink-soft)"></i>total catch</span></div>
+    <div class="stats cm-stats" id="cm-stats"></div>
+    <details class="reveal cm-log"><summary>Season by season: <span id="cm-logn">nothing yet</span></summary><div class="log" id="cm-log"></div></details>
   </div>
 </section>
 
@@ -93,11 +97,12 @@
 
   <div class="board">
     <div class="board-head"><h3>What if everyone did that?</h3><span class="rules">All four fishers take the same amount, every season, for 20 seasons.</span></div>
+    <div class="turn" data-who="math"><span class="turn-tag">Try it</span><span class="turn-text">Drag the slider to choose how many fish every fisher takes each season, and watch where the pond goes.</span></div>
     <div class="two cm-calc">
       <div>
-        <div class="slider"><label class="lab" for="cm-calc"><span>Each fisher takes</span><span class="v" data-for="cm-calc">3</span></label><input type="range" id="cm-calc" min="0" max="10" step="1" value="3"></div>
+        <div class="controls"><div class="slider"><label class="lab" for="cm-calc"><span>Each fisher takes</span><span class="v" data-for="cm-calc">3</span></label><input type="range" id="cm-calc" min="0" max="10" step="1" value="3"></div></div>
         <canvas class="sim" id="cm-calc-chart" width="400" height="230"></canvas>
-        <div class="status" id="cm-calc-status" style="font-size:1rem"></div>
+        <div class="note" id="cm-calc-status" style="font-size:1rem"></div>
       </div>
       <div class="scroll"><table class="data cm-table" id="cm-calc-table"></table></div>
     </div>
@@ -114,35 +119,33 @@
 
   <div class="board">
     <div class="board-head"><h3>The coin pot</h3><span class="rules">10 coins each. The pot is multiplied by 1.6 and split four ways.</span></div>
+    <div class="turn" data-who="you"><span class="turn-tag">Round 1 of 10</span><span class="turn-text">Answer the question in the yellow box, or drag <b>My contribution</b> and press <b>Put in</b>.</span></div>
     <div class="cm-quiz" id="cm-quiz">
       <p>If you put 1 coin into the pot, how much of it comes back to you?</p>
-      <div class="row">
-        <button class="btn btn-math btn-sm" type="button" data-q="0.4">0.4</button>
-        <button class="btn btn-math btn-sm" type="button" data-q="1">1</button>
-        <button class="btn btn-math btn-sm" type="button" data-q="1.6">1.6</button>
-        <button class="btn btn-math btn-sm" type="button" data-q="6.4">6.4</button>
-      </div>
+      <button class="btn btn-math btn-sm" type="button" data-q="0.4">0.4</button>
+      <button class="btn btn-math btn-sm" type="button" data-q="1">1</button>
+      <button class="btn btn-math btn-sm" type="button" data-q="1.6">1.6</button>
+      <button class="btn btn-math btn-sm" type="button" data-q="6.4">6.4</button>
       <div class="msg" id="cm-quiz-msg"></div>
     </div>
-    <div class="row">
-      <span class="field">Robots <div class="seg cm-seg" id="cm-ptype"><button data-v="giver">Giver</button><button data-v="free">Free rider</button><button class="on" data-v="cond">Conditional</button><button data-v="mixed">Mixed</button></div></span>
-      <label class="chk"><input type="checkbox" id="cm-punish-on"> Punishment allowed</label>
+    <div class="controls">
+      <div class="slider"><label class="lab" for="cm-give"><span>My contribution this round</span><span class="v" data-for="cm-give">5 coins</span></label><input type="range" id="cm-give" min="0" max="10" step="1" value="5"></div>
+      <button class="btn btn-you" id="cm-put" type="button">Put in</button>
       <button class="btn btn-sm" id="cm-pnew" type="button">New game</button>
     </div>
-    <div class="row" style="margin-top:14px">
-      <div class="slider" style="flex:1 1 240px;margin-bottom:0"><label class="lab" for="cm-give"><span>My contribution this round</span><span class="v" data-for="cm-give">5 coins</span></label><input type="range" id="cm-give" min="0" max="10" step="1" value="5"></div>
-      <button class="btn btn-you" id="cm-put" type="button">Put in</button>
+    <div class="controls">
+      <span class="field">Robots <div class="seg cm-seg" id="cm-ptype"><button data-v="giver" type="button">Giver</button><button data-v="free" type="button">Free rider</button><button class="on" data-v="cond" type="button">Conditional</button><button data-v="mixed" type="button">Mixed</button></div></span>
     </div>
-    <div class="row cm-punish" id="cm-punish" hidden>
-      <span class="note" style="margin:0">Pay 1 coin to take 3 from:</span>
-      <button class="btn btn-sm" type="button" data-p="1">Robo 1</button>
-      <button class="btn btn-sm" type="button" data-p="2">Robo 2</button>
-      <button class="btn btn-sm" type="button" data-p="3">Robo 3</button>
+    <div class="controls cm-punish" id="cm-punish">
+      <label class="chk"><input type="checkbox" id="cm-punish-on"> Punishment allowed:</label>
+      <span class="lab">after a round, pay 1 coin to take 3 from</span>
+      <button class="btn btn-sm" type="button" data-p="1" disabled>Robo 1</button>
+      <button class="btn btn-sm" type="button" data-p="2" disabled>Robo 2</button>
+      <button class="btn btn-sm" type="button" data-p="3" disabled>Robo 3</button>
     </div>
-    <div class="stats cm-stats" id="cm-pstats" style="margin-top:16px"></div>
-    <div class="status" id="cm-pstatus"></div>
-    <div class="scroll"><table class="data cm-table" id="cm-ptable"></table></div>
-    <div class="log" id="cm-plog"></div>
+    <div class="stats cm-stats" id="cm-pstats"></div>
+    <div class="scroll" style="margin-top:12px"><table class="data cm-table" id="cm-ptable" style="margin-bottom:0"></table></div>
+    <details class="reveal cm-log"><summary>Round by round: <span id="cm-plogn">nothing yet</span></summary><div class="log" id="cm-plog"></div></details>
   </div>
 </section>
 

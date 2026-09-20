@@ -11,7 +11,25 @@
 } -->
 <style>
   .chapter-traffic .formula{ max-width:100% }
-  .tr-map{ width:100%; height:auto; display:block; max-width:760px; margin:4px auto 14px; overflow:visible }
+  .tr-map{ width:100%; height:auto; display:block; max-width:760px; margin:0 auto; overflow:visible }
+  /* the map on the left, the sliders and numbers beside it: the whole board fits one laptop screen */
+  .tr-play{ display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); gap:12px 22px; align-items:start }
+  .tr-side{ display:grid; gap:12px }
+  .tr-side .slider{ margin-bottom:0 }
+  .tr-side .slider .lab{ flex-wrap:wrap; gap:0 10px; font-size:.95rem }
+  .tr-side .slider .lab .tr-rt{ color:var(--ink-soft); font-size:.85rem; letter-spacing:-.01em }
+  .tr-side .slider .lab .tr-rt b{ font-weight:600; color:var(--ink) }
+  .tr-side .slider.off{ opacity:.4 }
+  .tr-tiles{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px }
+  .tr-tiles .stat{ min-width:0; padding:7px 11px }
+  .tr-tiles .stat .v{ font-size:1.2rem }
+  .tr-tiles .stat.wide{ grid-column:1 / -1 }
+  .tr-side .seg{ justify-self:start }
+  .tr-side .seg button{ padding:.4em .7em; font-size:.9rem }
+  .chapter-traffic .seg button:disabled{ opacity:.4; cursor:not-allowed }
+  .tr-rounds{ margin:14px 0 0 }
+  .tr-rounds .log{ margin-top:4px }
+  @media (max-width:640px){ .tr-play{ grid-template-columns:1fr } }
   .tr-road{ stroke:var(--ink-soft); stroke-linecap:round; opacity:.32 }
   .tr-wide{ stroke-width:20 }
   .tr-narrow{ stroke-width:8 }
@@ -20,17 +38,20 @@
   .tr-car{ fill:var(--robo) }
   .tr-you{ fill:var(--you); stroke:var(--surface); stroke-width:2.5 }
   .tr-node{ fill:var(--surface); stroke:var(--line); stroke-width:3 }
-  .tr-node-t{ font:700 19px var(--f-display); fill:var(--ink); text-anchor:middle; dominant-baseline:central }
-  .tr-lab-t{ font:700 17px var(--f-display); fill:var(--ink); paint-order:stroke; stroke:var(--surface); stroke-width:6px; stroke-linejoin:round; dominant-baseline:middle }
-  .tr-lab-f{ font:600 12px var(--f-mono); fill:var(--ink-soft); paint-order:stroke; stroke:var(--surface); stroke-width:5px; stroke-linejoin:round; dominant-baseline:middle }
-  .tr-cap{ font:600 12px var(--f-mono); fill:var(--ink-soft); text-anchor:middle }
-  .tr-mine{ font-size:1rem; margin-top:10px; min-height:2.6em }
-  .tr-q{ margin-top:16px; padding:14px 16px; border:3px dashed var(--line); border-radius:12px; background:var(--surface-2) }
-  .tr-q p{ margin:0 0 10px; font:600 1.1rem var(--f-display) }
-  .tr-q .msg{ margin-top:10px; font-size:1rem; min-height:1.4em }
+  .tr-node-t{ font:700 22px var(--f-display); fill:var(--ink); text-anchor:middle; dominant-baseline:central }
+  .tr-lab-t{ font:700 22px var(--f-display); fill:var(--ink); paint-order:stroke; stroke:var(--surface); stroke-width:6px; stroke-linejoin:round; dominant-baseline:middle }
+  .tr-lab-f{ font:600 15px var(--f-mono); fill:var(--ink-soft); paint-order:stroke; stroke:var(--surface); stroke-width:5px; stroke-linejoin:round; dominant-baseline:middle }
+  .tr-cap{ font:600 15px var(--f-mono); fill:var(--ink-soft); text-anchor:middle }
+  .tr-mine{ font-size:.95rem; line-height:1.45; margin-top:8px; min-height:2.9em }
+  .tr-q{ display:flex; flex-wrap:wrap; gap:8px 12px; align-items:center; margin-top:12px; padding:10px 14px; border:3px dashed var(--line); border-radius:12px; background:var(--surface-2) }
+  .tr-q p{ margin:0; font:600 1rem var(--f-display); flex:1 1 300px }
+  .tr-q.locked p{ color:var(--ink-soft) }
+  .tr-q-lock{ display:none; margin:2px 0 0; font-weight:500 }
+  .tr-q.locked .tr-q-lock{ display:block }
   @media (max-width:640px){
     .tr-lab-t{ font-size:26px } .tr-lab-f{ font-size:17px } .tr-node-t{ font-size:26px } .tr-cap{ font-size:17px }
     .tr-car{ r:5.5 } .tr-you{ r:8 }
+    .tr-side .seg button{ padding:.5em .8em }
     .chapter-traffic .formula{ font-size:1rem }
   }
 </style>
@@ -43,29 +64,33 @@
   </div>
 
   <div class="board">
-    <div class="board-head"><h3>Four thousand cars</h3><span class="rules">Narrow roads take cars ÷ 100 minutes. Highways take 45. Find the split where nobody wants to switch.</span></div>
-    <svg class="tr-map" id="tr-b1-map" viewBox="0 0 640 320" role="img" aria-label="Map: S to A to E on top, S to B to E on the bottom, with live travel times"></svg>
-    <div class="slider"><label class="lab" for="tr-b1-sa"><span>Cars on the top route S→A→E (the rest take the bottom)</span><span class="v" data-for="tr-b1-sa">3,000</span></label><input type="range" id="tr-b1-sa" min="0" max="4000" step="1" value="3000"></div>
-    <div class="row">
-      <span class="field">Top route, exactly <input type="number" id="tr-b1-num" min="0" max="4000" value="3000"></span>
-      <span class="field">Cars in all <input type="number" id="tr-b1-n" min="1000" max="10000" step="100" value="4000"></span>
-      <div class="seg" id="tr-b1-mine"><button class="on" data-v="a" type="button">My car: top</button><button data-v="b" type="button">My car: bottom</button></div>
-    </div>
-    <div class="stats" style="margin-top:14px">
-      <div class="stat"><span class="k">Top route</span><span class="v" id="tr-b1-ta">75 min</span></div>
-      <div class="stat"><span class="k">Bottom route</span><span class="v" id="tr-b1-tb">55 min</span></div>
-      <div class="stat"><span class="k">Average trip</span><span class="v" id="tr-b1-avg">70 min</span></div>
-      <div class="stat"><span class="k">Your trip</span><span class="v you" id="tr-b1-tm">75 min</span></div>
-    </div>
-    <div class="tr-mine" id="tr-b1-mine-txt"></div>
-    <div class="status" id="tr-b1-status"></div>
-    <div class="row">
-      <button class="btn btn-win" id="tr-b1-check" type="button">Check: nobody wants to switch</button>
+    <div class="board-head"><h3>Four thousand cars</h3><span class="rules">Narrow roads take cars ÷ 100 minutes. Highways always take 45.</span></div>
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Drag the slider to move cars between the two routes. When you think nobody wants to switch, press <b>Check my split</b>.</span></div>
+    <div class="controls">
+      <button class="btn btn-win" id="tr-b1-check" type="button">Check my split</button>
       <button class="btn btn-robo" id="tr-b1-run" type="button">Let the drivers choose</button>
       <button class="btn btn-math btn-sm" id="tr-b1-hint" type="button">Hint</button>
       <button class="btn btn-sm" id="tr-b1-reset" type="button">Reset</button>
+      <span class="field">Cars in all <input type="number" id="tr-b1-n" min="1000" max="10000" step="100" value="4000"></span>
     </div>
-    <div class="log" id="tr-b1-log"></div>
+    <div class="tr-play">
+      <div>
+        <svg class="tr-map" id="tr-b1-map" viewBox="0 0 640 320" role="img" aria-label="Map: S to A to E on top, S to B to E on the bottom, with live travel times"></svg>
+        <div class="tr-mine" id="tr-b1-mine-txt"></div>
+      </div>
+      <div class="tr-side">
+        <div class="slider"><label class="lab" for="tr-b1-sa"><span>Cars on the top route</span><span class="v" data-for="tr-b1-sa">3,000</span></label><input type="range" id="tr-b1-sa" min="0" max="4000" step="1" value="3000"></div>
+        <div class="row"><span class="field">Exactly <input type="number" id="tr-b1-num" min="0" max="4000" value="3000"></span><span class="note" style="margin:0">The rest take the bottom.</span></div>
+        <div class="tr-tiles">
+          <div class="stat"><span class="k">Top route</span><span class="v" id="tr-b1-ta">75 min</span></div>
+          <div class="stat"><span class="k">Bottom route</span><span class="v" id="tr-b1-tb">55 min</span></div>
+          <div class="stat"><span class="k">Average trip</span><span class="v" id="tr-b1-avg">70 min</span></div>
+          <div class="stat"><span class="k">Your trip</span><span class="v you" id="tr-b1-tm">75 min</span></div>
+        </div>
+        <div class="seg" id="tr-b1-mine"><button class="on" data-v="a" type="button">My car: top</button><button data-v="b" type="button">My car: bottom</button></div>
+      </div>
+    </div>
+    <details class="reveal tr-rounds"><summary>Round by round: <span id="tr-b1-logn">no rounds yet</span></summary><div class="log" id="tr-b1-log"></div></details>
   </div>
 </section>
 
@@ -77,36 +102,36 @@
   </div>
 
   <div class="board">
-    <div class="board-head"><h3>The bridge</h3><span class="rules">A 0-minute bridge from A to B opens a third route. Open it, let the drivers choose, and see what happens to every trip.</span></div>
-    <div class="row">
+    <div class="board-head"><h3>The bridge</h3><span class="rules">A 0-minute bridge from A to B opens a third route: S→A→B→E.</span></div>
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Click <b>Open the A→B bridge</b>. Then press <b>Let the drivers choose</b> and watch what happens to every trip.</span></div>
+    <div class="controls">
       <div class="seg" id="tr-b2-bridge"><button class="on" data-v="closed" type="button">Bridge closed</button><button data-v="open" type="button">Open the A→B bridge</button></div>
-      <span class="field">Cars in all <input type="number" id="tr-b2-n" min="1000" max="10000" step="100" value="4000"></span>
-      <div class="seg" id="tr-b2-mine"><button class="on" data-v="a" type="button">My car: top</button><button data-v="b" type="button">bottom</button><button data-v="c" type="button" hidden>bridge</button></div>
-    </div>
-    <svg class="tr-map" id="tr-b2-map" viewBox="0 0 640 320" role="img" aria-label="The same map with a bridge from A to B"></svg>
-    <div class="slider"><label class="lab" for="tr-b2-sa"><span>Top route S→A→E</span><span class="v" data-for="tr-b2-sa">2,000</span></label><input type="range" id="tr-b2-sa" min="0" max="4000" step="1" value="2000"></div>
-    <div class="slider"><label class="lab" for="tr-b2-sb"><span>Bottom route S→B→E</span><span class="v" data-for="tr-b2-sb">2,000</span></label><input type="range" id="tr-b2-sb" min="0" max="4000" step="1" value="2000"></div>
-    <div class="slider" hidden><label class="lab" for="tr-b2-sc"><span>Bridge route S→A→B→E</span><span class="v" data-for="tr-b2-sc">0</span></label><input type="range" id="tr-b2-sc" min="0" max="4000" step="1" value="0"></div>
-    <div class="stats">
-      <div class="stat"><span class="k">Top route</span><span class="v" id="tr-b2-ta">65 min</span></div>
-      <div class="stat"><span class="k">Bottom route</span><span class="v" id="tr-b2-tb">65 min</span></div>
-      <div class="stat" hidden><span class="k">Bridge route</span><span class="v" id="tr-b2-tc">closed</span></div>
-      <div class="stat"><span class="k">Average trip</span><span class="v" id="tr-b2-avg">65 min</span></div>
-      <div class="stat"><span class="k">Your trip</span><span class="v you" id="tr-b2-tm">65 min</span></div>
-    </div>
-    <div class="tr-mine" id="tr-b2-mine-txt"></div>
-    <div class="status" id="tr-b2-status"></div>
-    <div class="row">
       <button class="btn btn-robo" id="tr-b2-run" type="button">Let the drivers choose</button>
       <button class="btn btn-sm" id="tr-b2-reset" type="button">Reset</button>
-      <span class="note" style="margin:0">Moving one slider moves the others, so the cars always add up.</span>
+      <span class="field">Cars in all <input type="number" id="tr-b2-n" min="1000" max="10000" step="100" value="4000"></span>
     </div>
-    <div class="log" id="tr-b2-log"></div>
-    <div class="tr-q" id="tr-b2-q" hidden>
-      <p>The drivers have settled with the bridge open. Would closing the bridge make anyone worse off?</p>
-      <div class="row"><button class="btn btn-you" data-ans="yes" type="button">Yes, someone</button><button class="btn btn-win" data-ans="no" type="button">No, nobody</button></div>
-      <div class="msg" id="tr-b2-qmsg"></div>
+    <div class="tr-play">
+      <div>
+        <svg class="tr-map" id="tr-b2-map" viewBox="0 0 640 320" role="img" aria-label="The same map with a bridge from A to B"></svg>
+        <div class="tr-mine" id="tr-b2-mine-txt"></div>
+      </div>
+      <div class="tr-side">
+        <div class="slider"><label class="lab" for="tr-b2-sa"><span>Top S→A→E</span><span class="v tr-rt"><span data-for="tr-b2-sa">2,000</span> cars · <b id="tr-b2-ta">65 min</b></span></label><input type="range" id="tr-b2-sa" min="0" max="4000" step="1" value="2000"></div>
+        <div class="slider"><label class="lab" for="tr-b2-sb"><span>Bottom S→B→E</span><span class="v tr-rt"><span data-for="tr-b2-sb">2,000</span> cars · <b id="tr-b2-tb">65 min</b></span></label><input type="range" id="tr-b2-sb" min="0" max="4000" step="1" value="2000"></div>
+        <div class="slider off"><label class="lab" for="tr-b2-sc"><span>Bridge S→A→B→E</span><span class="v tr-rt"><span data-for="tr-b2-sc">0</span> cars · <b id="tr-b2-tc">closed</b></span></label><input type="range" id="tr-b2-sc" min="0" max="4000" step="1" value="0" disabled></div>
+        <p class="note" style="margin:-4px 0 0">Moving one slider moves the others, so the cars always add up.</p>
+        <div class="tr-tiles">
+          <div class="stat"><span class="k">Average trip</span><span class="v" id="tr-b2-avg">65 min</span></div>
+          <div class="stat"><span class="k">Your trip</span><span class="v you" id="tr-b2-tm">65 min</span></div>
+        </div>
+        <div class="seg" id="tr-b2-mine"><button class="on" data-v="a" type="button">My car: top</button><button data-v="b" type="button">bottom</button><button data-v="c" type="button" disabled>bridge</button></div>
+      </div>
     </div>
+    <div class="tr-q locked" id="tr-b2-q">
+      <p>Closing question: would closing the bridge make anyone worse off?<span class="note tr-q-lock">Unlocks when the drivers have settled with the bridge open.</span></p>
+      <button class="btn btn-you" data-ans="yes" type="button" disabled>Yes, someone</button><button class="btn btn-win" data-ans="no" type="button" disabled>No, nobody</button>
+    </div>
+    <details class="reveal tr-rounds"><summary>Round by round: <span id="tr-b2-logn">no rounds yet</span></summary><div class="log" id="tr-b2-log"></div></details>
   </div>
 
   <div class="prose">
@@ -130,26 +155,29 @@
 
   <div class="board">
     <div class="board-head"><h3>Planner mode</h3><span class="rules">You assign all 4,000 cars. Make the average trip as short as you can.</span></div>
-    <svg class="tr-map" id="tr-b3-map" viewBox="0 0 640 320" role="img" aria-label="The map with the bridge open, showing the planner's assignment"></svg>
-    <div class="slider"><label class="lab" for="tr-b3-sa"><span>Top route S→A→E</span><span class="v" data-for="tr-b3-sa">2,000</span></label><input type="range" id="tr-b3-sa" min="0" max="4000" step="1" value="2000"></div>
-    <div class="slider"><label class="lab" for="tr-b3-sb"><span>Bottom route S→B→E</span><span class="v" data-for="tr-b3-sb">2,000</span></label><input type="range" id="tr-b3-sb" min="0" max="4000" step="1" value="2000"></div>
-    <div class="slider"><label class="lab" for="tr-b3-sc"><span>Bridge route S→A→B→E</span><span class="v" data-for="tr-b3-sc">0</span></label><input type="range" id="tr-b3-sc" min="0" max="4000" step="1" value="0"></div>
-    <div class="stats">
-      <div class="stat"><span class="k">Top route</span><span class="v" id="tr-b3-ta">65 min</span></div>
-      <div class="stat"><span class="k">Bottom route</span><span class="v" id="tr-b3-tb">65 min</span></div>
-      <div class="stat"><span class="k">Bridge route</span><span class="v" id="tr-b3-tc">40 min</span></div>
-      <div class="stat"><span class="k">Average trip</span><span class="v" id="tr-b3-avg">65 min</span></div>
-      <div class="stat"><span class="k">Total</span><span class="v" id="tr-b3-tot">260,000 car-min</span></div>
-      <div class="stat"><span class="k">Best possible</span><span class="v math-c" id="tr-b3-best">64.6875 min</span></div>
-    </div>
-    <div class="status" id="tr-b3-status"></div>
-    <div class="row">
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Drag the three sliders to send cars down each route. Can you get the <b>average trip</b> under 65 minutes?</span></div>
+    <div class="controls">
       <button class="btn btn-sm" data-preset="even" type="button">Ignore the bridge</button>
       <button class="btn btn-sm" data-preset="bridge" type="button">Everyone on the bridge</button>
       <button class="btn btn-math btn-sm" id="tr-b3-hint" type="button">Hint</button>
       <button class="btn btn-sm" data-preset="best" type="button">Show the best plan</button>
     </div>
-    <p class="note">The star is for beating 65 minutes with your own sliders. The third hint and "Show the best plan" give the answer away, so they turn the star off.</p>
+    <div class="tr-play">
+      <div>
+        <svg class="tr-map" id="tr-b3-map" viewBox="0 0 640 320" role="img" aria-label="The map with the bridge open, showing the planner's assignment"></svg>
+        <p class="note">The star is for beating 65 minutes with your own sliders. The third hint and "Show the best plan" give the answer away, so they turn the star off.</p>
+      </div>
+      <div class="tr-side">
+        <div class="slider"><label class="lab" for="tr-b3-sa"><span>Top S→A→E</span><span class="v tr-rt"><span data-for="tr-b3-sa">2,000</span> cars · <b id="tr-b3-ta">65 min</b></span></label><input type="range" id="tr-b3-sa" min="0" max="4000" step="1" value="2000"></div>
+        <div class="slider"><label class="lab" for="tr-b3-sb"><span>Bottom S→B→E</span><span class="v tr-rt"><span data-for="tr-b3-sb">2,000</span> cars · <b id="tr-b3-tb">65 min</b></span></label><input type="range" id="tr-b3-sb" min="0" max="4000" step="1" value="2000"></div>
+        <div class="slider"><label class="lab" for="tr-b3-sc"><span>Bridge S→A→B→E</span><span class="v tr-rt"><span data-for="tr-b3-sc">0</span> cars · <b id="tr-b3-tc">40 min</b></span></label><input type="range" id="tr-b3-sc" min="0" max="4000" step="1" value="0"></div>
+        <div class="tr-tiles">
+          <div class="stat"><span class="k">Average trip</span><span class="v" id="tr-b3-avg">65 min</span></div>
+          <div class="stat"><span class="k">Best possible</span><span class="v math-c" id="tr-b3-best">64.6875 min</span></div>
+          <div class="stat wide"><span class="k">Total</span><span class="v" id="tr-b3-tot">260,000 car-min</span></div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="prose">
@@ -158,18 +186,18 @@
 
   <div class="board">
     <div class="board-head"><h3>Pigou's two roads</h3><span class="rules">Road 1 always takes an hour. Road 2 takes x hours when a fraction x of the cars use it.</span></div>
-    <div class="slider"><label class="lab" for="tr-pg-x"><span>Share of the cars on road 2</span><span class="v" data-for="tr-pg-x">100%</span></label><input type="range" id="tr-pg-x" min="0" max="100" step="1" value="100"></div>
-    <div class="row">
+    <div class="turn" data-who="math"><span class="turn-tag">Try it</span><span class="turn-text">Drag the slider to move cars onto road 2, and watch the <b>average trip</b>. Where is it shortest?</span></div>
+    <div class="controls">
       <div class="seg" id="tr-pg-k"><button class="on" data-v="1" type="button">Road 2 takes x hours</button><button data-v="2" type="button">Road 2 takes 2x hours</button></div>
       <span id="tr-pg-jump" class="row"><button class="btn btn-robo btn-sm" data-to="eq" type="button">Jump to the equilibrium</button><button class="btn btn-win btn-sm" data-to="opt" type="button">Jump to the planner's best</button></span>
     </div>
-    <div class="stats" style="margin-top:14px">
+    <div class="slider"><label class="lab" for="tr-pg-x"><span>Share of the cars on road 2</span><span class="v" data-for="tr-pg-x">100%</span></label><input type="range" id="tr-pg-x" min="0" max="100" step="1" value="100"></div>
+    <div class="stats">
       <div class="stat"><span class="k">Road 1</span><span class="v" id="tr-pg-r1">60 min</span></div>
       <div class="stat"><span class="k">Road 2</span><span class="v" id="tr-pg-r2">60 min</span></div>
       <div class="stat"><span class="k">Average trip</span><span class="v" id="tr-pg-avg">60 min</span></div>
       <div class="stat"><span class="k">Best possible</span><span class="v math-c" id="tr-pg-best">45 min</span></div>
     </div>
-    <div class="status" id="tr-pg-status"></div>
     <p class="note" id="tr-pg-sum"></p>
   </div>
 

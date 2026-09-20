@@ -1,7 +1,7 @@
 /* Chapter: Traffic (Braess's paradox). Four boards: the two-route map, the bridge, the planner, Pigou's two roads. */
 (function(){
 'use strict';
-const { $, $$, wait, earn, seg, fmtNum } = WM;
+const { $, $$, wait, earn, seg, fmtNum, turn, reveal } = WM;
 
 /* @pure-start
    Everything between the pure markers is DOM-free. The node test (scratch) evaluates this block on its own. */
@@ -133,7 +133,7 @@ const MINE_EDGE = { a: 'AE', b: 'SB', c: 'AB' };
 const MAX_DOTS = 20;
 function drawMap(svg, o){
   const e = edgeFlows(o.flows), t = edgeTimes(o.flows);
-  const k = o.phone ? 1.45 : 1;   // on a phone the labels are drawn bigger (CSS), so push them further from the roads
+  const k = o.phone ? 1.45 : 1.25;   // the labels are drawn big (CSS), bigger still on a phone, so push them away from the roads
   let roads = '', cars = '', labels = '';
   for (const ed of EDGES){
     const isBridge = ed.id === 'AB';
@@ -186,18 +186,23 @@ function makeBoard(id, opts){
   const q = s => $(`#${id}-${s}`);
   const bd = {
     N: 4000, flows: { a: 0, b: 0, c: 0 }, bridge: !!opts.bridge, mine: opts.mine ? 'a' : null,
-    runId: 0, running: false, settledRun: false, roboSolved: new Set(), peeked: false, log: [],
+    runId: 0, running: false, settledRun: false, answered: false, hints: 0, roboSolved: new Set(), peeked: false, log: [],
     shown: opts.sliders, opts
   };
   const sliders = {}, readouts = {};
   for (const r of bd.shown){ sliders[r] = q('s' + r); readouts[r] = $(`[data-for="${id}-s${r}"]`); }
+  /* The strip under the board head is the narrator (CHAPTER_SPEC.md, "Game UX contract"). Its opening line is written in
+     the chapter HTML; Reset puts that line back. */
+  const boardEl = q('map').closest('.board');
+  const intro = $('.turn .turn-text', boardEl).innerHTML;
+  const tell = (who, html, tag) => turn(boardEl, who, html, tag);
 
   function defaults(){
     if (opts.planner){ bd.flows = { a: bd.N / 2, b: bd.N / 2, c: 0 }; return; }
     if (opts.startSplit){ bd.flows = { a: Math.round(bd.N * opts.startSplit), b: 0, c: 0 }; bd.flows.b = bd.N - bd.flows.a; return; }
     bd.flows = { a: bd.N / 2, b: bd.N / 2, c: 0 };
   }
-  function cancelRun(){ bd.runId++; bd.running = false; bd.settledRun = false; }
+  function cancelRun(){ bd.runId++; bd.running = false; bd.settledRun = false; bd.answered = false; }
   function fixMine(){
     if (!bd.mine) return;
     if (!bd.bridge && bd.mine === 'c') bd.mine = 'a';
@@ -206,7 +211,7 @@ function makeBoard(id, opts){
       if (routes.length) bd.mine = routes.reduce((p, r) => bd.flows[r] > bd.flows[p] ? r : p);
     }
     const sg = q('mine');
-    if (sg) $$('button', sg).forEach(b => { b.classList.toggle('on', b.dataset.v === bd.mine); b.hidden = b.dataset.v === 'c' && !bd.bridge; });
+    if (sg) $$('button', sg).forEach(b => { b.classList.toggle('on', b.dataset.v === bd.mine); b.disabled = b.dataset.v === 'c' && !bd.bridge; });
   }
   /* Move route r to v cars; the difference comes from (or goes to) the other routes in proportion to their sizes. */
   function setFlow(r, v){
@@ -236,6 +241,26 @@ function makeBoard(id, opts){
     const who = NAMES[worst].replace(' route', '');
     return `The ${NAMES[worst]} takes ${mins(t[worst])}; the ${NAMES[s]} takes ${mins(t[s])}. <span class="robo">${who[0].toUpperCase() + who.slice(1)} drivers want to switch.</span>`;
   }
+  /* What the reader should do now, given the state of the board. */
+  function nextStep(){
+    const eq = isEquilibrium(bd.flows, bd.bridge);
+    if (opts.check) return eq ? 'Press <b>Check my split</b>.' : 'Keep dragging the slider, then press <b>Check my split</b>.';
+    if (!bd.bridge) return eq ? 'Click <b>Open the A→B bridge</b>.' : 'Press <b>Let the drivers choose</b>, or open the bridge.';
+    if (!eq) return 'Press <b>Let the drivers choose</b>.';
+    if (bd.settledRun) return bd.answered ? 'Try a different number in <b>Cars in all</b> and let the drivers choose again.' : 'Now answer the closing question under the map.';
+    return 'To unlock the closing question the drivers have to find this themselves: move a slider away, then press <b>Let the drivers choose</b>.';
+  }
+  function narrate(lead){
+    if (bd.running) return;
+    if (opts.planner){ plannerStatus(true); return; }
+    const eq = isEquilibrium(bd.flows, bd.bridge);
+    tell(eq ? 'win' : 'you', `${lead ? lead + ' ' : ''}${statusText()} ${nextStep()}`, eq ? 'Balanced' : 'Your move');
+  }
+  function mineHeadline(){
+    const f = bd.flows, t = routeTimes(f), s = bestMove(f, bd.mine, bd.bridge);
+    return `<b class="you">Your car</b> is now on the ${NAMES[bd.mine]}: <b>${mins(t[bd.mine])}</b>. ` +
+      (s ? `Alone, you would switch to the ${NAMES[s]} and take ${mins(timeIfMoved(f, bd.mine, s))}.` : 'You have no reason to move.');
+  }
   function mineText(){
     if (!bd.mine) return '';
     const f = bd.flows, t = routeTimes(f);
@@ -254,7 +279,8 @@ function makeBoard(id, opts){
     for (const r of bd.shown){
       const sl = sliders[r]; if (!sl) continue;
       sl.max = bd.N; sl.value = f[r]; if (readouts[r]) readouts[r].textContent = fmtNum(f[r]);
-      const wrap = sl.closest('.slider'); if (wrap) wrap.hidden = r === 'c' && !bd.bridge;
+      const shut = r === 'c' && !bd.bridge;
+      sl.disabled = shut; const wrap = sl.closest('.slider'); if (wrap) wrap.classList.toggle('off', shut);
     }
     const num = q('num'); if (num){ num.value = f.a; num.max = bd.N; }
     const nIn = q('n'); if (nIn) nIn.value = bd.N;
@@ -264,28 +290,30 @@ function makeBoard(id, opts){
     tile('ta', mins(t.a)); tile('tb', mins(t.b)); tile('tc', bd.bridge ? mins(t.c) : 'closed');
     tile('avg', mins(avgTime(f))); tile('tot', fmtNum(Math.round(totalTime(f))) + ' car-min');
     if (bd.mine) tile('tm', mins(t[bd.mine]));
-    const tcTile = q('tc'); if (tcTile) tcTile.closest('.stat').hidden = !bd.bridge;
-    if (!bd.running){
-      const st = q('status'); if (st && !opts.planner) st.innerHTML = statusText();
-      const mt = q('mine-txt'); if (mt) mt.innerHTML = mineText();
-    }
+    const mt = q('mine-txt'); if (mt) mt.innerHTML = mineText();   // also while the drivers are switching, so it never disagrees with the Your trip tile
     const run = q('run'); if (run) run.disabled = bd.running || isEquilibrium(f, bd.bridge);
     const chk = q('check'); if (chk) chk.disabled = bd.running;
-    const lg = q('log'); if (lg) lg.innerHTML = bd.log.slice(-4).join('<br>');
-    const qb = q('q'); if (qb) qb.hidden = !(bd.settledRun && bd.bridge);
-    if (opts.planner) plannerStatus();
+    const lg = q('log'); if (lg) lg.innerHTML = bd.log.slice(-8).join('<br>');
+    const ln = q('logn'); if (ln) ln.textContent = bd.log.length ? `${bd.log.length} round${bd.log.length === 1 ? '' : 's'}` : 'no rounds yet';
+    const qb = q('q');
+    if (qb){
+      const locked = !(bd.settledRun && bd.bridge);     // the closing question is always on the board; it unlocks when the crowd has settled
+      qb.classList.toggle('locked', locked); $$('button', qb).forEach(b => { b.disabled = locked; });
+    }
+    if (opts.planner) plannerStatus(false);
   }
 
   /* ---- planner ---- */
-  function plannerStatus(){
+  function plannerStatus(speak){
     const f = bd.flows, avg = avgTime(f), best = optimum(bd.N), bestAvg = avgTime(best);
     const gap = avg - bestAvg;
-    const st = q('status');
-    if (gap < 1e-9) st.innerHTML = `<span class="win-c">That is the best plan there is.</span> Average ${fmtMin(avg)} min, total ${fmtNum(totalTime(f))} car-minutes.`;
-    else if (gap < 0.0625 + 1e-9) st.innerHTML = `<span class="win-c">Within a hair of the best plan.</span> Average ${fmtMin(avg)} min; the best possible is ${bestAvg} min.`;
-    else if (isEquilibrium(f, true)) st.innerHTML = `Average ${fmtMin(avg)} min. This is the selfish equilibrium, ${fmtMin(gap)} min per car worse than the best plan.`;
-    else st.innerHTML = `Average ${fmtMin(avg)} min, which is ${fmtMin(gap)} min per car above the best plan.`;
     const bt = q('best'); if (bt) bt.textContent = `${bestAvg} min`;
+    if (!speak) return;
+    const own = bd.peeked ? '' : ' You beat 65 minutes.';
+    if (gap < 1e-9) tell('win', `That is the best plan there is. Average ${fmtMin(avg)} min, total ${fmtNum(totalTime(f))} car-minutes.${own}`, 'Best plan');
+    else if (gap < 0.0625 + 1e-9) tell('win', `Within a hair of the best plan. Average ${fmtMin(avg)} min; the best possible is ${bestAvg} min.${own}`, 'So close');
+    else if (isEquilibrium(f, true)) tell('you', `Average ${fmtMin(avg)} min. This is the selfish equilibrium, ${fmtMin(gap)} min per car worse than the best plan. Drag a slider to pull cars off the bridge.`);
+    else tell('you', `Average ${fmtMin(avg)} min, which is ${fmtMin(gap)} min per car above the best plan. Keep dragging the sliders.`);
   }
   function plannerCheck(){
     if (!opts.planner || bd.peeked) return;
@@ -296,17 +324,19 @@ function makeBoard(id, opts){
   /* ---- the drivers choose ---- */
   async function run(){
     if (bd.running || isEquilibrium(bd.flows, bd.bridge)) return;
-    bd.running = true; bd.settledRun = false; bd.roboSolved.add(bd.N);
+    bd.running = true; bd.settledRun = false; bd.answered = false; bd.roboSolved.add(bd.N);
     const id = ++bd.runId;
     bd.log = []; let step = 0;
-    q('status').innerHTML = 'The drivers look at the times and start switching...';
+    tell('robo', 'The drivers look at the times and start switching...', 'Drivers');
     render();
     while (step < 300){
       const s = stepDynamics(bd.flows, bd.bridge);
       if (s.settled) break;
       step++; bd.flows = s.flows;
-      bd.log.push(`Round ${step}: ` + s.moves.map(m => `${fmtNum(m.k)} left the ${NAMES[m.from]} for the ${NAMES[m.to]}`).join(', ') + '.');
+      const line = s.moves.map(m => `${fmtNum(m.k)} left the ${NAMES[m.from]} for the ${NAMES[m.to]}`).join(', ') + '.';
+      bd.log.push(`Round ${step}: ${line}`);
       render();
+      tell('robo', line[0].toUpperCase() + line.slice(1), `Round ${step}`);
       const moved = s.moves.reduce((n, m) => n + m.k, 0);
       await wait(step <= 2 ? 800 : moved >= 20 ? 450 : 200);
       if (id !== bd.runId) return;   // the reader changed something mid-run
@@ -319,48 +349,53 @@ function makeBoard(id, opts){
     bd.running = false; bd.settledRun = true;
     render();
     const t = routeTimes(bd.flows), used = usedRoutes(bd.bridge).filter(r => bd.flows[r] > 0);
-    let h = `<span class="win-c">Settled after ${step} round${step === 1 ? '' : 's'}.</span> ` +
+    let h = `Settled after ${step} round${step === 1 ? '' : 's'}. ` +
       (used.length === 1 ? `Everyone is on the ${NAMES[used[0]]}: ${mins(t[used[0]])} each.` : `Every route in use takes ${mins(t[used[0]])}.`) + ' Nobody wants to switch.';
-    if (opts.check && !WM.has('tr-split')) h += ' <span class="note">(The star is for finding the split yourself: change the number of cars and try.)</span>';
-    q('status').innerHTML = h;
+    if (opts.check) h += WM.has('tr-split') ? ' Change <b>Cars in all</b> to watch a new crowd.' : ' The star is for finding the split yourself: change <b>Cars in all</b>, then drag the slider and check.';
+    else h += ' ' + nextStep();
+    tell('win', h, 'Settled');
+    if (q('q') && bd.bridge) reveal(q('q'));
   }
 
   /* ---- wiring ---- */
   for (const r of bd.shown){
     const sl = sliders[r]; if (!sl) continue;
-    sl.addEventListener('input', () => { cancelRun(); setFlow(r, +sl.value); bd.log = []; render(); plannerCheck(); });
+    sl.addEventListener('input', () => { cancelRun(); setFlow(r, +sl.value); bd.log = []; render(); narrate(); plannerCheck(); });
   }
   const num = q('num');
-  if (num) num.addEventListener('change', () => { cancelRun(); setFlow('a', +num.value); bd.log = []; render(); });
+  if (num) num.addEventListener('change', () => { cancelRun(); setFlow('a', +num.value); bd.log = []; render(); narrate(); });
   const nIn = q('n');
   if (nIn) nIn.addEventListener('change', () => {
     cancelRun(); bd.N = cl(Math.round((+nIn.value || 4000) / 100) * 100, 1000, 10000); defaults(); bd.log = []; render();
+    narrate(`Now there are ${fmtNum(bd.N)} cars in all.`);
   });
   const sg = q('mine');
-  if (sg) seg(sg, v => { if (bd.flows[v] > 0 || bd.running){ bd.mine = v; render(); } else { fixMine(); q('mine-txt').innerHTML = `Nobody is on the ${NAMES[v]} right now. Move the slider first.`; } });
+  if (sg) seg(sg, v => {
+    if (bd.flows[v] > 0 || bd.running){ bd.mine = v; render(); if (!bd.running) tell('you', `${mineHeadline()} ${nextStep()}`); }
+    else { fixMine(); tell('you', `Nobody is on the ${NAMES[v]} right now, so your car cannot be there. Drag a slider to send some cars that way first.`, 'Not yet'); }
+  });
   const tg = q('bridge');
   if (tg) seg(tg, v => {
     cancelRun(); bd.log = [];
     const open = v === 'open';
     if (!open && bd.flows.c > 0){ const half = Math.floor(bd.flows.c / 2); bd.flows.a += bd.flows.c - half; bd.flows.b += half; bd.flows.c = 0; }
     bd.bridge = open; render();
-    if (open && !opts.planner) q('status').innerHTML = statusText() + ` <span class="note">The bridge route ${PATHS.c} is open.</span>`;
+    narrate(open ? `The bridge route ${PATHS.c} is open.` : 'The bridge is closed again.');
   });
   const run_ = q('run'); if (run_) run_.addEventListener('click', run);
   const reset = q('reset');
-  if (reset) reset.addEventListener('click', () => { cancelRun(); bd.N = 4000; bd.log = []; if (tg){ bd.bridge = false; $$('button', tg).forEach(b => b.classList.toggle('on', b.dataset.v === 'closed')); } defaults(); bd.peeked = false; render(); });
+  if (reset) reset.addEventListener('click', () => { cancelRun(); bd.N = 4000; bd.log = []; if (tg){ bd.bridge = false; $$('button', tg).forEach(b => b.classList.toggle('on', b.dataset.v === 'closed')); } defaults(); bd.peeked = false; render(); tell('you', intro); });
   const chk = q('check');
   if (chk) chk.addEventListener('click', () => {
     if (bd.running) return;
     const f = bd.flows, t = routeTimes(f);
     if (isEquilibrium(f, bd.bridge)){
-      let h = `<span class="win-c">Yes. Nobody wants to switch.</span> ${fmtNum(f.a)} on top, ${fmtNum(f.b)} on the bottom, ${mins(t.a)} each. A Nash equilibrium with ${fmtNum(bd.N)} players.`;
-      if (bd.roboSolved.has(bd.N)) h += ' <span class="note">(You watched the drivers find this one. Change the number of cars and find the new split yourself for the star.)</span>';
-      else earn('tr-split');
-      q('status').innerHTML = h;
+      const h = `Yes. Nobody wants to switch. ${fmtNum(f.a)} on top, ${fmtNum(f.b)} on the bottom, ${mins(t.a)} each. A Nash equilibrium with ${fmtNum(bd.N)} players.`;
+      if (bd.roboSolved.has(bd.N)) tell('math', `${h} You watched the drivers find this one: change <b>Cars in all</b> and find the new split yourself for the star.`, 'Right');
+      else { tell('win', `${h} Change <b>Cars in all</b> for a new crowd, or go on to the bridge.`, 'Solved'); earn('tr-split'); }
     } else {
       const slow = t.a > t.b ? 'a' : 'b';
-      q('status').innerHTML = `Not yet. The ${NAMES[slow]} takes ${mins(t[slow])} and the other ${mins(t[slow === 'a' ? 'b' : 'a'])}, so a ${NAMES[slow].replace(' route', '')} driver would switch. Which way should the slider move?`;
+      tell('you', `The ${NAMES[slow]} takes ${mins(t[slow])} and the other ${mins(t[slow === 'a' ? 'b' : 'a'])}, so a ${NAMES[slow].replace(' route', '')} driver would switch. Which way should the slider move? Drag it, then check again.`, 'Not yet');
     }
   });
   const hint = q('hint');
@@ -373,10 +408,10 @@ function makeBoard(id, opts){
         'The best plan puts 500 cars over the bridge and 1,750 on each old route. The Math corner shows why 500.'
       ];
       if (bd.hints >= 3) bd.peeked = true;
-      q('status').innerHTML = `<span class="math-c">Hint:</span> ${msgs[Math.min(bd.hints, 3) - 1]}`;
+      tell('math', msgs[Math.min(bd.hints, 3) - 1], `Hint ${Math.min(bd.hints, 3)} of 3`);
     } else {
       const t = routeTimes(bd.flows);
-      q('status').innerHTML = `<span class="math-c">Hint:</span> a driver switches when the other route is faster. So the split is settled only when both routes take the <b>same</b> time. Right now the top takes ${mins(t.a)} and the bottom ${mins(t.b)}.`;
+      tell('math', `A driver switches when the other route is faster. So the split is settled only when both routes take the <b>same</b> time. Right now the top takes ${mins(t.a)} and the bottom ${mins(t.b)}. Drag the slider to close the gap.`, 'Hint');
     }
   });
   $$('[data-preset]', $(`#${id}`)).forEach(b => b.addEventListener('click', () => {
@@ -385,23 +420,25 @@ function makeBoard(id, opts){
     if (p === 'best'){ bd.peeked = true; bd.flows = optimum(bd.N); }
     else if (p === 'even') bd.flows = { a: bd.N / 2, b: bd.N / 2, c: 0 };
     else if (p === 'bridge') bd.flows = { a: 0, b: 0, c: bd.N };
-    render();
+    render(); narrate();
   }));
   const qb = q('q');
   if (qb) $$('button[data-ans]', qb).forEach(b => b.addEventListener('click', () => {
     if (!bd.settledRun || !bd.bridge) return;
     const withB = avgTime(bd.flows), without = avgTime(equilibrium(bd.N, false));
     const hurts = without > withB + 1e-9;           // closing the bridge would make trips longer
-    const ans = b.dataset.ans, msg = q('qmsg');
-    if ((ans === 'yes') === hurts){
-      if (!hurts){
-        msg.innerHTML = `<span class="win-c">Right.</span> With the bridge closed the drivers settle at ${fmtNum(equilibrium(bd.N, false).a)} and ${fmtNum(equilibrium(bd.N, false).b)}, and every trip goes from ${mins(withB)} to ${mins(without)}. ${without < withB - 1e-9 ? 'Closing a road helped every single driver. That is Braess\'s paradox.' : 'Nobody is worse off either way; with more cars the bridge starts to hurt.'}`;
-        earn('tr-paradox');
-      } else msg.innerHTML = `<span class="win-c">Right.</span> With ${fmtNum(bd.N)} cars the bridge really does help: ${mins(withB)} with it, ${mins(without)} without. The paradox needs more than 3,000 cars on this map.`;
+    const right = (b.dataset.ans === 'yes') === hurts;
+    const eqNo = equilibrium(bd.N, false);
+    if (right && !hurts){
+      tell('win', `With the bridge closed the drivers settle at ${fmtNum(eqNo.a)} and ${fmtNum(eqNo.b)}, and every trip goes from ${mins(withB)} to ${mins(without)}. ${without < withB - 1e-9 ? 'Closing a road helped every single driver. That is Braess\'s paradox.' : 'Nobody is worse off either way; with more cars the bridge starts to hurt.'}`, 'Right');
+      bd.answered = true; earn('tr-paradox');
+    } else if (right){
+      bd.answered = true;
+      tell('win', `With ${fmtNum(bd.N)} cars the bridge really does help: ${mins(withB)} with it, ${mins(without)} without. The paradox needs more than 3,000 cars on this map. Change <b>Cars in all</b> and run it again.`, 'Right');
     } else {
-      msg.innerHTML = hurts
-        ? `Look again. With only ${fmtNum(bd.N)} cars the bridge route is genuinely fast: ${mins(withB)} now, and closing it would push everyone back to ${mins(without)}.`
-        : `Look again. Without the bridge the drivers settle at ${mins(without)} for everybody, and right now everybody takes ${mins(withB)}. Who would be worse off?`;
+      tell('you', hurts
+        ? `With only ${fmtNum(bd.N)} cars the bridge route is genuinely fast: ${mins(withB)} now, and closing it would push everyone back to ${mins(without)}. Answer again.`
+        : `Without the bridge the drivers settle at ${mins(without)} for everybody, and right now everybody takes ${mins(withB)}. Who would be worse off? Answer again.`, 'Look again');
     }
   }));
 
@@ -423,7 +460,7 @@ makeBoard('tr-b3', { sliders: ['a', 'b', 'c'], bridge: true, planner: true });
 (function(){
   const st = { x: 100, k: 1 };
   const sl = $('#tr-pg-x'), out = $('[data-for="tr-pg-x"]');
-  function render(){
+  function render(speak){
     const x = st.x / 100, p = pigou(x, st.k);
     $('#tr-pg-r1').textContent = '60 min';
     $('#tr-pg-r2').textContent = `${fmtMin(p.r2 * 60)} min`;
@@ -431,21 +468,23 @@ makeBoard('tr-b3', { sliders: ['a', 'b', 'c'], bridge: true, planner: true });
     const xe = pigouEquilibrium(st.k), xo = pigouOptimum(st.k);
     const eqAvg = pigou(xe, st.k).avg, optAvg = pigou(xo, st.k).avg;
     $('#tr-pg-best').textContent = `${fmtMin(optAvg * 60)} min`;
-    let h;
-    if (Math.abs(x - xe) < 1e-9) h = `<span class="robo">This is the selfish equilibrium.</span> ${xe === 1 ? 'Everyone is on road 2 and nobody can do better by moving to road 1.' : 'Both roads take an hour, so nobody wants to switch.'}`;
-    else if (Math.abs(x - xo) < 1e-9) h = `<span class="win-c">This is the planner\'s best.</span> Average ${fmtMin(optAvg * 60)} min, but the drivers on road 1 want to switch.`;
-    else if (p.r2 < p.r1 - 1e-9) h = `Road 2 is faster, so road 1 drivers want to switch to it.`;
-    else h = `Road 2 is slower than road 1, so road 2 drivers want to switch back.`;
-    $('#tr-pg-status').innerHTML = h;
+    /* the strip keeps its opening instruction until the reader touches the board, then it narrates */
+    if (speak){
+      const avg = `Average trip ${fmtMin(p.avg * 60)} min.`;
+      if (Math.abs(x - xe) < 1e-9) turn(sl, 'robo', `This is the selfish equilibrium. ${xe === 1 ? 'Everyone is on road 2 and nobody can do better by moving to road 1.' : 'Both roads take an hour, so nobody wants to switch.'} ${avg} Drag the slider left to look for something better.`, 'Equilibrium');
+      else if (Math.abs(x - xo) < 1e-9) turn(sl, 'win', `This is the planner\'s best. ${avg} But road 2 is faster, so the drivers on road 1 want to switch.`, 'Best plan');
+      else if (p.r2 < p.r1 - 1e-9) turn(sl, 'math', `${avg} Road 2 is faster, so road 1 drivers want to switch to it. Keep dragging: where is the average shortest?`);
+      else turn(sl, 'math', `${avg} Road 2 is slower than road 1, so road 2 drivers want to switch back. Drag the slider left.`);
+    }
     const num = v => Number.isInteger(v) ? String(v) : String(Math.round(v * 1000) / 1000);
     const poaNum = eqAvg / optAvg;
     const nice = Math.abs(poaNum - 4 / 3) < 1e-9 ? '4/3 ≈ 1.33' : Math.abs(poaNum - 8 / 7) < 1e-9 ? '8/7 ≈ 1.14' : num(poaNum);
     $('#tr-pg-sum').innerHTML = `Selfish equilibrium: <b class="robo">${Math.round(xe * 100)}%</b> on road 2, ${fmtMin(eqAvg * 60)} min for everyone. Planner\'s best: <b class="win-c">${Math.round(xo * 100)}%</b> on road 2, average ${fmtMin(optAvg * 60)} min. Price of anarchy: <b class="math-c">${fmtMin(eqAvg * 60)} ÷ ${fmtMin(optAvg * 60)} = ${nice}</b>.`;
     sl.value = st.x; out.textContent = st.x + '%';
   }
-  sl.addEventListener('input', () => { st.x = cl(Math.round(+sl.value) || 0, 0, 100); render(); });
-  seg($('#tr-pg-k'), v => { st.k = +v; render(); });
-  $$('#tr-pg-jump button').forEach(b => b.addEventListener('click', () => { st.x = Math.round(100 * (b.dataset.to === 'eq' ? pigouEquilibrium(st.k) : pigouOptimum(st.k))); render(); }));
-  render();
+  sl.addEventListener('input', () => { st.x = cl(Math.round(+sl.value) || 0, 0, 100); render(true); });
+  seg($('#tr-pg-k'), v => { st.k = +v; render(true); });
+  $$('#tr-pg-jump button').forEach(b => b.addEventListener('click', () => { st.x = Math.round(100 * (b.dataset.to === 'eq' ? pigouEquilibrium(st.k) : pigouOptimum(st.k))); render(true); }));
+  render(false);
 })();
 })();
