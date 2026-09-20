@@ -10,14 +10,32 @@
   ]
 } -->
 <style>
-  .tb-cells{ display:flex; flex-wrap:wrap; gap:6px; margin:12px 0 }
-  .tb-cells button{ width:46px; height:56px; border:3px solid var(--line); border-radius:10px; background:var(--surface-2); cursor:pointer; display:grid; grid-template-rows:auto 1fr; padding:2px 0 0; color:var(--ink) }
+  /* two lines of strip, always, so the Take buttons do not jump under the pointer between turns */
+  @media (min-width:641px){ .tb-game > .turn{ min-height:4.1em; align-content:center } }
+  .tb-move{ margin-bottom:12px }
+  .tb-move .tb-left{ display:inline-flex; align-items:baseline; gap:8px; font:600 1rem var(--f-display); min-width:9.5em }
+  .tb-move .tb-left .bigcount{ font-size:2.4rem; min-width:1.3em; text-align:right }
+  .tb-move .tb-gap{ flex:1 0 8px }
+  .tb-takes{ display:inline-flex; flex-wrap:wrap; gap:10px; padding:2px }
+  .tb-setup{ padding-top:12px; border-top:2px dashed var(--grid) }
+  .tb-setup .tb-break{ flex-basis:100%; height:0 }
+  .tb-stones{ margin:6px 0 4px }
+  .tb-stones .stone{ padding:0; color:var(--ink) }
+  .tb-stones .stone.gone{ opacity:.3 }
+  .tb-stones .stone.gone.you{ border-color:var(--you) } .tb-stones .stone.gone.robo{ border-color:var(--robo) }
+  .tb-stones button.stone{ cursor:pointer; border-color:var(--you); box-shadow:2px 2px 0 var(--drop) }
+  .tb-stones button.stone:hover, .tb-stones button.stone:hover ~ .stone:not(.gone),
+  .tb-stones button.stone:focus-visible, .tb-stones button.stone:focus-visible ~ .stone:not(.gone){ background:var(--you); border-color:var(--you); color:var(--on-accent) }
+  .tb-lab{ margin-top:14px; padding-top:12px; border-top:2px dashed var(--grid) }
+  .tb-cells{ display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 0 }
+  .tb-cells button{ width:46px; height:56px; border:3px solid var(--line); border-radius:10px; background:var(--surface-2); cursor:pointer; display:grid; grid-template-rows:auto 1fr; padding:2px 0 0; color:var(--ink); box-shadow:2px 2px 0 var(--drop) }
+  .tb-cells button:hover:not(:disabled), .tb-cells button:focus-visible{ background:var(--math-soft) }
+  .tb-cells button:disabled{ cursor:default; box-shadow:none }
   .tb-cells button .n{ font:600 .75rem var(--f-mono); color:var(--ink-soft) }
   .tb-cells button .m{ font:700 1.3rem var(--f-display); line-height:1 }
   .tb-cells button.W .m{ color:var(--win) } .tb-cells button.L .m{ color:var(--you) }
   .tb-cells button.ok{ background:var(--win-soft); border-color:var(--win) } .tb-cells button.bad{ background:var(--you-soft); border-color:var(--you) }
   .tb-cells button.cur{ outline:4px solid var(--math); outline-offset:-2px }
-  .tb-explain{ min-height:2.6em; font-size:1rem; margin-top:8px }
 </style>
 
 <section>
@@ -26,31 +44,29 @@
     <p>Play it a few times. Robo plays perfectly, so if you lose, that is expected. Pay attention to the <i>number of stones</i> you keep losing from. There is a pattern, and once you see it, Robo cannot beat you when you go first.</p>
   </div>
 
-  <div class="board">
+  <div class="board tb-game">
     <div class="board-head"><h3>The 21 Game</h3><span class="rules" id="tb-rules">Take 1, 2, or 3 on your turn. Last stone wins.</span></div>
-    <div class="row">
-      <div class="seg" id="tb-first"><button class="on" data-v="you">I go first</button><button data-v="robo">Robo goes first</button></div>
-      <div class="seg" id="tb-rule"><button class="on" data-v="normal">Last stone wins</button><button data-v="misere">Last stone loses</button></div>
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text"><b>21</b> stones left. Press <b class="you">Take 1</b>, <b class="you">Take 2</b> or <b class="you">Take 3</b>, or click a red-ringed stone.</span></div>
+    <div class="controls tb-move">
+      <span class="tb-left"><span class="bigcount" id="tb-count">21</span> stones left</span>
+      <span id="tb-takes" class="tb-takes"></span>
+      <button class="btn btn-math btn-sm" id="tb-hint" type="button">Hint</button>
+      <span class="tb-gap"></span>
       <button class="btn btn-sm" id="tb-new" type="button">New game</button>
     </div>
-    <div class="row">
+    <div class="controls tb-setup">
+      <div class="seg" id="tb-first"><button class="on" data-v="you">I go first</button><button data-v="robo">Robo goes first</button></div>
+      <div class="seg" id="tb-rule"><button class="on" data-v="normal">Last stone wins</button><button data-v="misere">Last stone loses</button></div>
+      <span class="tb-break"></span>
       <label class="chk"><input type="checkbox" id="tb-secret"> Show the losing positions</label>
       <label class="chk"><input type="checkbox" id="tb-goof"> Robo goofs sometimes</label>
     </div>
-    <div class="stones" id="tb-line"></div>
-    <div class="row">
-      <span class="bigcount" id="tb-count">21</span>
-      <span style="font-family:var(--f-display);font-weight:600">stones left</span>
-      <span style="flex:1 0 12px"></span>
-      <span id="tb-takes" class="row"></span>
-      <button class="btn btn-math btn-sm" id="tb-hint" type="button">Hint</button>
-    </div>
-    <div class="status" id="tb-status"></div>
+    <div class="stones tb-stones" id="tb-line"></div>
     <div class="log" id="tb-log"></div>
-    <div class="row" style="margin-top:18px">
+    <div class="row tb-lab">
       <span class="field">Stones <input type="number" id="tb-stones" min="8" max="40" value="21"></span>
       <span class="field">Allowed takes <input type="text" id="tb-takes-in" value="1, 2, 3" size="9"></span>
-      <span class="note">Change the rules and watch the losing positions move.</span>
+      <span class="note" style="margin-top:0">Change the rules and watch the losing positions move.</span>
     </div>
   </div>
 </section>
@@ -79,18 +95,19 @@
 
   <div class="board">
     <div class="board-head"><h3>Label the positions</h3><span class="rules">W = the player whose turn it is can force a win. L = they cannot.</span></div>
-    <div class="row">
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Click a number to mark it <b class="win-c">W</b>. Click it again for <b class="you">L</b>. Label all 22, then press Check my labels.</span></div>
+    <div class="controls">
+      <button class="btn btn-win" id="lab-check" type="button">Check my labels</button>
+      <button class="btn btn-math" id="lab-show" type="button">Show me</button>
+      <button class="btn btn-sm" id="lab-clear" type="button">Clear</button>
+      <span class="note" id="lab-count" style="margin-top:0">0 of 22 labeled.</span>
+    </div>
+    <div class="tb-cells" id="lab-cells"></div>
+    <div class="row tb-lab">
       <span class="field">Allowed takes <input type="text" id="lab-takes" value="1, 2, 3" size="9"></span>
       <span class="field">Up to <input type="number" id="lab-n" min="8" max="40" value="21"></span>
       <div class="seg" id="lab-rule"><button class="on" data-v="normal">Last stone wins</button><button data-v="misere">Last stone loses</button></div>
     </div>
-    <div class="tb-cells" id="lab-cells"></div>
-    <div class="row">
-      <button class="btn btn-win" id="lab-check" type="button">Check my labels</button>
-      <button class="btn btn-math" id="lab-show" type="button">Show me</button>
-      <button class="btn btn-sm" id="lab-clear" type="button">Clear</button>
-    </div>
-    <div class="tb-explain" id="lab-explain">Click a number to label it.</div>
   </div>
 </section>
 

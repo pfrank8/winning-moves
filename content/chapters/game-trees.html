@@ -10,19 +10,26 @@
   ]
 } -->
 <style>
-  .gt-ttt{ display:grid; grid-template-columns:repeat(3, 84px); gap:8px; margin:14px 0 }
-  .gt-ttt button{ width:84px; height:84px; border:3px solid var(--line); border-radius:12px; background:var(--surface-2); font:700 2.6rem var(--f-display); cursor:pointer; color:var(--ink); line-height:1 }
-  .gt-ttt button:hover:not(:disabled){ background:var(--math-soft) }
-  .gt-ttt button:disabled{ cursor:default }
+  .gt-ttt{ display:grid; grid-template-columns:repeat(3, 84px); gap:8px; margin:0; width:max-content; padding:4px }
+  .gt-ttt button{ width:84px; height:84px; border:3px solid var(--line); border-radius:12px; background:var(--surface-2); font:700 2.6rem var(--f-display); cursor:pointer; color:var(--ink); line-height:1; box-shadow:3px 3px 0 var(--drop) }
+  .gt-ttt button:hover:not(:disabled), .gt-ttt button:focus-visible:not(:disabled){ background:var(--you-soft); border-color:var(--you) }
+  .gt-ttt button:disabled{ cursor:default; box-shadow:none }
+  .gt-ttt.wait button:not(.X):not(.O){ opacity:.55 }
   .gt-ttt button.X{ color:var(--you) } .gt-ttt button.O{ color:var(--robo) }
   .gt-ttt button.line{ background:var(--win-soft); border-color:var(--win) }
-  .gt-mini{ display:grid; grid-template-columns:repeat(3, 44px); gap:4px; margin:10px 0 }
-  .gt-mini button{ width:44px; height:44px; border:2px solid var(--line); border-radius:8px; background:var(--surface-2); font:700 1.3rem var(--f-display); color:var(--ink); cursor:pointer; line-height:1 }
+  .gt-mini{ display:grid; grid-template-columns:repeat(3, 52px); gap:6px; margin:0; width:max-content }
+  .gt-mini button{ width:52px; height:52px; border:2px solid var(--line); border-radius:8px; background:var(--surface-2); font:700 1.5rem var(--f-display); color:var(--ink); cursor:pointer; line-height:1 }
+  .gt-mini button:not(:disabled){ border-color:var(--you); box-shadow:3px 3px 0 var(--drop) }
+  .gt-mini button:hover:not(:disabled), .gt-mini button:focus-visible:not(:disabled){ background:var(--you-soft) }
   .gt-mini button.X{ color:var(--you) } .gt-mini button.O{ color:var(--robo) }
   .gt-mini button:disabled{ cursor:default }
   .gt-mini button.pick{ background:var(--math-soft); border-color:var(--math) }
-  .gt-tree{ width:100%; height:auto; display:block; margin:10px 0; color:var(--ink) }
-  .gt-tree text{ font-family:var(--f-mono); font-size:13px; font-weight:600; fill:var(--ink) }
+  /* the puzzle on the left, its tree on the right: the whole board stays on one laptop screen with the tree open */
+  .gt-puz{ display:grid; grid-template-columns:auto minmax(0, 1fr); gap:22px; align-items:start }
+  @media (max-width:640px){ .gt-puz{ grid-template-columns:minmax(0, 1fr) } }
+  .gt-count{ font:600 .9rem var(--f-mono); color:var(--ink-soft) }
+  .gt-tree{ width:100%; min-width:420px; height:auto; display:block; margin:0; color:var(--ink) }
+  .gt-tree text{ font-family:var(--f-mono); font-size:13px; font-weight:600; fill:var(--ink); paint-order:stroke; stroke:var(--surface); stroke-width:4px; stroke-linejoin:round }
   .gt-tree .lbl{ font-family:var(--f-display); font-size:12px; fill:var(--ink-soft) }
   .gt-sym{ width:100%; max-width:560px; height:auto; display:block; margin:14px 0 6px; color:var(--ink) }
   .gt-sym text{ font-family:var(--f-display); font-size:15px; font-weight:600; fill:var(--ink) }
@@ -36,16 +43,14 @@
   </div>
   <div class="board">
     <div class="board-head"><h3>Tic-tac-toe</h3><span class="rules">You are <b class="you">X</b>. Robo is <b class="robo">O</b>.</span></div>
-    <div class="row">
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Click any empty square to place your <b class="you">X</b>.</span></div>
+    <div class="controls">
       <div class="seg" id="gt-first"><button class="on" data-v="you">I go first</button><button data-v="robo">Robo goes first</button></div>
       <div class="seg" id="gt-brain"><button class="on" data-v="perfect">Perfect Robo</button><button data-v="shallow">Shallow Robo</button></div>
       <button class="btn btn-sm" type="button" id="gt-new">New game</button>
     </div>
     <div class="two">
-      <div>
-        <div class="gt-ttt" id="gt-ttt"></div>
-        <div class="status" id="gt-status"></div>
-      </div>
+      <div class="gt-ttt" id="gt-ttt"></div>
       <div>
         <div class="thought" id="gt-thought">Robo has not moved yet.</div>
         <p class="note" id="gt-brain-note">Perfect Robo walks the entire tree of futures. Shallow Robo only looks two moves ahead: its own move and your reply. It will always block an immediate threat, and it will always miss a trap that takes three moves to spring.</p>
@@ -62,15 +67,19 @@
   </div>
   <div class="board">
     <div class="board-head"><h3>Tree puzzle</h3><span class="rules" id="gt-puz-rules">X to move. Which square?</span></div>
-    <div class="two">
-      <div>
-        <div class="gt-mini" id="gt-mini"></div>
-        <div class="row"><button class="btn btn-math btn-sm" type="button" id="gt-show">Show the tree</button><button class="btn btn-sm" type="button" id="gt-next">New puzzle</button></div>
-        <div class="status" id="gt-puz-status">Click a square.</div>
-      </div>
-      <div><div class="stat"><span class="k">Puzzles solved</span><span class="v" id="gt-solved">0</span></div></div>
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">It is <b class="you">X</b>'s move. Click the empty square you think is best.</span></div>
+    <div class="controls">
+      <button class="btn btn-math btn-sm" type="button" id="gt-show">Show the tree</button>
+      <button class="btn btn-sm" type="button" id="gt-next">New puzzle</button>
+      <span class="gt-count">Solved: <b id="gt-solved">0</b> (3 earn a star)</span>
     </div>
-    <div class="scroll" id="gt-tree-wrap" hidden><svg class="gt-tree" id="gt-tree" viewBox="0 0 700 420" role="img" aria-label="The game tree of the puzzle position with minimax values"></svg></div>
+    <div class="gt-puz">
+      <div class="gt-mini" id="gt-mini"></div>
+      <div>
+        <p class="note" id="gt-tree-note" style="margin-top:0">Pick your square first. Then press Show the tree, and every future from this position is drawn here with its value.</p>
+        <div class="scroll" id="gt-tree-wrap" hidden><svg class="gt-tree" id="gt-tree" viewBox="0 0 700 420" role="img" aria-label="The game tree of the puzzle position with minimax values"></svg></div>
+      </div>
+    </div>
   </div>
 </section>
 

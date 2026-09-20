@@ -10,25 +10,32 @@
   ]
 } -->
 <style>
-  .nb-piles{ display:flex; align-items:flex-end; gap:26px; flex-wrap:wrap; margin:16px 0 6px; min-height:140px }
-  .nb-pile{ display:flex; flex-direction:column; align-items:center; gap:6px }
-  .nb-col{ display:flex; flex-direction:column-reverse; gap:4px; min-height:32px }
+  /* Piles are rows, the classic Nim picture: a 15-stone pile is one line instead of a 500px column, so every
+     board fits one screen with its buttons. Stone 1 is on the left; clicking a stone takes it and all to its right. */
+  /* two lines of strip, always, so the stones do not jump under the pointer between turns */
+  @media (min-width:641px){ .nb-steady > .turn{ min-height:4.1em; align-content:center } }
+  .nb-piles{ display:grid; gap:8px; margin:6px 0 8px }
+  .nb-pile{ display:flex; align-items:center; gap:12px; min-height:40px }
+  .nb-col{ display:flex; flex-wrap:wrap; gap:6px; min-height:30px; min-width:0; padding:3px }
   .nb-col .stone{ width:30px; height:30px; font-size:.7rem; padding:0; margin:0; color:var(--ink); transition:background .12s, border-color .12s, color .12s, opacity .25s, transform .25s }
   .nb-col .stone.gone{ opacity:.35 }
   .nb-col .stone.gone.you{ border-color:var(--you) } .nb-col .stone.gone.robo{ border-color:var(--robo) }
-  .nb-col.live .stone:not(.gone){ cursor:pointer }
+  .nb-col.live .stone:not(.gone){ cursor:pointer; box-shadow:2px 2px 0 var(--drop) }
   .nb-col.live .stone:not(.gone):hover, .nb-col.live .stone:not(.gone):hover ~ .stone:not(.gone),
   .nb-col.live .stone:not(.gone):focus-visible, .nb-col.live .stone:not(.gone):focus-visible ~ .stone:not(.gone){ background:var(--you-soft); border-color:var(--you); color:var(--you) }
-  .nb-col .stone.sel, .nb-col.live .stone.sel:hover{ background:var(--you); color:var(--on-accent); border-color:var(--you) }
-  .nb-plab{ display:grid; justify-items:center; line-height:1.1 }
+  .nb-col .stone.sel, .nb-col.live .stone.sel:not(.gone), .nb-col.live .stone.sel:not(.gone):hover, .nb-col.live .stone:not(.gone):hover ~ .stone.sel:not(.gone){ background:var(--you); color:var(--on-accent); border-color:var(--you) }
+  .nb-plab{ display:grid; justify-items:center; line-height:1.1; width:50px; flex:none }
   .nb-plab b{ font:700 1.5rem var(--f-display) }
-  .nb-plab span{ font:600 .7rem var(--f-mono); color:var(--ink-soft); letter-spacing:.06em; text-transform:uppercase }
+  .nb-plab span{ font:600 .7rem var(--f-mono); color:var(--ink-soft); letter-spacing:.06em; text-transform:uppercase; white-space:nowrap }
   .nb-bits{ display:inline-flex; gap:3px; vertical-align:middle }
   .nb-bits i{ font:600 .85rem var(--f-mono); font-style:normal; width:22px; height:24px; display:grid; place-items:center; border:2px solid var(--grid); border-radius:6px; color:var(--ink-soft); background:var(--surface) }
   .nb-bits i.on{ background:var(--math-soft); border-color:var(--math); color:var(--ink); font-weight:700 }
-  .nb-secret{ margin-top:10px; font-size:1rem; display:flex; flex-wrap:wrap; align-items:center; gap:6px 14px; min-height:1.6em }
+  .nb-secret{ margin-top:4px; font-size:1rem; display:flex; flex-wrap:wrap; align-items:center; gap:6px 14px; min-height:1.6em }
+  .nb-sumlab{ display:inline-block; white-space:nowrap; width:50px; margin-right:12px; text-align:center; font:600 .7rem var(--f-mono); letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft) }
   .nb-preview{ font-family:var(--f-mono); font-size:.9rem; color:var(--ink-soft) }
-  .nb-msg{ min-height:2.6em; font-size:1rem; margin-top:10px }
+  .nb-msg{ min-height:1.6em; font-size:1rem; margin-top:10px }
+  .nb-opts{ margin-top:14px; padding-top:12px; border-top:2px dashed var(--grid) }
+  .nb-xor tr.res button{ box-shadow:2px 2px 0 var(--drop) }
   .nb-streak{ font:600 .9rem var(--f-mono); color:var(--ink-soft) }
   .nb-places{ display:flex; gap:8px; margin:12px 0; flex-wrap:wrap }
   .nb-places button{ width:64px; height:80px; border:3px solid var(--line); border-radius:12px; background:var(--surface-2); cursor:pointer; display:grid; grid-template-rows:auto 1fr; padding:4px 0 0; color:var(--ink) }
@@ -50,7 +57,10 @@
   .nb-xor tr.res button.bad{ background:var(--you-soft); border-color:var(--you) }
   .nb-sum{ white-space:pre; line-height:1.55 }
   @media (max-width:480px){
-    .nb-piles{ gap:14px }
+    .nb-pile{ gap:8px }
+    .nb-plab{ width:44px }
+    .nb-plab span, .nb-sumlab{ font-size:.58rem; letter-spacing:.02em }
+    .nb-sumlab{ width:44px; margin-right:8px }
     .nb-bits{ gap:2px }
     .nb-bits i{ width:16px; height:20px; font-size:.75rem }
   }
@@ -62,25 +72,23 @@
     <p>That one change breaks the remainder trick. There is no single number to divide by 4 any more. But there is still a secret, and it is a good one. Play <b class="robo">Robo</b> a few times first. Pay attention to the moment when only two piles are left.</p>
   </div>
 
-  <div class="board">
+  <div class="board nb-steady">
     <div class="board-head"><h3>Nim</h3><span class="rules" id="nb-rules">Take any number of stones from one pile. Last stone wins.</span></div>
-    <div class="row">
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Click a stone to take it and every stone to its right.</span></div>
+    <div class="controls">
       <div class="seg" id="nb-first"><button class="on" data-v="you">I go first</button><button data-v="robo">Robo goes first</button></div>
       <div class="seg" id="nb-rule"><button class="on" data-v="normal">Last stone wins</button><button data-v="misere">Last stone loses</button></div>
       <button class="btn btn-sm" id="nb-new" type="button">New game</button>
-    </div>
-    <div class="row">
-      <label class="chk"><input type="checkbox" id="nb-secret"> Show the secret</label>
-      <label class="chk"><input type="checkbox" id="nb-goof"> Robo goofs sometimes</label>
       <button class="btn btn-math btn-sm" id="nb-hint" type="button">Hint</button>
     </div>
     <div class="nb-piles" id="nb-piles"></div>
     <div class="nb-secret" id="nb-secretline" hidden></div>
-    <div class="status" id="nb-status"></div>
     <div class="log" id="nb-log"></div>
-    <div class="row" style="margin-top:18px">
+    <div class="row nb-opts">
+      <label class="chk"><input type="checkbox" id="nb-secret"> Show the secret</label>
+      <label class="chk"><input type="checkbox" id="nb-goof"> Robo goofs sometimes</label>
       <span class="field">Piles <input type="text" id="nb-piles-in" value="3, 4, 5" size="12"></span>
-      <span class="note">Two to four piles, each 1 to 15. Click a stone to take it and every stone above it.</span>
+      <span class="note" style="margin-top:0">Two to four piles, each 1 to 15.</span>
     </div>
   </div>
 
@@ -97,7 +105,8 @@
   </div>
 
   <div class="board">
-    <div class="board-head"><h3>Base 2</h3><span class="rules">Type a number, or click the boxes to switch places on and off.</span></div>
+    <div class="board-head"><h3>Base 2</h3><span class="rules">Each place is worth double the one to its right.</span></div>
+    <div class="turn" data-who="math"><span class="turn-tag">Try it</span><span class="turn-text">Click a box to switch that place on or off, or type a number from 0 to 15.</span></div>
     <div class="two">
       <div>
         <div class="row"><span class="field">Number <input type="number" id="nb-bin-n" min="0" max="15" value="13"></span></div>
@@ -135,18 +144,16 @@
   </div>
 
   <div class="board">
-    <div class="board-head"><h3>Nim-sum by hand</h3><span class="rules">Click each answer box: 1 if the column has an odd number of 1s, otherwise 0.</span></div>
-    <div class="row">
-      <span class="field">Piles <input type="text" id="nb-xor-in" value="3, 4, 5" size="12"></span>
-      <button class="btn btn-sm" id="nb-xor-rand" type="button">New piles</button>
-      <span class="nb-streak" id="nb-xor-streak">Streak: 0</span>
-    </div>
-    <div class="scroll"><table class="nb-xor" id="nb-xor-table"></table></div>
-    <div class="row">
+    <div class="board-head"><h3>Nim-sum by hand</h3><span class="rules">A column with an odd number of 1s gives 1. An even number gives 0.</span></div>
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Click each <b>?</b> box under the line: once for 1, twice for 0. Fill all four, then press Check.</span></div>
+    <div class="controls">
       <button class="btn btn-win" id="nb-xor-check" type="button">Check</button>
       <button class="btn btn-sm" id="nb-xor-clear" type="button">Clear</button>
+      <button class="btn btn-sm" id="nb-xor-rand" type="button">New piles</button>
+      <span class="field">Piles <input type="text" id="nb-xor-in" value="3, 4, 5" size="12"></span>
+      <span class="nb-streak" id="nb-xor-streak">Streak: 0 of 5</span>
     </div>
-    <div class="nb-msg" id="nb-xor-msg"></div>
+    <div class="scroll"><table class="nb-xor" id="nb-xor-table"></table></div>
   </div>
 </section>
 
@@ -166,18 +173,16 @@
     <p>Now you know the recipe, so use it. Each position below has a nim-sum that is not 0, which means there is at least one move that leaves Robo stuck on 0. Find it. "Show binary" writes out the piles for you, but the column sum and the choice of move are up to you.</p>
   </div>
 
-  <div class="board">
-    <div class="board-head"><h3>Find the winning move</h3><span class="rules">Click a stone to choose your move, then check it.</span></div>
-    <div class="row">
+  <div class="board nb-steady">
+    <div class="board-head"><h3>Find the winning move</h3><span class="rules">Every position here has a winning move: leave Robo a nim-sum of 0.</span></div>
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Click a stone to choose your move: you take it and every stone to its right. Then press Check my move.</span></div>
+    <div class="controls">
+      <button class="btn btn-win" id="nb-fm-check" type="button" disabled>Check my move</button>
+      <button class="btn btn-sm" id="nb-fm-next" type="button">Next position</button>
       <label class="chk"><input type="checkbox" id="nb-fm-bits"> Show binary</label>
       <span class="nb-streak" id="nb-fm-streak">Streak: 0 of 3</span>
     </div>
     <div class="nb-piles" id="nb-fm-piles"></div>
-    <div class="nb-msg" id="nb-fm-msg"></div>
-    <div class="row">
-      <button class="btn btn-win" id="nb-fm-check" type="button">Check my move</button>
-      <button class="btn btn-sm" id="nb-fm-next" type="button">Next position</button>
-    </div>
   </div>
 </section>
 
