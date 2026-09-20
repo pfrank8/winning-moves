@@ -11,7 +11,23 @@
 } -->
 <style>
   .wg-hand{ font-size:1.3em; margin-right:.2em }
+  /* the round just played: light up the row name (you) and the column name (Robo) that met */
+  .board > .turn{ min-height:calc(2.7em + 22px); align-content:center } /* two lines at laptop width: no jump when the strip narrates */
+  #wg-grid td{ width:74px; min-width:74px } /* three even columns inside half a board */
+  #wg-grid th span{ display:inline-block; padding:2px 6px; border-radius:8px }
+  #wg-grid th.rh.wg-on span{ background:var(--you); color:var(--on-accent) }
+  #wg-grid th.ch.wg-on span{ background:var(--robo); color:var(--on-accent) }
+  /* counting a row: keep the Win / Lose colors under the picked row, ring its wins, fade the rest */
+  .pay.pick-rows.wg-count tr:is(.picked,.pickable:hover,.pickable:focus-visible) td.win{ background:var(--win-soft); border-color:var(--win) }
+  .pay.pick-rows.wg-count tr:is(.picked,.pickable:hover,.pickable:focus-visible) td.lose{ background:var(--you-soft); border-color:var(--line) }
+  .pay.pick-rows.wg-count tr:is(.picked,.pickable:hover,.pickable:focus-visible) td.tie{ background:var(--surface-2); border-color:var(--line) }
+  .pay.pick-rows.wg-count tr.wg-show td.win{ box-shadow:inset 0 0 0 3px var(--win) }
+  .pay.pick-rows.wg-count tr.wg-show td:not(.win){ opacity:.45 }
   .wg-bal td{ cursor:pointer; width:64px; height:52px; font-size:1rem }
+  .wg-bal td[data-i]{ box-shadow:2px 2px 0 var(--drop) }
+  .wg-bal td[data-i]:not(.w):not(.l):hover{ background:var(--math-soft) }
+  .wg-bal td[data-i]:hover{ border-color:var(--math) }
+  .wg-bal td[data-i]:focus-visible{ outline:3px solid var(--focus); outline-offset:2px }
   .wg-bal td.diag{ background:var(--grid); cursor:default; color:var(--ink-soft) }
   .wg-bal td.w{ background:var(--win-soft); color:var(--win) } .wg-bal td.l{ background:var(--you-soft); color:var(--you) }
   .wg-bal th.rh{ color:var(--ink) } .wg-bal th.ch{ color:var(--ink) }
@@ -33,17 +49,17 @@
 
   <div class="board">
     <div class="board-head"><h3>Rock, Paper, Scissors</h3><span class="rules" id="wg-rules">Robo picks at random.</span></div>
-    <div class="row">
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Click a hand: <b class="you">Rock</b>, <b class="you">Paper</b> or <b class="you">Scissors</b>. Robo picks at the same moment.</span></div>
+    <div class="controls">
       <button class="btn btn-you" type="button" data-rps="Rock"><span class="wg-hand">✊</span>Rock</button>
       <button class="btn btn-you" type="button" data-rps="Paper"><span class="wg-hand">✋</span>Paper</button>
       <button class="btn btn-you" type="button" data-rps="Scissors"><span class="wg-hand">✌</span>Scissors</button>
       <button class="btn btn-sm" type="button" id="wg-reset">Start over</button>
     </div>
-    <div class="row">
-      <span class="field">Robo's brain</span>
+    <div class="controls">
+      <span class="lab">Robo's brain</span>
       <div class="seg" id="wg-mode"><button class="on" data-v="random">Random</button><button data-v="pattern">Pattern Robo</button><button data-v="learner">Learning Robo</button></div>
     </div>
-    <div class="status" id="wg-status">Pick one to play.</div>
     <div class="two">
       <div class="scroll"><table class="pay" id="wg-grid"></table></div>
       <div>
@@ -66,19 +82,20 @@
     <p>Here is a bigger version that some people play: Rock, Paper, Scissors, Lizard, Spock. Scissors cuts Paper, Paper covers Rock, Rock crushes Lizard, Lizard poisons Spock, Spock smashes Scissors, Scissors decapitates Lizard, Lizard eats Paper, Paper disproves Spock, Spock vaporizes Rock, Rock crushes Scissors. Five strategies each, so <code>5 × 5 = 25</code> boxes. Look at the grid and count: every weapon beats exactly two others and loses to exactly two. That is what makes it fair.</p>
   </div>
   <div class="board">
-    <div class="board-head"><h3>Rock, Paper, Scissors, Lizard, Spock</h3><span class="rules">Rows are you, columns are Robo. Hover a row to count its wins.</span></div>
-    <div class="scroll"><table class="pay small" id="wg-rpsls"></table></div>
-    <p class="note" id="wg-rpsls-note">25 boxes: 5 ties, 10 wins for the row player, 10 losses.</p>
+    <div class="board-head"><h3>Rock, Paper, Scissors, Lizard, Spock</h3><span class="rules">Rows are you, columns are Robo.</span></div>
+    <div class="turn" data-who="math"><span class="turn-tag">Try it</span><span class="turn-text">Click a row to count its wins. A fair game gives every weapon the same number.</span></div>
+    <div class="scroll"><table class="pay small wg-count" id="wg-rpsls"></table></div>
+    <p class="note">25 boxes: 5 ties, 10 wins for the row player, 10 losses.</p>
   </div>
   <div class="prose">
     <p>Now design your own. Below is an empty 5-weapon grid. Click a box to decide who wins that matchup (the mirror box fills in by itself, because if A beats B then B loses to A). Your job: make every weapon beat <b>exactly two</b> of the others. Then think about why you could never do this with four weapons.</p>
   </div>
   <div class="board">
-    <div class="board-head"><h3>Build a fair game</h3><span class="rules">Green = row beats column. Red = row loses. Click to flip.</span></div>
-    <div class="row"><span class="field">Weapon names <input type="text" id="wg-names" value="Fire, Water, Wood, Metal, Earth" size="22"></span><button class="btn btn-sm" type="button" id="wg-bal-clear">Clear</button></div>
+    <div class="board-head"><h3>Build a fair game</h3><span class="rules">Green = row beats column. Red = row loses.</span></div>
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Click any <b>?</b> box to decide who wins that matchup. Click it again to flip it. Goal: every weapon beats exactly two others.</span></div>
+    <div class="controls"><span class="field">Weapon names <input type="text" id="wg-names" value="Fire, Water, Wood, Metal, Earth" size="22"></span><button class="btn btn-sm" type="button" id="wg-bal-clear">Clear</button></div>
     <div class="scroll"><table class="pay wg-bal" id="wg-bal"></table></div>
     <div class="wg-counts" id="wg-counts"></div>
-    <div class="status" id="wg-bal-status">Fill in all ten matchups.</div>
   </div>
 </section>
 

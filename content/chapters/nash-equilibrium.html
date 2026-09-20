@@ -10,8 +10,23 @@
   ]
 } -->
 <style>
+  /* two lines of strip at laptop width, so the board does not jump while the strip narrates */
+  .board > .turn{ min-height:calc(2.7em + 22px); align-content:center }
+  .ne-side{ align-items:flex-start; gap:10px 18px }
+  .ne-side > .scroll{ flex:0 1 auto; min-width:0; max-width:100% }
+  .ne-tabs button{ min-width:2.6em }
+  .ne-tabs button.done::after{ content:" ✓"; color:var(--win) }
+  .ne-tabs button.done.on::after{ color:var(--paper) }
+  #ne-title{ margin:0 }
+  .ne-hunt td.click{ box-shadow:2px 2px 0 var(--drop) }
+  .ne-hunt td.click:focus-visible,.ne-arrows td.click:focus-visible{ outline:3px solid var(--focus); outline-offset:2px }
+  /* the verdict colors must win over the hover fill: the mouse is still on the box the reader just clicked */
+  .ne-hunt td.click.no,.ne-hunt td.click.no:hover{ background:var(--you-soft); border-color:var(--you) }
+  .ne-hunt td.click.ne,.ne-hunt td.click.ne:hover,.ne-arrows td.click.ne,.ne-arrows td.click.ne:hover{ background:var(--win-soft) }
+  #ne-why{ margin-top:0; font-size:1rem; color:var(--ink) }
   .ne-arrows td{ position:relative }
-  #ne-pick{ max-width:210px }
+  .ne-arrows td.click{ box-shadow:2px 2px 0 var(--drop) }
+  #ne-pick{ max-width:210px; width:auto }
   .ne-arrows td .ay{ position:absolute; left:4px; top:50%; transform:translateY(-50%); color:var(--you); font-size:1.4rem; font-weight:700; line-height:1 }
   .ne-arrows td .ar{ position:absolute; right:4px; top:50%; transform:translateY(-50%); color:var(--robo); font-size:1.4rem; font-weight:700; line-height:1 }
   .ne-arrows td.token{ box-shadow:inset 0 0 0 4px var(--math) }
@@ -30,7 +45,27 @@
 
   <div class="board">
     <div class="board-head"><h3>Equilibrium hunt</h3><span class="rules">Five games, five different answers.</span></div>
-    <div class="stack" id="ne-puzzles"></div>
+    <div class="turn" data-who="you"><span class="turn-tag">Game 1 of 5</span><span class="turn-text">Click a box in the grid to test it: would anybody want to switch?</span></div>
+    <div class="controls">
+      <span class="lab">Game</span>
+      <div class="seg ne-tabs" id="ne-tabs"><button class="on" type="button" data-v="0">1</button><button type="button" data-v="1">2</button><button type="button" data-v="2">3</button><button type="button" data-v="3">4</button><button type="button" data-v="4">5</button></div>
+      <button class="btn btn-sm" type="button" id="ne-none">There is no equilibrium!</button>
+      <button class="btn btn-win btn-sm" type="button" id="ne-next">Next game</button>
+    </div>
+    <div class="two">
+      <div>
+        <h4 id="ne-title">The Cookie Game</h4>
+        <p class="note" id="ne-story" style="margin:4px 0 10px">Share or Grab, same numbers as Chapter 2.</p>
+        <div class="scroll"><table class="pay ne-hunt" id="ne-hunt"></table></div>
+      </div>
+      <div class="stack">
+        <div class="stats">
+          <div class="stat"><span class="k">Found in this game</span><span class="v" id="ne-found">0 of ?</span></div>
+          <div class="stat"><span class="k">Games solved</span><span class="v" id="ne-solved">0 of 5</span></div>
+        </div>
+        <div class="note" id="ne-why">The reasons show up here: what you would get by switching rows, and what Robo would get by switching columns.</div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -42,23 +77,22 @@
   </div>
   <div class="board">
     <div class="board-head"><h3>Best-response arrows</h3><span class="rules">Red arrows: where you would move. Blue arrows: where Robo would move.</span></div>
-    <div class="row">
+    <div class="turn" data-who="math"><span class="turn-tag">Try it</span><span class="turn-text">Click any box to drop a token there, and watch you and Robo follow the arrows. Or press Random game and predict its equilibria before the arrows show.</span></div>
+    <div class="controls">
       <span class="field">Game <select id="ne-pick"></select></span>
       <button class="btn btn-math btn-sm" type="button" id="ne-random">Random game</button>
-      <button class="btn btn-sm" type="button" id="ne-play">Let them play</button>
+    </div>
+    <div class="controls" id="ne-guess">
+      <span class="lab">How many equilibria?</span>
+      <button class="btn btn-sm" type="button" data-guess="0" disabled>None</button><button class="btn btn-sm" type="button" data-guess="1" disabled>One</button><button class="btn btn-sm" type="button" data-guess="2" disabled>Two</button><button class="btn btn-sm" type="button" data-guess="3" disabled>Three or more</button>
     </div>
     <div class="two">
       <div class="scroll"><table class="pay ne-arrows" id="ne-arrows"></table></div>
       <div class="stack">
-        <div id="ne-guess" hidden>
-          <p class="note" style="margin-top:0">How many equilibria does this random game have?</p>
-          <div class="row"><button class="btn btn-sm" type="button" data-guess="0">None</button><button class="btn btn-sm" type="button" data-guess="1">One</button><button class="btn btn-sm" type="button" data-guess="2">Two</button><button class="btn btn-sm" type="button" data-guess="3">Three or more</button></div>
-        </div>
-        <div class="note" id="ne-arrows-msg"></div>
-        <div class="stat"><span class="k">Streak</span><span class="v" id="ne-streak">0</span></div>
+        <div class="stat"><span class="k">Right in a row</span><span class="v" id="ne-streak">0 of 5</span></div>
+        <div class="note" style="margin-top:0">A green box has no arrow leaving it. The token takes turns: you follow a red arrow, then Robo follows a blue one. Sometimes it settles. Sometimes it chases its tail forever.</div>
       </div>
     </div>
-    <p class="note" id="ne-play-msg">"Let them play" drops a token on a random box and lets you and Robo take turns moving to your best responses. Sometimes the token settles. Sometimes it chases its tail forever.</p>
   </div>
 </section>
 
@@ -69,10 +103,10 @@
   </div>
   <div class="board">
     <div class="board-head"><h3>Equilibrium counter</h3><span class="rules">Red numbers are yours, blue are Robo's. Ties count.</span></div>
-    <div class="scroll"><table class="pay ne-design" id="ne-design"></table></div>
-    <div class="row">
-      <div class="stat"><span class="k">Equilibria</span><span class="v" id="ne-count">0</span></div>
-      <div class="note" id="ne-design-msg" style="flex:1 1 240px"></div>
+    <div class="turn" data-who="math"><span class="turn-tag">Two so far</span><span class="turn-text">Type a new payoff into any box. Green boxes are equilibria: aim for exactly three.</span></div>
+    <div class="row ne-side">
+      <div class="scroll"><table class="pay ne-design" id="ne-design"></table></div>
+      <div class="stat"><span class="k">Equilibria</span><span class="v" id="ne-count">2</span></div>
     </div>
   </div>
 </section>
