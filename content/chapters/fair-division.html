@@ -12,10 +12,30 @@
 } -->
 <style>
   .fd-cake{ width:100%; max-width:600px; height:auto; display:block; margin:8px 0 4px }
+  .fd-drag{ cursor:ew-resize; touch-action:pan-y; border-radius:10px }
+  .fd-drag:hover{ background:var(--surface-2) }
+  .fd-two{ grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) }
+  @media (max-width:760px){ .fd-two{ grid-template-columns:1fr } }
+  .fd-knife{ margin-bottom:0 }
+  .fd-tastes.off{ opacity:.55 }
+  .fd-tastes-lab{ margin:0 0 8px }
+  .fd-tastes .lab{ flex-wrap:wrap; gap:0 12px; font-size:.95rem }
+  .fd-tastes .slider{ margin-bottom:8px }
+  .fd-mk-play{ margin-bottom:12px }
+  .fd-mk-play .stat{ min-width:0; padding:6px 12px }
+  .fd-mk-play .stat .v{ font-size:1.35rem }
+  .fd-mk-stage{ display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:6px 20px; align-items:center }
+  .fd-mk-stage .fd-cake{ margin:4px 0 }
+  .fd-mk-stage .log{ margin-top:0; line-height:1.45 }
+  .fd-mk-stage .log div + div{ margin-top:6px }
+  .fd-mk-stage .log:empty::before{ content:"What happens will be written here." }
+  @media (max-width:760px){ .fd-mk-stage{ grid-template-columns:1fr } }
+  table.data.fd-mk-table{ margin:8px 0 0 }
+  table.data.fd-mk-table th,table.data.fd-mk-table td{ padding-top:3px; padding-bottom:3px }
   .fd-r2{ color:var(--p3) }
   .btn.fd-r2btn{ background:var(--p3); color:#fff }
-  .fd-tastes{ display:grid; gap:2px; margin-top:4px }
-  .fd-tastes .lab .v{ white-space:normal; text-align:right }
+  .fd-tastes{ display:grid; gap:2px }
+  .fd-tastes .lab .v{ white-space:normal; font-size:.9rem }
   table.fd-val td.fd-you{ background:var(--you-soft) }
   table.fd-val td.fd-robo{ background:var(--robo-soft) }
   table.data td.fd-own{ font-weight:700; box-shadow:inset 0 0 0 3px var(--math) }
@@ -23,8 +43,6 @@
   table.data td.yes{ color:var(--win); font-weight:700 } table.data td.no{ color:var(--you); font-weight:700 }
   .fd-weights{ display:flex; flex-wrap:wrap; gap:6px 14px; font:600 .95rem var(--f-display); margin-bottom:6px }
   .fd-weights i{ display:inline-block; width:14px; height:14px; border-radius:3px; border:2px solid var(--line); vertical-align:-2px; margin-right:5px }
-  .fd-stats{ margin-top:12px }
-  .fd-stats .stat{ min-width:150px }
 </style>
 
 <section>
@@ -35,31 +53,36 @@
 
   <div class="board">
     <div class="board-head"><h3>Cut and choose</h3><span class="rules">You cut. Robo picks the piece it likes better. You get the other one.</span></div>
-    <div class="row">
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Drag the knife to where you want to cut, then press <b>Cut</b>.</span></div>
+    <div class="controls">
+      <button class="btn btn-you" id="cc-go" type="button">Cut</button>
       <div class="seg" id="cc-mode"><button class="on" data-v="plain">Plain cake</button><button data-v="flavors">Chocolate and vanilla</button></div>
       <button class="btn btn-math btn-sm" id="cc-hint" type="button">Show my safe cut</button>
     </div>
-    <svg class="fd-cake" id="cc-cake" viewBox="0 0 420 165" role="img" aria-label="A cake with a knife line showing where it will be cut"></svg>
-    <div class="slider">
-      <label class="lab" for="cc-cut"><span>Cut here</span><span class="v" data-for="cc-cut">50% from the left</span></label>
-      <input type="range" id="cc-cut" min="5" max="95" value="50">
-    </div>
-    <div class="fd-tastes" id="cc-tastes" hidden>
-      <div class="slider">
-        <label class="lab" for="cc-you"><span class="you">Your taste: the chocolate half is worth</span><span class="v" data-for="cc-you"></span></label>
-        <input type="range" id="cc-you" min="10" max="90" step="5" value="75">
+    <div class="two fd-two">
+      <div>
+        <div class="slider fd-knife">
+          <label class="lab" for="cc-cut"><span>Knife</span><span class="v" data-for="cc-cut">50% from the left</span></label>
+          <input type="range" id="cc-cut" min="5" max="95" value="50">
+        </div>
+        <svg class="fd-cake fd-drag" id="cc-cake" viewBox="0 0 420 165" role="img" aria-label="A cake with a knife line showing where it will be cut. Drag the knife, or use the slider above."></svg>
       </div>
-      <div class="slider">
-        <label class="lab" for="cc-robo"><span class="robo">Robo's taste: the chocolate half is worth</span><span class="v" data-for="cc-robo"></span></label>
-        <input type="range" id="cc-robo" min="10" max="90" step="5" value="50">
+      <div class="stack">
+        <div class="scroll"><table class="data fd-val" id="cc-table"></table></div>
+        <div class="fd-tastes off" id="cc-tastes">
+          <div class="note fd-tastes-lab" id="cc-tastes-lab">Tastes: switch to <b>Chocolate and vanilla</b> to set these.</div>
+          <div class="slider">
+            <label class="lab" for="cc-you"><span class="you">To you, the chocolate half is worth</span><span class="v" data-for="cc-you"></span></label>
+            <input type="range" id="cc-you" min="10" max="90" step="5" value="75" disabled>
+          </div>
+          <div class="slider">
+            <label class="lab" for="cc-robo"><span class="robo">To Robo, the chocolate half is worth</span><span class="v" data-for="cc-robo"></span></label>
+            <input type="range" id="cc-robo" min="10" max="90" step="5" value="50" disabled>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="row">
-      <button class="btn btn-you" id="cc-go" type="button">Cut</button>
-      <span class="note" id="cc-note">Robo always takes the piece it values more. If the pieces tie, Robo takes the left one.</span>
-    </div>
-    <div class="status" id="cc-status"></div>
-    <div class="scroll"><table class="data fd-val" id="cc-table"></table></div>
+    <p class="note" id="cc-note">Robo always takes the piece it values more. If the pieces tie, Robo takes the left one.</p>
   </div>
 
   <div class="prose">
@@ -87,26 +110,26 @@
 
   <div class="board">
     <div class="board-head"><h3>The moving knife</h3><span class="rules">Shout Stop when the piece left of the knife is worth one third to you. First to shout takes it.</span></div>
-    <div class="fd-weights" id="mk-weights"></div>
-    <svg class="fd-cake" id="mk-cake" viewBox="0 0 420 165" role="img" aria-label="A three-flavor cake with a moving knife"></svg>
-    <div class="row">
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Press <b>Start the knife</b>. Press <b>Stop!</b> when the red number reads 33.3%. Not before.</span></div>
+    <div class="controls fd-mk-play">
       <button class="btn btn-sm" id="mk-start" type="button">Start the knife</button>
-      <button class="btn btn-sm" id="mk-pause" type="button">Pause</button>
-      <button class="btn btn-you btn-big" id="mk-stop" type="button">Stop!</button>
+      <button class="btn btn-sm" id="mk-pause" type="button" disabled>Pause</button>
+      <button class="btn btn-you btn-big" id="mk-stop" type="button" disabled>Stop!</button>
+      <div class="stat"><span class="k">Left piece, to you</span><span class="v you" id="mk-v">0.0%</span></div>
+      <div class="stat"><span class="k">Target</span><span class="v">33.3%</span></div>
+      <div class="stat"><span class="k">Knife at</span><span class="v" id="mk-x">0.0%</span></div>
+    </div>
+    <div class="controls">
       <div class="seg" id="mk-speed"><button data-v="slow">Slow</button><button class="on" data-v="normal">Normal</button><button data-v="fast">Fast</button></div>
       <button class="btn btn-sm" id="mk-new" type="button">New cake</button>
-    </div>
-    <div class="row">
       <label class="chk"><input type="checkbox" id="mk-mark"> Mark my third on the cake</label>
     </div>
-    <div class="stats fd-stats">
-      <div class="stat"><span class="k">Knife at</span><span class="v" id="mk-x">0.0%</span></div>
-      <div class="stat"><span class="k">Left piece, worth to you</span><span class="v you" id="mk-v">0.0%</span></div>
-      <div class="stat"><span class="k">Your target</span><span class="v">33.3%</span></div>
+    <div class="fd-weights" id="mk-weights"></div>
+    <div class="fd-mk-stage">
+      <svg class="fd-cake" id="mk-cake" viewBox="0 0 420 165" role="img" aria-label="A three-flavor cake with a moving knife"></svg>
+      <div class="log" id="mk-log"></div>
     </div>
-    <div class="status" id="mk-status"></div>
-    <div class="log" id="mk-log"></div>
-    <div class="scroll"><table class="data" id="mk-table" hidden></table></div>
+    <div class="scroll"><table class="data fd-mk-table" id="mk-table" hidden></table></div>
   </div>
 
   <div class="prose">
@@ -134,17 +157,18 @@
 
   <div class="board">
     <div class="board-head"><h3>Envy detector</h3><span class="rules">Rows: how each player values each piece, adding up to 100. Everyone got the piece with the yellow frame.</span></div>
-    <div class="scroll"><table class="data" id="ev-table"></table></div>
-    <div class="row">
-      <span style="font:600 1rem var(--f-display)">Who is envious?</span>
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Look for a row with a bigger number outside its yellow frame. Then click who is envious, or <b>Nobody</b>.</span></div>
+    <div class="controls">
+      <span class="lab">Who is envious?</span>
       <button class="btn btn-you btn-sm" type="button" data-ev="0">You</button>
       <button class="btn btn-robo btn-sm" type="button" data-ev="1">Robo</button>
       <button class="btn fd-r2btn btn-sm" type="button" data-ev="2">Robo 2</button>
       <button class="btn btn-win btn-sm" type="button" data-ev="3">Nobody</button>
-      <button class="btn btn-sm" id="ev-next" type="button">Next division</button>
+      <span style="flex:1 0 12px"></span>
+      <button class="btn btn-sm" id="ev-next" type="button" disabled>Next division</button>
     </div>
-    <div class="status" id="ev-status"></div>
-    <p class="note" id="ev-streak">Streak: 0 of 3</p>
+    <div class="scroll"><table class="data" id="ev-table"></table></div>
+    <p class="note" id="ev-streak" style="margin-top:0">Streak: 0 of 3</p>
   </div>
 </section>
 

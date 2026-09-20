@@ -22,16 +22,24 @@
   .rg-t.rg-y.G{ background:var(--you); color:var(--on-accent); border-color:var(--you) }
   .rg-t.rg-r.S{ background:var(--robo-soft); color:var(--robo); border-color:var(--robo) }
   .rg-t.rg-r.G{ background:var(--robo); color:var(--on-accent); border-color:var(--robo) }
-  .rg-moves .btn{ min-width:118px }
-  .rg-end{ margin-top:14px; border-top:2px solid var(--grid); padding-top:12px }
-  .rg-end p{ margin:0 0 8px }
-  .rg-field{ display:flex; flex-wrap:wrap; gap:8px 18px }
-  .rg-build{ background:var(--surface-2); border-radius:12px; padding:12px 16px; margin-top:16px }
-  .rg-build h4{ margin:0 0 8px }
-  .rg-build .rg-b{ display:inline-flex; flex-direction:column; gap:6px; font:600 .85rem var(--f-display); color:var(--ink-soft) }
-  .rg-build .rg-b-name{ margin-top:10px; font-size:.98rem }
-  .rg-sliders{ display:grid; grid-template-columns:1fr 1fr; gap:0 24px; margin-top:16px }
-  @media (max-width:640px){ .rg-sliders{ grid-template-columns:1fr } }
+  .rg-pick{ min-width:0; max-width:100% }
+  .rg-pick select{ min-width:0; max-width:100%; flex:1 1 auto }   /* the longest option is wider than a phone */
+  .rg-desc{ margin:-6px 0 14px }
+  .rg-hint-text{ margin:0; max-width:46ch }
+  .rg-guess{ margin-top:12px; border-top:2px solid var(--grid); padding-top:10px }
+  .rg-guess-lab{ display:block; font:600 .95rem var(--f-display); margin-bottom:8px }
+  .rg-guess.off .rg-guess-lab{ color:var(--ink-soft) }
+  .rg-summary{ margin:12px 0 0 }
+  .rg-field{ display:flex; flex-wrap:wrap; gap:6px 18px }
+  .rg-run .slider{ flex:1 1 220px; margin-bottom:0 }
+  .rg-build{ background:var(--surface-2); border-radius:12px; padding:10px 16px; margin-top:12px }
+  .rg-build h4{ margin:0 6px 0 0; align-self:flex-end; padding-bottom:12px }
+  .rg-build .rg-b{ display:inline-flex; flex-direction:column; gap:4px; font:600 .85rem var(--f-display); color:var(--ink-soft) }
+  .rg-build .rg-b-name{ margin-top:8px; font-size:.95rem }
+  .rg-tcap{ margin:12px 0 2px }
+  table.data.rg-res{ margin-bottom:0 }
+  table.data.rg-res th,table.data.rg-res td{ padding-top:3px; padding-bottom:3px }
+  .rg-cols{ margin:-8px 0 0; max-width:70ch }
   .rg-res{ width:100%; max-width:720px }
   .rg-res th,.rg-res td{ white-space:nowrap }
   .rg-res td.rg-bar{ width:34%; min-width:120px }
@@ -47,9 +55,10 @@
   </div>
 
   <div class="board">
-    <div class="board-head"><h3>Twenty rounds of the Cookie Game</h3><span class="rules">Share or Grab each round. Both share: 3 and 3. A grab on a share: 5 and 0. Both grab: 1 and 1.</span></div>
-    <div class="row">
-      <span class="field">Robo plays
+    <div class="board-head"><h3>Twenty rounds of the Cookie Game</h3><span class="rules">You pick the row, Robo picks the column. Both share: 3 and 3. A grab on a share: 5 and 0. Both grab: 1 and 1.</span></div>
+    <div class="turn" data-who="you"><span class="turn-tag">Round 1 of 20</span><span class="turn-text">Click a row in the grid: <b class="you">Share</b> or <b class="you">Grab</b>.</span></div>
+    <div class="controls">
+      <span class="field rg-pick">Robo plays
         <select id="rg-strat">
           <option value="tft">Tit for Tat</option>
           <option value="grab">Always Grab</option>
@@ -62,32 +71,25 @@
         </select>
       </span>
       <button class="btn btn-sm" id="rg-new" type="button">New game</button>
+      <button class="btn btn-math btn-sm" id="rg-hint" type="button">Hint</button>
     </div>
-    <p class="note" id="rg-desc"></p>
+    <p class="note rg-desc" id="rg-desc"></p>
     <div class="two">
       <div class="scroll"><table class="pay small" id="rg-grid"></table></div>
       <div class="stack">
-        <div class="row rg-moves">
-          <button class="btn btn-you btn-big" id="rg-share" type="button">Share</button>
-          <button class="btn btn-you btn-big" id="rg-grab" type="button">Grab</button>
-          <button class="btn btn-math btn-sm" id="rg-hint" type="button">Hint</button>
-        </div>
         <div class="stats">
-          <div class="stat"><span class="k">Round</span><span class="v" id="rg-round">1 / 20</span></div>
           <div class="stat"><span class="k you">You</span><span class="v you" id="rg-you">0</span></div>
           <div class="stat"><span class="k robo">Robo</span><span class="v robo" id="rg-robo">0</span></div>
         </div>
+        <p class="note rg-hint-text" id="rg-hint-text" hidden></p>
       </div>
     </div>
     <div class="rg-strip-wrap"><div class="rg-strip" id="rg-strip"></div></div>
-    <div class="status" id="rg-status"></div>
-    <div class="rg-end" id="rg-end" hidden>
-      <div id="rg-guess" hidden>
-        <p><b>Which strategy was Robo using?</b> One guess.</p>
-        <div class="row" id="rg-guess-buttons"></div>
-      </div>
-      <p id="rg-summary" style="margin-top:10px"></p>
+    <div class="rg-guess" id="rg-guess">
+      <span class="rg-guess-lab" id="rg-guess-lab">Mystery Robo only: after round 20 you get one guess.</span>
+      <div class="row" id="rg-guess-buttons"></div>
     </div>
+    <p class="rg-summary" id="rg-summary" hidden></p>
   </div>
 </section>
 
@@ -128,6 +130,12 @@
 
   <div class="board">
     <div class="board-head"><h3>Round robin</h3><span class="rules">Every strategy plays every other one, and itself. Highest total wins.</span></div>
+    <div class="turn" data-who="math"><span class="turn-tag">Try it</span><span class="turn-text">Tick the strategies to enter, set the rounds and the noise, then press <b>Run the tournament</b>.</span></div>
+    <div class="controls rg-run">
+      <button class="btn btn-math" id="rg-run" type="button">Run the tournament</button>
+      <div class="slider"><label class="lab" for="rg-rounds"><span>Rounds per match</span><span class="v" data-for="rg-rounds">200 rounds</span></label><input type="range" id="rg-rounds" min="50" max="500" step="10" value="200"></div>
+      <div class="slider"><label class="lab" for="rg-noise"><span>Noise: chance a move is flipped</span><span class="v" data-for="rg-noise">0%</span></label><input type="range" id="rg-noise" min="0" max="10" step="1" value="0"></div>
+    </div>
     <div class="rg-field" id="rg-field">
       <label class="chk"><input type="checkbox" data-k="tft" checked> Tit for Tat</label>
       <label class="chk"><input type="checkbox" data-k="grab" checked> Always Grab</label>
@@ -139,25 +147,18 @@
       <label class="chk"><input type="checkbox" data-k="yours"> <span class="you">Yours</span></label>
     </div>
     <div class="rg-build">
-      <h4>Build your own</h4>
       <div class="row">
+        <h4>Build your own</h4>
         <span class="rg-b">First move <div class="seg" id="rg-b-first"><button data-v="S">Share</button><button class="on" data-v="G">Grab</button></div></span>
         <span class="rg-b">After they share <div class="seg" id="rg-b-s"><button class="on" data-v="S">Share</button><button data-v="G">Grab</button></div></span>
         <span class="rg-b">After they grab <div class="seg" id="rg-b-g"><button data-v="S">Share</button><button class="on" data-v="G">Grab</button></div></span>
       </div>
       <div class="rg-b-name" id="rg-b-name"></div>
     </div>
-    <div class="rg-sliders">
-      <div class="slider"><label class="lab" for="rg-rounds"><span>Rounds per match</span><span class="v" data-for="rg-rounds">200 rounds</span></label><input type="range" id="rg-rounds" min="50" max="500" step="10" value="200"></div>
-      <div class="slider"><label class="lab" for="rg-noise"><span>Noise: chance a move is flipped</span><span class="v" data-for="rg-noise">0%</span></label><input type="range" id="rg-noise" min="0" max="10" step="1" value="0"></div>
-    </div>
-    <div class="row">
-      <button class="btn btn-math" id="rg-run" type="button">Run the tournament</button>
-    </div>
-    <div class="status" id="rg-tstatus"></div>
+    <p class="note rg-tcap" id="rg-tcap"></p>
     <div class="scroll"><table class="data rg-res" id="rg-results"></table></div>
-    <p class="note">"vs itself" is the average cookies per round a strategy collects from a copy of itself (3.00 means they shared every round). "vs Tit for Tat" is a separate head-to-head match with the same settings: that strategy's score, then Tit for Tat's.</p>
   </div>
+  <p class="note rg-cols">Reading the table: "vs itself" is the average cookies per round a strategy collects from a copy of itself (3.00 means they shared every round). "vs Tit for Tat" is a separate head-to-head match with the same settings: that strategy's score, then Tit for Tat's.</p>
 </section>
 
 <section>

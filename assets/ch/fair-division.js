@@ -1,7 +1,7 @@
 /* Chapter: I cut, you choose (cut and choose, the moving knife, the envy detector). */
 (function(){
 'use strict';
-const { $, $$, rand, wait, earn, seg, slider, clamp } = WM;
+const { $, $$, rand, wait, earn, seg, slider, clamp, turn, reveal, cue } = WM;
 
 const NAMES = ['You', 'Robo', 'Robo 2'];
 const CLS = ['you', 'robo', 'fd-r2'];
@@ -47,7 +47,15 @@ const cc = { mode: 'plain', cut: 50, pYou: 75, pRobo: 50, id: 0, hinted: false, 
 const valLeft = (p, c) => c <= 50 ? p * c / 50 : p + (1 - p) * (c - 50) / 50;   // value of [0, c] when the chocolate half holds p of the value
 const safeCut = p => p >= 0.5 ? 25 / p : 50 + 50 * (0.5 - p) / (1 - p);        // where [0, c] is worth exactly 1/2
 const pOf = who => cc.mode === 'plain' ? 0.5 : (who === 0 ? cc.pYou : cc.pRobo) / 100;
-const ccStatus = html => { $('#cc-status').innerHTML = html; };
+const CC_HELP = 'Drag the knife to where you want to cut, then press <b>Cut</b>.';
+const CC_AGAIN = 'Drag the knife and cut again.';
+/* The strip narrates the knife as it moves: what the two pieces are worth to the reader right now. */
+function ccWhere(){
+  const c = cc.cut, yl = valLeft(pOf(0), c);
+  return cc.mode === 'plain'
+    ? `Knife at ${c}: the left piece is <b class="you">${c}%</b> of the cake, the right piece <b class="you">${100 - c}%</b>. Press <b>Cut</b>, or keep dragging.`
+    : `Knife at ${c}: to you the left piece is worth <b class="you">${pc(yl, 1)}</b>, the right piece <b class="you">${pc(1 - yl, 1)}</b>. Press <b>Cut</b>, or keep dragging.`;
+}
 
 function ccDraw(){
   const c = cc.cut; let s = plate();
@@ -58,7 +66,7 @@ function ccDraw(){
     const roboLeft = cc.pick === 'left';
     s += owned(0, c, roboLeft ? 1 : 0, roboLeft ? 'Robo' : 'You') + owned(c, 100, roboLeft ? 0 : 1, roboLeft ? 'You' : 'Robo');
   }
-  s += under(c / 2, `left piece: ${c}% of the length`) + under(50 + c / 2, `right piece: ${100 - c}%`);
+  s += under(0, `left piece: ${c}% of the length`, 'start') + under(100, `right piece: ${100 - c}%`, 'end');   // pinned to the ends so a cut near an edge never clips a label
   $('#cc-cake').innerHTML = s;
 }
 function ccTable(){
@@ -78,20 +86,23 @@ function ccTable(){
   $('#cc-table').innerHTML = h;
 }
 function ccRender(){ ccDraw(); ccTable(); }
-function ccReset(msg){ cc.id++; cc.pick = null; ccRender(); ccStatus(msg || 'Press Cut when you are ready.'); }
+function ccReset(msg){ cc.id++; cc.pick = null; $('#cc-go').disabled = false; ccRender(); turn('#cc-cake', 'you', msg || ccWhere()); }
 
 async function ccCut(){
   cc.id++; const id = cc.id; cc.pick = null; ccRender();
-  ccStatus('Robo is looking at the two pieces...');
+  $('#cc-go').disabled = true;
+  turn('#cc-cake', 'robo', 'Robo is looking at the two pieces...');
   await wait(700);
-  if (id !== cc.id) return;
+  if (id !== cc.id) return;                       // the knife moved, or the cake changed, while Robo was looking
+  $('#cc-go').disabled = false;
   const c = cc.cut, rl = valLeft(pOf(1), c), rr = 1 - rl;
   cc.pick = rl >= rr ? 'left' : 'right';
   const other = cc.pick === 'left' ? 'right' : 'left';
   const yl = valLeft(pOf(0), c), yours = cc.pick === 'left' ? 1 - yl : yl, robos = Math.max(rl, rr);
   ccRender();
-  let msg;
+  let msg, who, tag;
   if (cc.mode === 'plain'){
+    who = yours >= 0.5 ? 'win' : 'lose'; tag = yours >= 0.5 ? 'Half each' : 'Robo got more';
     msg = rl === rr
       ? `The two pieces tie, so Robo takes the left. You get <b class="you">${pc(yours)}</b> of the cake, and there was nothing Robo could do about it.`
       : `Robo takes the bigger piece, the ${cc.pick} (${pc(robos)}). You get the ${other}: <b class="you">${pc(yours)}</b>.`;
@@ -100,9 +111,11 @@ async function ccCut(){
   } else {
     msg = `Robo takes the <b>${cc.pick}</b> piece, worth ${pc(robos, 1)} to Robo${rl === rr ? ' (a tie, so Robo takes the left)' : ''}. `
         + `You get the ${other}: <b class="you">${pc(yours, 1)}</b> of the cake by your taste. By your two measures that adds up to ${pc(yours + robos, 1)} of one cake.`;
+    who = yours >= 0.6 - 1e-9 ? 'win' : yours >= 0.5 - 1e-9 ? 'math' : 'lose';
+    tag = who === 'win' ? 'A big slice' : who === 'math' ? 'A fair half' : 'Less than half';
     if (cc.pYou !== cc.pRobo && yours >= 0.6 - 1e-9) earn('fd-taste');
   }
-  ccStatus(msg);
+  turn('#cc-cake', who, `${msg} ${CC_AGAIN}`, tag);
 }
 
 const tasteText = v => {
@@ -113,18 +126,40 @@ const tasteText = v => {
 const ccUpd = slider($('#cc-cut'), v => `${v}% from the left`, v => { cc.cut = clamp(Math.round(v), 5, 95); cc.hinted = false; ccReset(); });
 slider($('#cc-you'), tasteText, v => { cc.pYou = clamp(Math.round(v), 10, 90); ccReset(); });
 slider($('#cc-robo'), tasteText, v => { cc.pRobo = clamp(Math.round(v), 10, 90); ccReset(); });
+/* The taste sliders are always on the board: disabled for the plain cake, and their label says what unlocks them. */
+function ccTastes(){
+  const plain = cc.mode === 'plain';
+  $('#cc-tastes').classList.toggle('off', plain);
+  $('#cc-you').disabled = plain; $('#cc-robo').disabled = plain;
+  $('#cc-tastes-lab').innerHTML = plain ? 'Tastes: switch to <b>Chocolate and vanilla</b> to set these.' : 'Tastes: drag to change what chocolate is worth to each of you.';
+}
 seg($('#cc-mode'), v => {
-  cc.mode = v; $('#cc-tastes').hidden = v === 'plain'; cc.hinted = false;
-  ccReset(v === 'plain' ? 'Plain cake: every bite is worth the same. Press Cut when you are ready.' : 'Chocolate on the left, vanilla on the right. Find the cut where both pieces are worth the same to you.');
+  cc.mode = v; cc.hinted = false; ccTastes();
+  ccReset(v === 'plain' ? 'Plain cake: every bite is worth the same. Drag the knife, then press <b>Cut</b>.' : 'Chocolate on the left, vanilla on the right. Find the cut where both pieces are worth the same <b>to you</b>, then press <b>Cut</b>.');
 });
 $('#cc-go').addEventListener('click', ccCut);
 $('#cc-hint').addEventListener('click', () => {
   const exact = safeCut(pOf(0)), c = clamp(Math.round(exact), 5, 95);
   $('#cc-cut').value = c; ccUpd(); cc.hinted = true;
   const where = Math.abs(exact - c) < 0.05 ? `${c}%` : `${exact.toFixed(1)}% (the slider stops at ${c})`;
-  ccStatus(`Both pieces are worth the same to you at ${where}. Cut there and you get half by your own taste, whichever piece Robo takes.`);
+  turn('#cc-cake', 'math', `Both pieces are worth the same to you at ${where}. Cut there and you get half by your own taste, whichever piece Robo takes. Press <b>Cut</b>.`, 'Safe cut');
 });
-ccReset();
+/* "You cut": the knife on the cake is draggable. The slider above it stays for the keyboard and for fine steps. */
+(function dragKnife(){
+  const cake = $('#cc-cake'); let dragging = false;
+  const move = e => {
+    const r = cake.getBoundingClientRect(); if (!r.width) return;
+    const vx = (e.clientX - r.left) / r.width * 420;
+    const c = clamp(Math.round(100 * (vx - G.x0) / (G.x1 - G.x0)), 5, 95);
+    if (c !== cc.cut){ $('#cc-cut').value = String(c); ccUpd(); }
+  };
+  cake.addEventListener('pointerdown', e => { dragging = true; try { cake.setPointerCapture(e.pointerId); } catch (err) {} move(e); });
+  cake.addEventListener('pointermove', e => { if (dragging) move(e); });
+  ['pointerup', 'pointercancel'].forEach(t => cake.addEventListener(t, () => { dragging = false; }));
+})();
+ccTastes();
+ccReset(CC_HELP);
+cue($('#cc-cake'));
 
 /* ================= 2. the moving knife (Dubins and Spanier) ================= */
 const SPEEDS = { slow: 2, normal: 4, fast: 10 };   // percent of the cake per second
@@ -148,8 +183,9 @@ function posOfValue(w, target){   // smallest x with valUpTo(w, x) = target
 function randWeights(){ const a = 2 + rand(15), b = 2 + rand(17 - a); return [a, b, 20 - a - b].map(x => x / 20); }
 const sameW = (u, v) => u.every((x, i) => x === v[i]);
 const firstRobot = () => mk.stopX[1] <= mk.stopX[2] ? { who: 1, x: mk.stopX[1] } : { who: 2, x: mk.stopX[2] };
-const mkStatus = html => { $('#mk-status').innerHTML = html; };
-const mkLog = line => { mk.log.push(line); $('#mk-log').innerHTML = mk.log.join('<br>'); };
+const MK_AGAIN = 'Press <b>New cake</b> to play again.';
+const mkTurn = (who, html, tag) => turn('#mk-cake', who, html, tag);
+const mkLog = line => { mk.log.push(line); $('#mk-log').innerHTML = mk.log.map((l, i) => `<div>${i + 1}. ${l}</div>`).join(''); };
 
 function mkDraw(){
   let s = plate();
@@ -183,7 +219,7 @@ function mkRender(){
 }
 function mkWeightsLine(){
   $('#mk-weights').innerHTML = '<span>Your taste:</span>' + FLAV.map((f, k) => `<span><i style="background:${f.body}"></i>${f.name} ${Math.round(100 * mk.w[0][k])}%</span>`).join('')
-    + '<span class="note" style="margin-top:0">Robo and Robo 2 have their own weights. You cannot see them until the end.</span>';
+    + '<span class="note" style="margin-top:0">The robots\' weights are secret until the end.</span>';
 }
 function mkNew(){
   cancelAnimationFrame(mk.raf); mk.id++;
@@ -193,7 +229,7 @@ function mkNew(){
   mk.x = 0; mk.phase = 'ready'; mk.taken = []; mk.cutAt = null; mk.log = []; mk.first = -1;
   $('#mk-log').innerHTML = ''; $('#mk-table').hidden = true; $('#mk-table').innerHTML = '';
   mkWeightsLine(); mkRender();
-  mkStatus('Press Start. Shout Stop when the left piece is worth 33.3% to you.');
+  mkTurn('you', 'Press <b>Start the knife</b>. Press <b>Stop!</b> when the red number reads 33.3%. Not before.');
 }
 function mkTick(ts){
   if (mk.phase !== 'sweeping') return;
@@ -207,13 +243,13 @@ function mkTick(ts){
 function mkStart(){
   if (mk.phase !== 'ready' && mk.phase !== 'paused') return;
   mk.phase = 'sweeping'; mk.last = performance.now(); mkRender();
-  mkStatus('The knife is moving. Watch the red number.');
+  mkTurn('you', 'Watch the red number next to the button. Press <b>Stop!</b> when it reads 33.3%.', 'Knife moving');
   mk.raf = requestAnimationFrame(mkTick);
 }
 function mkPause(){
   if (mk.phase !== 'sweeping') return;
   cancelAnimationFrame(mk.raf); mk.phase = 'paused'; mkRender();
-  mkStatus('Paused. Resume, or shout Stop right here.');
+  mkTurn('you', 'Press <b>Resume</b>, or press <b>Stop!</b> to shout right here.', 'Paused');
 }
 function mkTake(who){
   cancelAnimationFrame(mk.raf);
@@ -222,11 +258,11 @@ function mkTake(who){
   const v = valUpTo(mk.w[who], mk.x);
   if (who === 0){
     mkLog(`You shout Stop at ${mk.x.toFixed(1)}%. The left piece is worth ${pc(v, 1)} to you. You take it.`);
-    mkStatus(v < THIRD - 0.001 ? `<span class="you">You shouted early.</span> That piece is worth ${pc(v, 1)} to you, less than a third.` : `You take the left piece: ${pc(v, 1)} of the cake by your taste.`);
+    mkTurn('robo', (v < THIRD - 0.001 ? `You shouted early: that piece is worth ${pc(v, 1)} to you, less than a third.` : `You take the left piece: ${pc(v, 1)} of the cake by your taste.`) + ' Now the robots split the rest with cut and choose...', 'You shouted');
   } else {
     mkLog(`${NAMES[who]} shouts Stop at ${mk.x.toFixed(1)}%: the left piece is exactly one third to ${NAMES[who]}. ${NAMES[who]} takes it.`);
     const vy = valUpTo(mk.w[0], mk.x);
-    mkStatus(`<span class="${CLS[who]}">${NAMES[who]} shouted first.</span> To you that piece was worth only ${pc(vy, 1)}, so what is left is worth ${pc(1 - vy, 1)} to you.`);
+    mkTurn('robo', `${NAMES[who]} shouted first. To you that piece was worth only ${pc(vy, 1)}, so what is left is worth ${pc(1 - vy, 1)} to you. Now ${NAMES[who === 1 ? 2 : 1]} cuts the rest and you choose...`, `${NAMES[who]} shouted`);
   }
   mkRender();
   mkFinish(who);
@@ -250,7 +286,7 @@ async function mkFinish(first){
   mk.taken.push({ who: chooser, a: chooserLeft ? x : y, b: chooserLeft ? y : 100 });
   mk.taken.push({ who: cutter, a: chooserLeft ? y : x, b: chooserLeft ? 100 : y });
   mk.phase = 'done';
-  mkLog(`${NAMES[chooser]} chooses the ${chooserLeft ? 'left' : 'right'} part (worth ${pc(Math.max(l, r), 1)} to ${NAMES[chooser]}). ${NAMES[cutter]} gets the other.`);
+  mkLog(`${chooser === 0 ? 'You choose' : NAMES[chooser] + ' chooses'} the ${chooserLeft ? 'left' : 'right'} part (worth ${pc(Math.max(l, r), 1)} to ${chooser === 0 ? 'you' : NAMES[chooser]}). ${NAMES[cutter]} gets the other.`);
   mkRender();
   const share = [0, 0, 0];
   for (const t of mk.taken) share[t.who] = valBetween(mk.w[t.who], t.a, t.b);
@@ -264,14 +300,14 @@ async function mkFinish(first){
   const you = share[0];
   if (first === 0){
     const accurate = you >= THIRD - 0.001 && you <= THIRD + 0.02;
-    if (accurate){ mkStatus(`<span class="win-c">Exactly a third, and you kept it.</span> Everyone got at least a third by their own measure: the division is proportional.`); earn('fd-knife'); }
-    else if (you < THIRD - 0.001) mkStatus(`<span class="you">You shouted early</span> and took ${pc(you, 1)}. Wait for the readout to reach 33.3% next time.`);
-    else mkStatus(`You took ${pc(you, 1)}, a bit past a third. Fine for you, but a robot could have shouted first. Try stopping closer to 33.3%.`);
+    if (accurate){ mkTurn('win', `Exactly a third, and you kept it. Everyone got at least a third by their own measure: the division is proportional. ${MK_AGAIN}`, 'A perfect third'); earn('fd-knife'); }
+    else if (you < THIRD - 0.001) mkTurn('lose', `You shouted early and took ${pc(you, 1)}. Wait for the red number to reach 33.3% next time. ${MK_AGAIN}`, 'Too early');
+    else mkTurn('math', `You took ${pc(you, 1)}, a bit past a third. Fine for you, but a robot could have shouted first. Try stopping closer to 33.3%. ${MK_AGAIN}`, 'A bit late');
   } else {
-    mkStatus(you >= THIRD - 0.001
-      ? `${NAMES[first]} took the first piece and you still got <b class="you">${pc(you, 1)}</b>. Nobody shouted early, so everyone has at least a third.`
-      : `You ended with <b class="you">${pc(you, 1)}</b>, less than a third. That happens only if a piece was taken that you valued at more than a third: check the table.`);
+    if (you >= THIRD - 0.001) mkTurn('math', `${NAMES[first]} took the first piece and you still got <b class="you">${pc(you, 1)}</b>. Nobody shouted early, so everyone has at least a third. ${MK_AGAIN}`, 'All shared out');
+    else mkTurn('lose', `You ended with <b class="you">${pc(you, 1)}</b>, less than a third. That happens only if a piece was taken that you valued at more than a third: check the table. ${MK_AGAIN}`, 'All shared out');
   }
+  reveal($('#mk-table'));
 }
 $('#mk-start').addEventListener('click', mkStart);
 $('#mk-pause').addEventListener('click', mkPause);
@@ -309,7 +345,7 @@ function evNew(){
   });
   ev.truth = whoEnvies(ev.v); ev.answered = false;
   evRender(null);
-  $('#ev-status').innerHTML = 'Who would rather have somebody else\'s piece?';
+  turn('#ev-table', 'you', 'Look for a row with a bigger number outside its yellow frame. Then click who is envious, or <b>Nobody</b>.');
   $('#ev-next').disabled = true;
   $$('[data-ev]').forEach(b => { b.disabled = false; });
 }
@@ -340,11 +376,11 @@ function evAnswer(guess){
   evRender(envied);
   if (ok){
     ev.streak++;
-    $('#ev-status').innerHTML = `<span class="win-c">Right.</span> ${why}`;
+    turn('#ev-table', 'win', `${why} ${ev.streak === 1 ? 'One right.' : `${ev.streak} in a row.`} Press <b>Next division</b>.`, 'Right');
     if (ev.streak >= 3) earn('fd-envy');
   } else {
     ev.streak = 0;
-    $('#ev-status').innerHTML = `<span class="you">Not quite.</span> ${why}`;
+    turn('#ev-table', 'lose', `${why} The streak starts again. Press <b>Next division</b>.`, 'Not quite');
   }
   $('#ev-streak').textContent = `Streak: ${Math.min(ev.streak, 3)} of 3`;
   $('#ev-next').disabled = false;
