@@ -1,7 +1,7 @@
 /* Chapter: Take it or leave it (ultimatum game, pirate game, melting cake). */
 (function(){
 'use strict';
-const { $, $$, rand, wait, earn, seg, slider } = WM;
+const { $, $$, rand, wait, earn, seg, slider, turn, cue } = WM;
 
 /* pure:start
    Pure solvers. Kept free of DOM so they can be unit-tested in node by slicing this block out. */
@@ -74,11 +74,13 @@ const pct = (a, b) => b ? Math.round(100 * a / b) : 0;
 
 /* ================= Ultimatum A: you propose ================= */
 const ua = { m: 1, round: 1, you: 0, robo: 0, nos: 0, log: [], over: false, busy: false, id: 0, last: null };
-const uaStatus = html => { $('#ua-status').innerHTML = html; };
+const UA = '#ua-board';
+const uaTag = () => `Round ${Math.min(ua.round, ROUNDS)} of ${ROUNDS}`;
 function uaRender(){
   const host = $('#ua-offers'); host.innerHTML = '';
   for (let k = 0; k <= COINS; k++){
     const b = document.createElement('button'); b.type = 'button'; b.className = 'btn btn-sm btn-you'; b.textContent = String(k);
+    b.setAttribute('aria-label', `Offer Robo ${k} coin${k === 1 ? '' : 's'}`);
     b.disabled = ua.over || ua.busy;
     b.addEventListener('click', () => uaPropose(k)); host.appendChild(b);
   }
@@ -90,12 +92,12 @@ function uaRender(){
 function uaNew(){
   ua.m = 1 + rand(5); ua.round = 1; ua.you = 0; ua.robo = 0; ua.nos = 0; ua.log = []; ua.over = false; ua.busy = false; ua.last = null; ua.id++;
   uaRender();
-  uaStatus('New Robo, new secret minimum. How many of the 10 coins will you offer it?');
+  turn(UA, 'you', 'New Robo, new secret minimum. Click a red number: how many of the 10 coins do you offer it? You keep the rest.', uaTag());
 }
 async function uaPropose(offer){
   if (ua.over || ua.busy) return;
   ua.busy = true; uaRender();
-  uaStatus(`You keep ${COINS - offer} and offer Robo ${offer}. Robo is thinking...`);
+  turn(UA, 'robo', `You keep ${COINS - offer} and offer Robo ${offer}. Robo is thinking...`);
   const id = ua.id;
   await wait(650);
   if (id !== ua.id) return;
@@ -107,33 +109,33 @@ async function uaPropose(offer){
   ua.round++; ua.busy = false;
   if (ua.round > ROUNDS) return uaFinish(ok, offer);
   uaRender();
-  uaStatus(ok ? `<span class="win-c">Robo says yes.</span> You keep ${COINS - offer}. Round ${ua.round}: offer again.`
-              : `<span class="you">Robo says no.</span> Nobody gets anything this round. Round ${ua.round}: offer again.`);
+  turn(UA, 'you', ok ? `<span class="win-c">Robo says yes to ${offer}.</span> You keep ${COINS - offer}. Click a red number for your next offer.`
+                     : `<b>Robo says no to ${offer}.</b> Nobody gets anything this round. Click a red number for your next offer.`, uaTag());
 }
 function uaFinish(ok, offer){
   ua.over = true; uaRender();
   const best = ROUNDS * (COINS - ua.m), need = 8 * (COINS - ua.m);
   const verdict = ok ? `Robo said yes to ${offer}.` : `Robo said no to ${offer}.`;
-  let html = `${verdict} Done. Robo's minimum was <b class="robo">${ua.m}</b>. Knowing that, a player could keep ${COINS - ua.m} a round, ${best} in all. You kept <b class="you">${ua.you}</b>, which is ${pct(ua.you, best)} percent.`;
-  if (ua.you >= need){ html += ` <span class="win-c">That is at least 80 percent.</span>`; earn('bg-probe'); }
-  else html += ` You needed ${need}. Press New Robo and probe smarter.`;
-  uaStatus(html);
+  let html = `${verdict} Robo's minimum was <b class="robo">${ua.m}</b>. Knowing that, a player could keep ${COINS - ua.m} a round, ${best} in all. You kept <b class="you">${ua.you}</b>, which is ${pct(ua.you, best)} percent.`;
+  if (ua.you >= need){ html += ' That is at least 80 percent. Press New Robo to face a different secret.'; earn('bg-probe'); turn(UA, 'win', html, 'Done'); }
+  else turn(UA, 'lose', html + ` You needed ${need}. Press New Robo and probe smarter.`, 'Done');
 }
 $('#ua-new').addEventListener('click', uaNew);
 uaNew();
+cue($('#ua-offers'));
 
 /* ================= Ultimatum B: Robo proposes ================= */
 const ub = { offers: [], round: 1, you: 0, robo: 0, theory: 0, log: [], over: false };
-const ubStatus = html => { $('#ub-status').innerHTML = html; };
+const UB = '#ub-board';
 function shuffled(a){ a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = rand(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-function ubRender(){
+function ubRender(said){
   const x = ub.over ? null : ub.offers[ub.round - 1];
   coinRow($('#ub-coins'), COINS, x === null ? null : { you: x, robo: COINS - x }, false);
   $('#ub-yes').disabled = ub.over; $('#ub-no').disabled = ub.over;
   $('#ub-round').textContent = `${Math.min(ub.round, ROUNDS)} of ${ROUNDS}`;
   $('#ub-you').textContent = String(ub.you); $('#ub-robo').textContent = String(ub.robo); $('#ub-theory').textContent = String(ub.theory);
   $('#ub-log').innerHTML = ub.log.slice(-4).join('<br>');
-  if (!ub.over) ubStatus(`Robo offers you <b class="you">${x}</b> and keeps <b class="robo">${COINS - x}</b>. Deal?`);
+  if (!ub.over) turn(UB, 'you', `${said || ''}Robo offers you <b class="you">${x}</b> and keeps <b class="robo">${COINS - x}</b>. Press <b>Yes, deal</b> or <b>No</b>.`, `Round ${ub.round} of ${ROUNDS}`);
 }
 function ubNew(){
   ub.offers = shuffled([1, 1, 1, 2, 2, 2, 3, 3, 4, 5]); ub.round = 1; ub.you = 0; ub.robo = 0; ub.theory = 0; ub.log = []; ub.over = false;
@@ -149,13 +151,13 @@ function ubAnswer(yes){
   if (ub.round > ROUNDS){
     ub.over = true; ubRender();
     const gap = ub.theory - ub.you;
-    let html = `Done. You kept <b class="you">${ub.you}</b>. Saying yes to everything would have given you ${ub.theory}.`;
+    let html = `You kept <b class="you">${ub.you}</b>. Saying yes to everything would have given you ${ub.theory}.`;
     if (gap === 0) html += ' You played it exactly the way backward induction says. Was any of it hard to click?';
     else html += ` You paid ${gap} coin${gap === 1 ? '' : 's'} to say no. Most people do.`;
-    ubStatus(html);
+    turn(UB, 'math', html + ' Press Play again for ten new offers.', 'Done');
     return;
   }
-  ubRender();
+  ubRender(yes ? `You said yes: ${x} for you, ${COINS - x} for Robo. ` : 'You said no: nobody gets anything. ');
 }
 $('#ub-yes').addEventListener('click', () => ubAnswer(true));
 $('#ub-no').addEventListener('click', () => ubAnswer(false));
@@ -209,24 +211,30 @@ function pirateReason(letters){
   return `If ${P}'s proposal fails, ${P} goes overboard and the rest split it <b>${listSplit(letters.slice(1), next.alloc)}</b>. ${P} needs ${sol.needed} more vote${s} besides its own (${sol.needed + 1} of ${n} is at least half). A pirate says yes only to strictly more than that, so ${costs}. ${P} buys ${bought.join(' and ')} for 1 coin each and keeps ${sol.alloc[0]}: <b>${listSplit(letters, sol.alloc)}</b>.`;
 }
 
+/* One controls row serves all three modes (nothing is hidden at load): the main button checks a prediction in
+   Work backwards and proposes a split in Play as pirate A; the yellow button shows the answer or gives a hint. */
+const PG = '#pg-board';
+let pgMode = 'back';
+const WORDS = ['', '', 'two', 'three', 'four', 'five'];
+
 /* --- Work backwards stepper: crews of 2, 3, 4, 5 --- */
-const pg = { step: 0, revealed: false };
+const pg = { step: 0, revealed: false, how: 'check' };
 const STEP_CREWS = [2, 3, 4, 5];
 const crewLetters = n => LETTERS.slice(5 - n, 5);
-function pgTitle(){
-  const n = STEP_CREWS[pg.step], L = crewLetters(n), words = ['', '', 'two', 'three', 'four', 'five'];
-  $('#pg-title').innerHTML = `Step ${pg.step + 1} of 4: ${words[n]} pirates left, <b>${L.join(', ')}</b>. ${L[0]} proposes. What does ${L[0]} offer each pirate?`;
+const pgNextLabel = () => pg.step < 3 ? `Next: ${WORDS[STEP_CREWS[pg.step + 1]]} pirates` : 'Now play as pirate A';
+function pgAsk(){
+  const n = STEP_CREWS[pg.step], L = crewLetters(n);
+  turn(PG, 'you', `${WORDS[n][0].toUpperCase() + WORDS[n].slice(1)} pirates left, <b>${L.join(', ')}</b>. ${L[0]} proposes. Type the coins ${L[0]} offers each pirate (they must add up to ${GOLD}), then press <b>Check my prediction</b>.`, `Step ${pg.step + 1} of 4`);
 }
 function pgRender(){
   const n = STEP_CREWS[pg.step], L = crewLetters(n);
   const host = $('#pg-cards'); host.innerHTML = '';
   L.forEach((letter, i) => host.appendChild(pirateCard(letter, { prop: i === 0, role: i === 0 ? 'proposes' : '', input: true, value: null })));
   $$('input', host).forEach(inp => inp.addEventListener('input', pgSum));
-  pgTitle(); pgSum();
-  $('#pg-next').disabled = true; $('#pg-next').textContent = pg.step < 3 ? `Next: ${['', '', '', 'three', 'four', 'five'][STEP_CREWS[pg.step + 1]]} pirates` : 'Done';
-  $('#pg-check').disabled = false; $('#pg-reveal').disabled = false;
-  $('#pg-explain').innerHTML = pg.step === 0 ? 'Type a number of coins in each box. They must add up to 100.' : '';
+  pgSum();
+  $('#pg-explain').innerHTML = '';
   pg.revealed = false;
+  if (pgMode === 'back'){ pgControls(); pgAsk(); }
 }
 function pgSum(){
   const r = sumText(readCards($('#pg-cards')));
@@ -238,48 +246,45 @@ function pgMark(vals, sol){
     card.classList.add(vals[i] === sol.alloc[i] ? 'ok' : 'bad');
   });
 }
-function pgSolved(){
+function pgSolved(how){
   const n = STEP_CREWS[pg.step];
-  $('#pg-next').disabled = false; pg.revealed = true;
-  if (pg.step === 3){
-    $('#pg-next').textContent = 'Done';
-    $('#pg-explain').innerHTML += `<p>That is the whole answer: the captain keeps ${pirateSolve(n, GOLD, false).alloc[0]} of 100 and two pirates are bought for a coin each. Now switch to <b>Play as pirate A</b> and try it against voters.</p>`;
-  }
+  pg.revealed = true; pg.how = how; pgControls();
+  const lead = how === 'check' ? 'Correct.' : `Here is what ${crewLetters(n)[0]} proposes, and why.`;
+  if (pg.step === 3) turn(PG, how === 'check' ? 'win' : 'math', `${lead} That is the whole answer: the captain keeps ${pirateSolve(n, GOLD, false).alloc[0]} of ${GOLD} and two pirates are bought for a coin each. Press <b>Now play as pirate A</b> and try it against voters.`, how === 'check' ? 'Correct' : 'Answer');
+  else turn(PG, how === 'check' ? 'win' : 'math', `${lead} Read the reasoning under the pirates, then press <b>${pgNextLabel()}</b>.`, how === 'check' ? 'Correct' : 'Answer');
 }
-$('#pg-check').addEventListener('click', () => {
+function pgCheck(){
   if (pg.revealed) return;
   const n = STEP_CREWS[pg.step], vals = readCards($('#pg-cards')), r = sumText(vals);
-  if (r.bad){ $('#pg-explain').innerHTML = `<span class="you">${r.text}.</span> Every coin in the chest gets handed to someone.`; return; }
+  if (r.bad){ turn(PG, 'you', `${r.text}. Every coin in the chest gets handed to someone. Fix the boxes and press Check my prediction again.`, 'Not yet'); return; }
   const sol = pirateSolve(n, GOLD, false);
   pgMark(vals, sol);
   const wrong = vals.filter((v, i) => v !== sol.alloc[i]).length;
   if (wrong === 0){
-    $('#pg-explain').innerHTML = `<p><span class="win-c">Correct.</span> ${pirateReason(crewLetters(n))}</p>`;
-    pgSolved();
+    $('#pg-explain').innerHTML = `<p>${pirateReason(crewLetters(n))}</p>`;
+    pgSolved('check');
   } else {
     const L = crewLetters(n);
     const hint = n === 2 ? `Ask: how many votes does ${L[0]} need, and does ${L[0]} already have them?`
       : `Ask: if ${L[0]} goes overboard, what does each pirate get? Whoever would get 0 can be bought for 1 coin. Nobody else is worth buying.`;
-    $('#pg-explain').innerHTML = `<span class="you">${wrong} box${wrong === 1 ? ' is' : 'es are'} wrong.</span> ${hint}`;
+    turn(PG, 'you', `${wrong} box${wrong === 1 ? ' is' : 'es are'} wrong, shaded red. ${hint} Fix ${wrong === 1 ? 'it' : 'them'} and check again.`, 'Not yet');
   }
-});
-$('#pg-reveal').addEventListener('click', () => {
+}
+function pgReveal(){
   if (pg.revealed) return;
   const n = STEP_CREWS[pg.step], sol = pirateSolve(n, GOLD, false);
   $$('input', $('#pg-cards')).forEach((inp, i) => { inp.value = String(sol.alloc[i]); });
   pgSum(); pgMark(sol.alloc, sol);
   $('#pg-explain').innerHTML = `<p>${pirateReason(crewLetters(n))}</p>`;
-  pgSolved();
-});
-$('#pg-next').addEventListener('click', () => {
-  if (!pg.revealed) return;
-  if (pg.step < 3){ pg.step++; pgRender(); }
-});
-$('#pg-restart').addEventListener('click', () => { pg.step = 0; pgRender(); });
+  pgSolved('reveal');
+}
 
 /* --- Play as pirate A --- */
 const pp = { n: 5 };
 function ppLetters(){ return LETTERS.slice(0, pp.n); }
+function ppAsk(){
+  turn(PG, 'you', `You are pirate <b class="you">A</b>. Type a split for ${ppLetters().join(', ')} that adds up to ${GOLD}, then press <b>Propose this split</b>. You need ${half(pp.n)} of ${pp.n} votes, and yours is one of them.`);
+}
 function ppRender(keepValues){
   const old = keepValues ? readCards($('#pg-play-cards')) : null;
   const host = $('#pg-play-cards'); host.innerHTML = '';
@@ -292,8 +297,8 @@ function ppRender(keepValues){
   });
   $$('input', host).forEach(inp => inp.addEventListener('input', () => { ppSum(); ppClearVotes(); }));
   ppSum();
-  $('#pg-status').innerHTML = `Type a split for ${L.join(', ')} and propose it. You need ${half(pp.n)} of ${pp.n} votes, and yours is one of them.`;
   $('#pg-play-explain').innerHTML = '';
+  if (pgMode === 'play') ppAsk();
 }
 function ppSum(){
   const r = sumText(readCards($('#pg-play-cards')));
@@ -305,11 +310,11 @@ function ppN(){
   $('#pg-n').value = String(v);
   if (v !== pp.n){ pp.n = v; ppRender(false); }
 }
-$('#pg-n').addEventListener('change', ppN);
-$('#pg-propose').addEventListener('click', () => {
-  ppN();
+$('#pg-n').addEventListener('change', () => { if (pgMode === 'play') ppN(); });
+function ppPropose(){
+  ppN(); ppClearVotes();
   const vals = readCards($('#pg-play-cards')), r = sumText(vals), L = ppLetters();
-  if (r.bad){ $('#pg-status').innerHTML = `<span class="you">${r.text}.</span>`; return; }
+  if (r.bad){ turn(PG, 'you', `${r.text}. Fix the boxes and propose again.`, 'Not yet'); return; }
   const next = pirateSolve(pp.n - 1, GOLD, false);
   const cards = $$('.bg-pirate', $('#pg-play-cards'));
   let yes = 1;
@@ -324,21 +329,45 @@ $('#pg-propose').addEventListener('click', () => {
   }
   const pass = 2 * yes >= pp.n;
   if (pass){
-    $('#pg-status').innerHTML = `<span class="win-c">It passes, ${yes} of ${pp.n} votes.</span> You keep ${vals[0]} coins.`;
-    if (pp.n === 5 && vals[0] >= 98) earn('bg-pirate');
-    else if (pp.n === 5) $('#pg-status').innerHTML += ' Can you keep 98?';
+    let html = `It passes, ${yes} of ${pp.n} votes. You keep ${vals[0]} coins.`;
+    if (pp.n === 5 && vals[0] >= 98){ earn('bg-pirate'); html += ' That is the most any captain can keep. Change Pirates to 6 or 7 and see if the pattern holds.'; }
+    else if (pp.n === 5) html += ' Can you keep 98? Change the numbers and propose again.';
+    else html += ' Could you keep one more? Change the numbers and propose again.';
+    turn(PG, 'win', html, 'It passes');
   } else {
     cards[0].classList.remove('yes'); cards[0].classList.add('gone'); $('.bg-vote', cards[0]).textContent = 'overboard';
-    $('#pg-status').innerHTML = `<span class="you">It fails, ${yes} of ${pp.n} votes.</span> You go overboard and ${L[1]} proposes ${listSplit(L.slice(1), next.alloc)}.`;
+    turn(PG, 'lose', `It fails, ${yes} of ${pp.n} votes. You go overboard and ${L[1]} proposes ${listSplit(L.slice(1), next.alloc)}. Change the numbers and propose again.`, 'Overboard');
   }
   $('#pg-play-explain').innerHTML = lines.map(t => `<p>${t}</p>`).join('');
-});
-$('#pg-hint').addEventListener('click', () => {
+}
+function ppHint(){
   ppN();
   const L = ppLetters(), next = pirateSolve(pp.n - 1, GOLD, false);
-  $('#pg-play-explain').innerHTML = `<p>If you go overboard, ${L[1]} proposes <b>${listSplit(L.slice(1), next.alloc)}</b>, and it passes. Each pirate votes yes only if your offer beats their number there. You need ${half(pp.n) - 1} of them. Buy the cheapest.</p>`;
+  turn(PG, 'you', `If you go overboard, ${L[1]} proposes <b>${listSplit(L.slice(1), next.alloc)}</b>, and it passes. Each pirate votes yes only if your offer beats their number there. You need ${half(pp.n) - 1} of them. Buy the cheapest.`, 'Hint');
+}
+
+/* --- the shared controls row --- */
+function pgControls(){
+  const back = pgMode === 'back', play = pgMode === 'play';
+  $('#pg-controls').hidden = pgMode === 'crew';
+  const main = $('#pg-main'), n = $('#pg-n');
+  main.textContent = play ? 'Propose this split' : 'Check my prediction';
+  main.classList.toggle('btn-you', play); main.classList.toggle('btn-win', !play);
+  main.disabled = back && pg.revealed;
+  $('#pg-help').textContent = play ? 'Hint' : 'Show the answer';
+  $('#pg-help').disabled = back && pg.revealed;
+  $('#pg-next').hidden = !back; $('#pg-next').disabled = !pg.revealed; $('#pg-next').textContent = pgNextLabel();
+  $('#pg-restart').textContent = play ? 'Reset' : 'Start over';
+  n.disabled = !play; n.min = play ? '3' : '2'; n.value = String(play ? pp.n : STEP_CREWS[pg.step]);
+}
+$('#pg-main').addEventListener('click', () => pgMode === 'play' ? ppPropose() : pgCheck());
+$('#pg-help').addEventListener('click', () => pgMode === 'play' ? ppHint() : pgReveal());
+$('#pg-next').addEventListener('click', () => {
+  if (!pg.revealed) return;
+  if (pg.step < 3){ pg.step++; pgRender(); }
+  else { const b = $('#pg-mode button[data-v="play"]'); if (b) b.click(); }
 });
-$('#pg-play-reset').addEventListener('click', () => ppRender(false));
+$('#pg-restart').addEventListener('click', () => { if (pgMode === 'play') ppRender(false); else { pg.step = 0; pgRender(); } });
 
 /* --- Big crews --- */
 function pgCrew(){
@@ -367,16 +396,23 @@ function pgCrew(){
 $('#pg-crew-n').addEventListener('change', pgCrew); $('#pg-crew-n').addEventListener('input', pgCrew);
 $('#pg-crew-c').addEventListener('change', pgCrew); $('#pg-crew-c').addEventListener('input', pgCrew);
 
-seg($('#pg-mode'), v => {
+function pgSetMode(v){
+  pgMode = v;
   $('#pg-back').hidden = v !== 'back'; $('#pg-play').hidden = v !== 'play'; $('#pg-crew').hidden = v !== 'crew';
   $('#pg-rules').textContent = v === 'crew' ? 'Same rules, any crew size. Type a number and see who survives.' : 'At least half the votes, counting the proposer\'s own, and the split happens.';
-});
+  pgControls();
+  if (v === 'back'){ if (pg.revealed) pgSolved(pg.how); else pgAsk(); }
+  else if (v === 'play'){ ppClearVotes(); $('#pg-play-explain').innerHTML = ''; ppAsk(); }
+  else turn(PG, 'math', 'Type a number of <b>Pirates</b> (2 to 500) and <b>Coins</b>. The solver works backward from 1 pirate and tells you what the captain keeps. Try 200, then 203.');
+}
+seg($('#pg-mode'), pgSetMode);
 pgRender(); ppRender(false); pgCrew();
 
 /* ================= The melting cake ================= */
 const START = 100, SHRINK = 0.8;
 const mp = { rounds: 3, round: 1, over: false, busy: false, id: 0, you: 0, robo: 0, log: [], sol: null, pending: null, puddle: false };
-const mpStatus = html => { $('#mp-status').innerHTML = html; };
+const MP = '#mp-board';
+const mpTag = () => `Round ${Math.min(mp.round, mp.rounds)} of ${mp.rounds}`;
 const fmt = x => Number.isInteger(x) ? String(x) : x.toFixed(1);
 const mpPie = () => mp.sol.pies[mp.round];
 const sliderEl = $('#mp-slider');
@@ -411,8 +447,9 @@ function mpRender(){
   $('#mp-round').textContent = String(Math.min(mp.round, mp.rounds)); $('#mp-total').textContent = String(mp.rounds);
   $('#mp-left').textContent = mp.puddle ? '0' : fmt(mp.pending && mp.pending.done ? mp.pending.pie : mpPie());
   const youPropose = !mp.over && !mp.pending && mp.round % 2 === 1;
-  $('#mp-offer-row').hidden = !youPropose; $('#mp-offer').disabled = mp.busy;
-  $('#mp-respond').hidden = !(mp.pending && !mp.pending.done);
+  const youRespond = !!(mp.pending && !mp.pending.done);
+  $('#mp-offer').disabled = !youPropose || mp.busy;                       // all three stay visible; the strip says which are live
+  $('#mp-yes').disabled = !youRespond; $('#mp-no').disabled = !youRespond;
   sliderEl.disabled = mp.over || mp.busy || !!mp.pending;
   sliderEl.max = String(mp.over ? sliderEl.max : mpPie());
   $('#mp-hint').disabled = mp.over;
@@ -424,7 +461,7 @@ function mpNew(){
   mp.round = 1; mp.over = false; mp.busy = false; mp.you = 0; mp.robo = 0; mp.log = []; mp.pending = null; mp.puddle = false; mp.id++;
   sliderEl.max = String(START); sliderEl.value = '50'; mpSlider();
   mpRender();
-  mpStatus('Round 1. Slide to choose how much of the cake Robo gets, then offer.');
+  turn(MP, 'you', 'Drag the <b>Robo gets</b> slider to split the cake, then press <b>Offer this split</b>. Accept and Reject light up when Robo makes you an offer.', mpTag());
 }
 function mpEnd(youGets, roboGets, pie){
   mp.over = true; mp.busy = false; mp.you = youGets; mp.robo = roboGets;
@@ -435,7 +472,7 @@ function mpMelt(){
   mp.round++;
   if (mp.round > mp.rounds){
     mp.over = true; mp.busy = false; mp.puddle = true; mp.pending = null; mpRender();
-    mpStatus('No deal in the last round. The cake is a puddle and nobody gets anything.');
+    turn(MP, 'lose', 'No deal in the last round. The cake is a puddle and nobody gets anything. Press Start over.', 'Melted');
     return false;
   }
   mp.log.push(`No deal. The cake melts to ${fmt(mpPie())}.`);
@@ -445,7 +482,7 @@ async function mpOffer(){
   if (mp.over || mp.busy || mp.pending || mp.round % 2 !== 1) return;
   const pie = mpPie(), robo = Math.max(0, Math.min(pie, Number(sliderEl.value))), you = pie - robo;
   mp.busy = true; mpRender();
-  mpStatus(`You offer Robo ${fmt(robo)} and keep ${fmt(you)}. Robo is thinking...`);
+  turn(MP, 'robo', `You offer Robo ${fmt(robo)} and keep ${fmt(you)}. Robo is thinking...`);
   const id = mp.id;
   await wait(700);
   if (id !== mp.id) return;
@@ -453,19 +490,19 @@ async function mpOffer(){
   if (robo >= floor){
     mp.log.push(`Round ${mp.round}: you offered ${fmt(robo)}. Robo accepted.`);
     mpEnd(you, robo, pie);
-    let html = `<span class="win-c">Robo accepts.</span> You keep ${fmt(you)}, Robo gets ${fmt(robo)}.`;
+    let html = `Robo accepts. You keep ${fmt(you)}, Robo gets ${fmt(robo)}.`;
     if (mp.round === 1 && robo > floor) html += ` Robo would have taken ${fmt(floor)}.`;
     if (mp.rounds === 3 && mp.round === 1 && you >= 84){ html += ' That is the backward-induction offer.'; earn('bg-melt'); }
-    mpStatus(html);
+    turn(MP, 'win', html + ' Press Start over to try another first offer.', 'Deal');
   } else {
     mp.log.push(`Round ${mp.round}: you offered ${fmt(robo)}. Robo refused.`);
     mp.busy = false;
-    if (mpMelt()) mpRoboTurn(`<span class="robo">Robo says no.</span> `);
+    if (mpMelt()) mpRoboTurn('Robo says no. ');
   }
 }
 async function mpRoboTurn(prefix){
   mp.busy = true; mp.pending = null; mpRender();
-  mpStatus(`${prefix || ''}Round ${mp.round}: the cake is worth ${fmt(mpPie())} and Robo is deciding what to offer...`);
+  turn(MP, 'robo', `${prefix || ''}Round ${mp.round}: the cake has melted to ${fmt(mpPie())} and Robo is deciding what to offer...`);
   const id = mp.id;
   await wait(750);
   if (id !== mp.id) return;
@@ -473,8 +510,8 @@ async function mpRoboTurn(prefix){
   mp.busy = false; mp.pending = { robo, you, pie, done: false };
   sliderEl.max = String(pie); sliderEl.value = String(robo); mpSlider();
   mpRender();
-  const later = mp.round < mp.rounds ? ` Or reject, and propose from ${fmt(mp.sol.pies[mp.round + 1])} in round ${mp.round + 1}.` : ' Reject and it melts to nothing.';
-  mpStatus(`Robo offers you <b class="you">${fmt(you)}</b> and keeps <b class="robo">${fmt(robo)}</b>. Accept?${later}`);
+  const later = mp.round < mp.rounds ? `, or <b>Reject</b> and propose from a cake worth ${fmt(mp.sol.pies[mp.round + 1])} in round ${mp.round + 1}.` : ', or <b>Reject</b> and it melts to nothing.';
+  turn(MP, 'you', `Robo offers you <b class="you">${fmt(you)}</b> and keeps <b class="robo">${fmt(robo)}</b>. Press <b>Accept</b>${later}`, mpTag());
 }
 $('#mp-offer').addEventListener('click', mpOffer);
 $('#mp-yes').addEventListener('click', () => {
@@ -482,7 +519,7 @@ $('#mp-yes').addEventListener('click', () => {
   const p = mp.pending;
   mp.log.push(`Round ${mp.round}: Robo offered you ${fmt(p.you)}. You accepted.`);
   mpEnd(p.you, p.robo, p.pie);
-  mpStatus(`Deal. You get ${fmt(p.you)}, Robo keeps ${fmt(p.robo)}.`);
+  turn(MP, 'math', `Deal. You get ${fmt(p.you)}, Robo keeps ${fmt(p.robo)}. Press Start over and see if a different first offer leaves you with more.`, 'Deal');
 });
 $('#mp-no').addEventListener('click', () => {
   if (mp.over || !mp.pending || mp.pending.done) return;
@@ -492,7 +529,7 @@ $('#mp-no').addEventListener('click', () => {
   if (!mpMelt()) return;
   sliderEl.max = String(mpPie()); sliderEl.value = String(Math.min(Number(sliderEl.value), mpPie())); mpSlider();
   mpRender();
-  mpStatus(`Round ${mp.round}. The cake is worth ${fmt(mpPie())}. Your offer.`);
+  turn(MP, 'you', `You said no. The cake has melted to ${fmt(mpPie())}. Drag the slider and press <b>Offer this split</b>.`, mpTag());
 });
 $('#mp-hint').addEventListener('click', () => {
   if (mp.over) return;
@@ -503,7 +540,7 @@ $('#mp-hint').addEventListener('click', () => {
     else if (youP) parts.push(`round ${r} (worth ${fmt(pies[r])}): Robo can guarantee ${fmt(g[r + 1].robo)} by refusing, so offer ${fmt(g[r + 1].robo)} and keep ${fmt(g[r].you)}`);
     else parts.push(`round ${r} (worth ${fmt(pies[r])}): you can guarantee ${fmt(g[r + 1].you)} by refusing, so Robo must offer you ${fmt(g[r + 1].you)} and keeps ${fmt(g[r].robo)}`);
   }
-  mpStatus('Work backwards. ' + parts.join('. ') + '.');
+  turn(MP, 'you', 'Work backwards. ' + parts.join('. ') + '.', 'Hint');
 });
 $('#mp-new').addEventListener('click', mpNew);
 seg($('#mp-rounds'), v => { mp.rounds = Number(v) === 2 ? 2 : 3; mpNew(); });

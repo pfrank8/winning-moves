@@ -120,6 +120,8 @@ svg text{ font-family:var(--f-display) }
   background:var(--surface); border:3px solid var(--line); border-radius:16px; box-shadow:8px 8px 0 var(--drop);
   padding:clamp(16px,3vw,28px); margin:26px 8px 34px 0; max-width:840px;
 }
+/* Arcade and glossary links jump straight to a board or heading: keep it clear of the sticky top bar. */
+.board, h2[id], h3[id], section[id], [id].term{ scroll-margin-top:74px }
 .board-head{ display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:8px 16px; margin-bottom:14px }
 .board-head h3{ margin:0 }
 .board-head .rules{ color:var(--ink-soft); font-size:.95rem }
@@ -197,6 +199,7 @@ input[type=text],select{ width:auto; max-width:100% }
 .seg button{ font:600 .95rem var(--f-display); padding:.5em .9em; border:0; background:var(--surface); color:var(--ink); cursor:pointer }
 .seg button + button{ border-left:3px solid var(--line) }
 .seg button.on{ background:var(--ink); color:var(--paper) }
+.seg button:disabled{ opacity:.45; cursor:not-allowed }
 .slider{ display:grid; gap:4px; margin-bottom:14px }
 .slider .lab{ display:flex; justify-content:space-between; gap:12px; font:600 1rem var(--f-display) }
 .slider .lab .v{ font-family:var(--f-mono); font-weight:600; white-space:nowrap }
@@ -209,6 +212,7 @@ input[type=text],select{ width:auto; max-width:100% }
   position:sticky; top:60px; z-index:3; display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
   margin:0 0 16px; padding:9px 14px; border:2px solid var(--line); border-left-width:8px; border-radius:12px;
   background:var(--surface-2); font:600 1.02rem var(--f-display); line-height:1.35;
+  min-height:calc(2.7em + 22px); align-content:center;   /* room for two lines, so the play area never jumps when the message wraps */
 }
 .turn .turn-tag{ font:600 .72rem var(--f-mono); letter-spacing:.09em; text-transform:uppercase; white-space:nowrap; color:var(--ink-soft) }
 .turn .turn-text{ flex:1 1 16ch; min-width:0 }
@@ -239,8 +243,8 @@ input[type=text],select{ width:auto; max-width:100% }
 .pay.pick-rows.locked tr.pickable th.rh{ box-shadow:none; opacity:.55 }
 
 /* A gentle "this is the thing you click" cue. WM.cue() removes it on the first interaction. */
-@keyframes wm-pulse{ 0%{ box-shadow:0 0 0 0 color-mix(in srgb, var(--you) 55%, transparent) } 100%{ box-shadow:0 0 0 12px transparent } }
-.cue{ animation:wm-pulse 1.4s ease-out infinite; border-radius:12px }
+@keyframes wm-pulse{ 0%{ outline-color:color-mix(in srgb, var(--you) 75%, transparent); outline-offset:1px } 100%{ outline-color:transparent; outline-offset:11px } }
+.cue{ outline:3px solid transparent; animation:wm-pulse 1.4s ease-out infinite }   /* an outline ring, so a button keeps its drop shadow while it pulses */
 @media (prefers-reduced-motion: reduce){ .cue{ outline:3px dashed var(--you); outline-offset:3px } }
 
 /* ---------- payoff tables ---------- */
@@ -252,7 +256,7 @@ input[type=text],select{ width:auto; max-width:100% }
 .pay th.corner{ font:500 .8rem var(--f-mono); color:var(--ink-soft); text-align:right; white-space:nowrap }
 .pay td{ width:96px; height:62px; text-align:center; border:2px solid var(--line); border-radius:10px; background:var(--surface-2); font-size:1.15rem; font-weight:600; position:relative }
 .pay td .sep{ color:var(--ink-soft); margin:0 .35em; font-weight:400 }
-.pay td.click{ cursor:pointer } .pay td.click:hover{ background:var(--math-soft) }
+.pay td.click{ cursor:pointer } .pay td.click:not(.no):not(.ne):not(.hit):not(.win):not(.lose):hover{ background:var(--math-soft) }  /* a verdict color must stay visible under the cursor: you are always hovering the box you just clicked */
 .pay td.hit{ outline:4px solid var(--math); outline-offset:-2px; background:var(--math-soft) }
 .pay td.colhl{ background:var(--robo-soft); border-color:var(--robo) }
 .pay td.rowhl{ background:var(--you-soft); border-color:var(--you) }

@@ -2,7 +2,7 @@
    and the same board wearing a politics skin). One board factory drives all four boards on the page. */
 (function(){
 'use strict';
-const { $, $$, wait, earn, seg, slider, clamp } = WM;
+const { $, $$, wait, earn, seg, slider, clamp, turn, reveal, cue } = WM;
 
 /* @pure-start
    Everything between the pure markers is DOM-free. The node test (scratch) evaluates this block on its own. */
@@ -102,18 +102,16 @@ const WORDS = {
 
 /* The four boards on the page. */
 const BOARDS = {
-  'ic-b1': { carts: 2, you: 70, robo: 20, buttons: ['robo', 'turns', 'reset'], star: 'middle',
-             note: 'Drag your cart, tap anywhere on the sand, or use the slider. Arrow keys work too.' },
+  'ic-b1': { carts: 2, you: 70, robo: 20, buttons: ['robo', 'turns', 'reset'], star: 'middle', cue: true },
   'ic-b2': { carts: 2, you: 30, robo: 20, crowd: true, skew: 6, buttons: ['robo', 'turns', 'hint', 'reset'], star: 'median',
-             note: 'Park on the median before pressing Take turns. Hint counts the crowd on each side of you.' },
-  'ic-b3': { carts: 3, p3: 80, you: 50, robo: 20, threeToggle: true, buttons: ['turns', 'stop', 'reset'], quiz: true, star: 'three',
-             note: 'Turn order: Robo, Robo 2, you. A cart moves only when it can gain.' },
-  'ic-b4': { carts: 2, you: 30, robo: 70, skin: 'vote', skinToggle: true, crowd: true, lean: true, skew: 0, buttons: ['robo', 'turns', 'reset'], showMedian: true,
-             note: 'Slide the voters left or right, then Take turns. Both candidates land on the median voter.' },
+             note: '<b>Hint</b> counts the crowd on each side of your cart. The slider and the arrow keys move it one meter at a time.' },
+  'ic-b3': { carts: 3, p3: 80, you: 50, robo: 20, threeToggle: true, buttons: ['turns', 'stop', 'reset'], quiz: true, star: 'three' },
+  'ic-b4': { carts: 2, you: 30, robo: 70, skin: 'vote', skinToggle: true, crowd: true, lean: true, skew: 0, buttons: ['robo', 'turns', 'reset'], showMedian: true },
 };
 
 function makeBoard(id, o){
   const host = $('#' + id); if (!host) return;
+  const opening = $('.turn .turn-text', host.closest('.board')).innerHTML;   // the strip's first line, written in the chapter HTML; Reset puts it back
   const b = { n: o.carts, skin: o.skin || 'ice', pos: [o.you, o.robo, o.p3 == null ? 80 : o.p3], skew: o.skew || 0, cust: [], busy: false, run: 0, moves: 0, threeMoves: 0 };
   b.cust = crowd(b.skew);
   const W = () => WORDS[b.skin];
@@ -121,44 +119,57 @@ function makeBoard(id, o){
   const has = k => o.buttons.includes(k);
   const btn = (k, cls, label) => `<button class="btn ${cls}" type="button" data-k="${k}">${label}</button>`;
 
+  const crowdSlider = o.crowd ? `<div class="slider"><label class="lab" for="${id}-crowd"><span class="ic-lab-crowd"></span><span class="v" data-for="${id}-crowd"></span></label><input type="range" id="${id}-crowd" min="${o.lean ? -10 : 0}" max="10" value="${b.skew}"></div>` : '';
   host.innerHTML = `
+    <div class="controls">
+      ${o.threeToggle ? `<div class="seg ic-seg-n"><button type="button" ${b.n === 2 ? 'class="on"' : ''} data-v="2">Two carts</button><button type="button" ${b.n === 3 ? 'class="on"' : ''} data-v="3">Three carts</button></div>` : ''}
+      ${o.skinToggle ? `<div class="seg ic-seg-skin"><button type="button" ${b.skin === 'ice' ? 'class="on"' : ''} data-v="ice">Ice cream</button><button type="button" ${b.skin === 'vote' ? 'class="on"' : ''} data-v="vote">Politics</button></div>` : ''}
+      ${has('robo') ? btn('robo', 'btn-robo', W().move) : ''}
+      ${has('turns') ? btn('turns', 'btn-math', 'Take turns') : ''}
+      ${has('stop') ? btn('stop', 'btn-sm', 'Stop') : ''}
+      ${has('hint') ? btn('hint', 'btn-math btn-sm', 'Hint') : ''}
+      ${has('reset') ? btn('reset', 'btn-sm', 'Reset') : ''}
+      ${crowdSlider}
+    </div>
     <div class="ic-scene" data-skin="${b.skin}" data-carts="${b.n}">
       <div class="ic-carts">
         <button type="button" class="ic-cart ic-c0"><span class="nm"></span><span class="n"></span></button>
         <span class="ic-cart ic-c1"><span class="nm"></span><span class="n"></span></span>
         <span class="ic-cart ic-c2"><span class="nm"></span><span class="n"></span></span>
       </div>
-      <div class="ic-strip"></div>
-      <div class="ic-water"></div>
+      <div class="ic-beach">
+        <div class="ic-strip"><i class="ic-ghost"><span></span></i></div>
+        <div class="ic-water"></div>
+      </div>
       <div class="ic-axis"></div>
     </div>
-    <div class="slider"><label class="lab" for="${id}-you"><span class="ic-lab-you"></span><span class="v" data-for="${id}-you"></span></label><input type="range" id="${id}-you" min="0" max="${LEN}" value="${b.pos[0]}"></div>
-    ${o.crowd ? `<div class="slider"><label class="lab" for="${id}-crowd"><span class="ic-lab-crowd"></span><span class="v" data-for="${id}-crowd"></span></label><input type="range" id="${id}-crowd" min="${o.lean ? -10 : 0}" max="10" value="${b.skew}"></div>` : ''}
-    <div class="row">
-      ${o.threeToggle ? `<div class="seg ic-seg-n"><button type="button" ${b.n === 2 ? 'class="on"' : ''} data-v="2">Two carts</button><button type="button" ${b.n === 3 ? 'class="on"' : ''} data-v="3">Three carts</button></div>` : ''}
-      ${o.skinToggle ? `<div class="seg ic-seg-skin"><button type="button" ${b.skin === 'ice' ? 'class="on"' : ''} data-v="ice">Ice cream</button><button type="button" ${b.skin === 'vote' ? 'class="on"' : ''} data-v="vote">Politics</button></div>` : ''}
-      ${has('robo') ? btn('robo', 'btn-robo', W().move) : ''}
-      ${has('turns') ? btn('turns', 'btn-math', 'Take turns') : ''}
-      ${has('stop') ? btn('stop', 'btn-sm', 'Stop') : ''}
-      ${has('hint') ? btn('hint', 'btn-sm', 'Hint') : ''}
-      ${has('reset') ? btn('reset', 'btn-sm', 'Reset') : ''}
-    </div>
+    <div class="slider ic-you-slider"><label class="lab" for="${id}-you"><span class="ic-lab-you"></span><span class="v" data-for="${id}-you"></span></label><input type="range" id="${id}-you" min="0" max="${LEN}" value="${b.pos[0]}"></div>
     <div class="stats ic-stats"></div>
-    <div class="status"></div>
     <p class="note ic-note"></p>
     ${o.quiz ? `<div class="ic-quiz"><span class="q">When the three carts are packed together, which one gets squeezed and has to hop?</span>
       <button class="btn btn-sm" type="button" data-a="left">The one on the left</button>
       <button class="btn btn-sm" type="button" data-a="mid">The one in the middle</button>
-      <button class="btn btn-sm" type="button" data-a="right">The one on the right</button>
-      <span class="ic-quiz-msg"></span></div>` : ''}`;
+      <button class="btn btn-sm" type="button" data-a="right">The one on the right</button></div>` : ''}`;
 
   const scene = $('.ic-scene', host), strip = $('.ic-strip', host), axis = $('.ic-axis', host);
   const cartEls = [$('.ic-c0', host), $('.ic-c1', host), $('.ic-c2', host)];
   const youIn = $('#' + id + '-you'), youOut = $(`[data-for="${id}-you"]`), crowdIn = o.crowd ? $('#' + id + '-crowd') : null;
-  const statusEl = $('.status', host), noteEl = $('.ic-note', host), statsEl = $('.ic-stats', host);
+  const noteEl = $('.ic-note', host), statsEl = $('.ic-stats', host), ghost = $('.ic-ghost', host);
   const button = k => $(`[data-k="${k}"]`, host);
-  const say = html => { statusEl.innerHTML = html; };
+  /* The strip under the board head is the narrator (CHAPTER_SPEC.md, "Game UX contract"). Its opening line is written
+     in the chapter HTML; say() replaces it as soon as the reader or a cart does something. */
+  const say = (who, html, tag) => turn(host, who, html, tag);
   const note = html => { noteEl.innerHTML = html; };
+  /* what to press next, given the board */
+  const next = () => o.star === 'median' ? 'Press <b>Take turns</b> when you think you are on the median.'
+    : has('robo') && b.n === 2 ? `Press <b>${W().move}</b> for one best reply, or <b>Take turns</b> to let both keep hopping.`
+    : 'Press <b>Take turns</b>.';
+  const sayState = lead => say('you', `${lead ? lead + ' ' : ''}${splitText()} ${next()}`);
+  const crowdLabel = () => o.lean && b.skin === 'ice' ? 'Crowd leans' : W().crowd;   // the two-way slider needs a two-way name
+  const crowdName = () => `<b>${crowdLabel()}</b> slider`;
+  const openingLine = () => o.skinToggle
+    ? `Drag the ${crowdName()} left or right. Then press <b>Take turns</b> and watch where the two ${b.skin === 'ice' ? 'carts' : 'candidates'} land.`
+    : opening;
 
   /* customers: one dot each, staggered onto four rows so a pile looks like a crowd */
   const dots = [];
@@ -189,7 +200,7 @@ function makeBoard(id, o){
   function relabel(){
     const w = W();
     $('.ic-lab-you', host).textContent = w.place;
-    if (crowdIn) $('.ic-lab-crowd', host).textContent = w.crowd;
+    if (crowdIn) $('.ic-lab-crowd', host).textContent = crowdLabel();
     if (button('robo')) button('robo').textContent = w.move;
     for (let i = 0; i < 3; i++) $('.k', tile['c' + i]).textContent = w.tiles[i];
     if (tile.med){ $('.k', tile.med).textContent = w.medianLab; $('.k', tile.mean).textContent = w.meanLab; }
@@ -239,10 +250,10 @@ function makeBoard(id, o){
   /* stopping a run: anything the reader does with the board while carts are moving cancels the run */
   function stopRun(){ b.run++; if (b.busy){ b.busy = false; updateButtons(); } }
 
-  function setYou(x){
+  function setYou(x, clicked){
     x = clamp(Math.round(x), 0, LEN);
-    if (x === b.pos[0]) return;
-    stopRun(); b.pos[0] = x; render(); say(splitText());
+    if (x === b.pos[0] && !clicked) return;
+    stopRun(); b.pos[0] = x; render(); sayState();
   }
 
   /* dragging: on your cart, or anywhere on the sand */
@@ -253,13 +264,21 @@ function makeBoard(id, o){
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       dragging = el; cartEls[0].classList.add('drag');
       try { el.setPointerCapture(e.pointerId); } catch (err) {}
-      if (el === strip) setYou(posFromEvent(e)); else stopRun();
+      if (el === strip) setYou(posFromEvent(e), true); else stopRun();
+      ghost.classList.remove('on');
       e.preventDefault();
     });
     el.addEventListener('pointermove', e => { if (dragging === el) setYou(posFromEvent(e)); });
     const end = () => { if (dragging === el){ dragging = null; cartEls[0].classList.remove('drag'); } };
     el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end); el.addEventListener('lostpointercapture', end);
   }
+  /* a ghost marker follows the mouse over the sand, so it is plain that a click parks the cart there */
+  strip.addEventListener('pointermove', e => {
+    if (dragging || e.pointerType !== 'mouse'){ ghost.classList.remove('on'); return; }
+    const x = clamp(Math.round(posFromEvent(e)), 0, LEN);
+    ghost.style.left = x + '%'; $('span', ghost).textContent = `park at ${x}`; ghost.classList.add('on');
+  });
+  strip.addEventListener('pointerleave', () => ghost.classList.remove('on'));
   cartEls[0].addEventListener('keydown', e => {
     if (e.key === 'ArrowLeft'){ setYou(b.pos[0] - 1); e.preventDefault(); }
     else if (e.key === 'ArrowRight'){ setYou(b.pos[0] + 1); e.preventDefault(); }
@@ -268,7 +287,8 @@ function makeBoard(id, o){
   if (crowdIn){
     slider(crowdIn, v => v === 0 ? 'even' : (o.lean ? (v < 0 ? 'left ' : 'right ') + Math.abs(v) : 'level ' + v), v => {
       if (v === b.skew) return;
-      stopRun(); b.skew = v; b.cust = crowd(v); placeDots(); b.moves = 0; render(); say(splitText());
+      stopRun(); b.skew = v; b.cust = crowd(v); placeDots(); b.moves = 0; render();
+      sayState(v === 0 ? `The ${b.skin === 'ice' ? 'crowd is' : 'voters are'} spread evenly.` : `The ${b.skin === 'ice' ? 'crowd piles up' : 'voters lean'} to the ${v < 0 ? 'left' : 'right'}.`);
     });
   }
 
@@ -277,18 +297,22 @@ function makeBoard(id, o){
     if (b.busy || b.n !== 2) return;
     b.busy = true; const runId = ++b.run; updateButtons();
     const w = W(), had = counts(active(), b.cust)[1];
+    say('robo', `${w.names[1]} is looking for the spot that wins it the most ${w.thing}...`, w.names[1]);
     await wait(500); if (runId !== b.run) return;
     const br = bestResponse(1, active(), b.cust);
     const from = b.pos[1];
     b.pos[1] = br.pos; b.busy = false; render();
-    if (br.pos === from) say(`<b class="robo">${w.names[1]}</b> stays at ${from}. Nowhere on the ${b.skin === 'ice' ? 'beach' : 'line'} gets it more than the ${fmt(had)} ${w.thing} it already has.`);
-    else say(`<b class="robo">${w.names[1]}</b>'s best reply to <b class="you">${w.names[0]}</b> at ${b.pos[0]} is ${br.pos}: it takes ${fmt(br.count)} ${w.thing} (it had ${fmt(had)}). ${w.names[0]} ${b.skin === 'ice' ? 'keep' : 'keeps'} ${fmt(counts(active(), b.cust)[0])}.`);
+    const mine = counts(active(), b.cust)[0];
+    const what = br.pos === from
+      ? `<b class="robo">${w.names[1]}</b> stays at ${from}. Nowhere on the ${b.skin === 'ice' ? 'beach' : 'line'} gets it more than the ${fmt(had)} ${w.thing} it already has.`
+      : `<b class="robo">${w.names[1]}</b>'s best reply to <b class="you">${w.names[0]}</b> at ${b.pos[0]} is ${br.pos}: it takes ${fmt(br.count)} ${w.thing} (it had ${fmt(had)}). ${w.names[0]} ${b.skin === 'ice' ? 'keep' : 'keeps'} ${fmt(mine)}.`;
     if (o.star === 'middle' && Math.abs(b.pos[0] - 50) <= 1 && br.count <= 50.5 + 1e-9){
-      note(b.pos[0] === 50
+      say('win', `${what} ${b.pos[0] === 50
         ? 'Robo\'s best move is to park right next to you and take half. Nothing on the beach beats that. You found the middle.'
-        : 'Robo squeezes half a customer by standing at 50. Exactly 50 is the one spot where it cannot even do that, but this is the middle.');
+        : 'Robo squeezes half a customer by standing at 50. Exactly 50 is the one spot where it cannot even do that, but this is the middle.'} Now press <b>Take turns</b> from anywhere and watch both carts end up here.`, 'Unbeatable');
       earn('ic-middle');
-    }
+    } else if (br.count > mine + 1e-9) say('lose', `${what} Park somewhere else and press <b>${w.move}</b> again.`, `${w.names[1]} is ahead`);
+    else say('win', `${what} ${w.names[1]} could not get ahead of you. Press <b>Take turns</b> to see whether this spot holds.`, 'Level');
   }
 
   /* Take turns: best-response dynamics, animated */
@@ -296,9 +320,10 @@ function makeBoard(id, o){
     if (b.busy) return;
     b.busy = true; const runId = ++b.run; b.moves = 0; updateButtons();
     const w = W(), n = b.n;
+    let calledIt = false;
     if (o.star === 'median'){
       const m = median(b.cust);
-      if (Math.abs(b.skew) >= 2 && Math.abs(b.pos[0] - m) <= 2){ note('You parked on the median before anyone moved. Watch the carts come to you.'); earn('ic-median'); }
+      if (Math.abs(b.skew) >= 2 && Math.abs(b.pos[0] - m) <= 2){ calledIt = true; note('You parked on the median before anyone moved. Watch the carts come to you.'); earn('ic-median'); }
       else if (Math.abs(b.skew) >= 2) note('Watch where they settle. Then reset, park there yourself, and press Take turns again.');
       else note('The crowd is even, so the median is 50. Slide the crowd control first for the uneven beach.');
     }
@@ -310,16 +335,25 @@ function makeBoard(id, o){
         const from = b.pos[i], had = counts(active(), b.cust)[i], wasMiddle = middle(i);
         b.pos[i] = br.pos; b.moves++; if (n === 3) b.threeMoves++; idle = 0; render();
         const who = `<b class="${['you', 'robo', 'ic-p3c'][i]}">${w.names[i]}</b>`;
-        if (wasMiddle) say(`Move ${b.moves}: ${who} was squeezed in the middle at ${from} with ${fmt(had)} ${w.thing}, and hops to ${br.pos} for ${fmt(br.count)}.`);
-        else say(`Move ${b.moves}: ${who} ${from} → ${br.pos}, now ${fmt(br.count)} ${w.thing} (had ${fmt(had)}).`);
+        if (wasMiddle) say('robo', `${who} was squeezed in the middle at ${from} with ${fmt(had)} ${w.thing}, and hops to ${br.pos} for ${fmt(br.count)}.`, `Move ${b.moves}`);
+        else say('robo', `${who} ${from} → ${br.pos}, now ${fmt(br.count)} ${w.thing} (had ${fmt(had)}).`, `Move ${b.moves}`);
+        if (o.quiz && n === 3 && b.threeMoves === 30) note('That is 30 moves with three carts. You can answer the question under the beach whenever you like.');
       } else idle++;
       if (idle >= n){
         const where = active().map((p, i) => `${w.names[i]} at ${p}`).join(', ');
-        let s = `<b class="win-c">Settled</b> after ${b.moves} move${b.moves === 1 ? '' : 's'}: ${where}. Nobody can gain a single ${w.one} by moving.`;
-        if (o.showMedian && Math.abs(b.pos[0] - median(b.cust)) <= 1) s += ' That is the median voter.';
-        say(s); break;
+        let s = `Settled after ${b.moves} move${b.moves === 1 ? '' : 's'}: ${where}. Nobody can gain a single ${w.one} by moving.`;
+        if (o.showMedian && Math.abs(b.pos[0] - median(b.cust)) <= 1) s += ` That is the median ${b.skin === 'ice' ? 'customer' : 'voter'}.`;
+        if (o.star === 'median') s += calledIt ? ' You called the median before anyone moved.'
+          : Math.abs(b.skew) >= 2 ? ' Press <b>Reset</b>, park your cart where they settled, and press <b>Take turns</b> again.'
+          : ' The crowd is even, so that is 50. Drag the crowd slider to make the beach uneven, then try again.';
+        else s += o.crowd ? ` Drag the ${crowdName()} and run it again.` : ' Park somewhere else and press <b>Take turns</b> again.';
+        say('win', s, 'Settled'); break;
       }
-      if (b.moves >= MAX_MOVES){ say(`${b.moves} moves and still no rest. Whichever cart is in the middle gets squeezed and hops out, and the squeeze passes to the next cart. This never settles.`); break; }
+      if (b.moves >= MAX_MOVES){
+        say('math', `${b.moves} moves and still no rest. Whichever cart is in the middle gets squeezed and hops out, and the squeeze passes to the next cart. This never settles. ${o.quiz ? 'Now answer the question under the beach.' : 'Press <b>Reset</b>.'}`, 'No rest');
+        if (o.quiz) reveal($('.ic-quiz', host));
+        break;
+      }
       await wait(b.moves <= 3 ? 520 : (n === 3 ? 260 : 170));
       if (runId !== b.run) return;
     }
@@ -329,33 +363,41 @@ function makeBoard(id, o){
   /* buttons */
   if (button('robo')) button('robo').addEventListener('click', roboMoves);
   if (button('turns')) button('turns').addEventListener('click', takeTurns);
-  if (button('stop')) button('stop').addEventListener('click', () => { if (!b.busy) return; stopRun(); say(`Stopped after ${b.moves} moves. ${b.n === 3 ? 'It was never going to settle.' : ''}`); });
+  if (button('stop')) button('stop').addEventListener('click', () => {
+    if (!b.busy) return;
+    stopRun();
+    const quizNow = o.quiz && b.threeMoves >= 30;
+    const more = o.quiz && b.n === 3 ? ` The question under the beach needs 30 moves, and you have ${b.threeMoves}.` : '';
+    say('math', `Stopped after ${b.moves} moves. ${b.n === 3 ? 'It was never going to settle.' : ''} ${quizNow ? 'Now answer the question under the beach.' : 'Press <b>Take turns</b> to set them going again.' + more}`, 'Stopped');
+    if (quizNow) reveal($('.ic-quiz', host));
+  });
   if (button('hint')) button('hint').addEventListener('click', () => {
     const w = W(), x = b.pos[0], left = b.cust.filter(p => p < x).length, right = b.cust.filter(p => p > x).length;
-    say(`Left of <b class="you">${w.names[0]}</b> at ${x}: ${left} ${w.thing}. Right: ${right}. The median has 50 on each side.`);
+    say('math', `Left of <b class="you">${w.names[0]}</b> at ${x}: ${left} ${w.thing}. Right: ${right}. The median has 50 on each side. Move your cart toward the bigger side.`, 'Hint');
   });
   if (button('reset')) button('reset').addEventListener('click', () => {
-    stopRun(); b.pos = [o.you, o.robo, o.p3 == null ? 80 : o.p3]; b.moves = 0; render(); say(splitText()); note(o.note || '');
+    stopRun(); b.pos = [o.you, o.robo, o.p3 == null ? 80 : o.p3]; b.moves = 0; render(); say('you', openingLine()); note(o.note || '');
   });
   const segN = $('.ic-seg-n', host);
-  if (segN) seg(segN, v => { stopRun(); b.n = +v; scene.dataset.carts = v; b.moves = 0; render(); say(splitText()); });
+  if (segN) seg(segN, v => { stopRun(); b.n = +v; scene.dataset.carts = v; b.moves = 0; render(); sayState(b.n === 3 ? 'Three carts.' : 'Two carts: Robo 2 has gone home.'); });
   const segSkin = $('.ic-seg-skin', host);
-  if (segSkin) seg(segSkin, v => { stopRun(); b.skin = v; scene.dataset.skin = v; relabel(); render(); say(splitText()); });
+  if (segSkin) seg(segSkin, v => { stopRun(); b.skin = v; scene.dataset.skin = v; relabel(); render(); sayState(v === 'ice' ? 'Same board, ice cream labels.' : 'Same board, election labels.'); });
 
   /* the three-cart quiz */
   const quiz = $('.ic-quiz', host);
   if (quiz){
-    const msg = $('.ic-quiz-msg', quiz);
     $$('button[data-a]', quiz).forEach(q => q.addEventListener('click', () => {
-      if (q.dataset.a !== 'mid'){ msg.innerHTML = 'Watch the counts while they run. The outside carts keep everyone beyond them; the middle one gets only the sliver in between.'; return; }
-      if (b.threeMoves < 30){ msg.innerHTML = `Right. Now run <b>Take turns</b> with three carts for at least 30 moves (you have ${b.threeMoves}) and answer again.`; return; }
-      msg.innerHTML = '<b class="win-c">Right.</b> The middle cart gets only what lies between the two halfway points, so it hops outside, and then a different cart is in the middle.';
+      if (b.busy) stopRun();
+      if (q.dataset.a !== 'mid'){ say('you', 'Watch the counts while they run. The outside carts keep everyone beyond them; the middle one gets only the sliver in between. Answer again.', 'Not quite'); return; }
+      if (b.threeMoves < 30){ say('you', `Right. Now press <b>Take turns</b> with three carts and let them run for at least 30 moves (you have ${b.threeMoves}), then answer again.`, 'Almost'); return; }
+      say('win', 'The middle cart gets only what lies between the two halfway points, so it hops outside, and then a different cart is in the middle.', 'Right');
       earn('ic-three');
     }));
   }
 
   window.addEventListener('resize', () => { if (!b.busy) render(); });
-  relabel(); placeDots(); render(); say(splitText()); note(o.note || '');
+  relabel(); placeDots(); render(); note(o.note || '');
+  if (o.cue) cue(cartEls[0]);   // the chapter's first game: pulse the cart until the reader touches the board
 }
 
 for (const id of Object.keys(BOARDS)) makeBoard(id, BOARDS[id]);

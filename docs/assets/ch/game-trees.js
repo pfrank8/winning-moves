@@ -1,7 +1,7 @@
 /* Chapter 7: Seeing the whole tree. Tic-tac-toe with node counting, pruning, a shallow Robo, and tree puzzles. */
 (function(){
 'use strict';
-const { $, $$, pick, wait, earn, seg, fmtNum } = WM;
+const { $, $$, pick, wait, earn, seg, fmtNum, turn, reveal, cue } = WM;
 
 const LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 function winner(b){
@@ -44,15 +44,22 @@ function render(win){
   const host = $('#gt-ttt');
   if (!host.children.length) for (let i = 0; i < 9; i++){ const btn = document.createElement('button'); btn.type = 'button'; btn.setAttribute('aria-label', 'square ' + (i + 1)); btn.addEventListener('click', () => you(i)); host.appendChild(btn); }
   $$('button', host).forEach((btn, i) => { btn.textContent = g.b[i]; btn.className = g.b[i]; btn.disabled = g.over || g.busy || !!g.b[i]; if (win && win.line && win.line.includes(i)) btn.classList.add('line'); });
+  host.classList.toggle('wait', g.busy && !g.over);
 }
+const TTT = '#gt-ttt';
+const SQUARE = ['the top left corner', 'the top middle', 'the top right corner', 'the middle left', 'the center', 'the middle right', 'the bottom left corner', 'the bottom middle', 'the bottom right corner'];
+const AGAIN = 'Press New game to play again.';
 function end(win){
   g.over = true; g.busy = false; render(win);
-  if (win.who === 'draw'){ $('#gt-status').innerHTML = '<span class="win-c">A draw.</span> Against Perfect Robo that is the best anyone can do.'; if (g.brain === 'perfect') earn('gt-draw'); }
-  else if (win.who === 'X'){ $('#gt-status').innerHTML = '<span class="win-c">You won.</span>' + (g.brain === 'shallow' ? ' Shallow Robo never saw it coming.' : ' That should be impossible.'); if (g.brain === 'shallow') earn('gt-shallow'); else earn('gt-draw'); }
-  else $('#gt-status').innerHTML = '<span class="robo">Robo wins.</span> Robo saw that coming. Try again.';
+  if (win.who === 'draw'){
+    if (g.brain === 'perfect'){ turn(TTT, 'win', `The board is full and nobody has three in a row. Against Perfect Robo that is the best anyone can do. ${AGAIN}`, 'A draw'); earn('gt-draw'); }
+    else turn(TTT, 'math', `The board is full and nobody has three in a row. Shallow Robo can be beaten, though: set a trap that takes three moves to spring. ${AGAIN}`, 'A draw');
+  }
+  else if (win.who === 'X'){ turn(TTT, 'win', `Three in a row.${g.brain === 'shallow' ? ' Shallow Robo never saw it coming.' : ' That should be impossible.'} ${AGAIN}`); if (g.brain === 'shallow') earn('gt-shallow'); else earn('gt-draw'); }
+  else turn(TTT, 'lose', `Robo made three in a row. Robo saw that coming. Press New game and try again.`);
 }
 async function robo(){
-  g.busy = true; render(); $('#gt-status').textContent = g.brain === 'perfect' ? 'Robo is looking at every future...' : 'Robo is peeking two moves ahead...';
+  g.busy = true; render(); turn(TTT, 'robo', g.brain === 'perfect' ? 'Robo is looking at every future...' : 'Robo is peeking two moves ahead...');
   const id = g.id;
   await wait(450);
   if (id !== g.id) return;
@@ -71,14 +78,15 @@ async function robo(){
     $('#gt-thought').innerHTML = `Robo looked at <b>${fmtNum(cnt.full)}</b> possible futures before that move. With pruning it would have needed only <b>${fmtNum(cnt.pruned)}</b>.` + (bestS === 1 ? ' Robo has found a forced win.' : bestS === 0 ? ' The best Robo can force is a draw.' : '');
   } else $('#gt-thought').innerHTML = 'Shallow Robo checked its move and your reply, nothing deeper.';
   const w = winner(g.b); if (w) return end(w);
-  g.busy = false; render(); $('#gt-status').innerHTML = 'Your turn. You are <span class="you">X</span>.';
+  g.busy = false; render(); turn(TTT, 'you', `<span class="robo">Robo took ${SQUARE[m]}.</span> Click any empty square to place your <b class="you">X</b>.`);
 }
 function you(i){ if (g.over || g.busy || g.b[i]) return; g.b[i] = 'X'; const w = winner(g.b); if (w) return end(w); robo(); }
-function newGame(){ g.id++; g.b = Array(9).fill(''); g.over = false; g.busy = false; $('#gt-thought').textContent = 'Robo has not moved yet.'; render(); if (g.first === 'robo') robo(); else $('#gt-status').innerHTML = 'Your turn. You are <span class="you">X</span>.'; }
+function newGame(){ g.id++; g.b = Array(9).fill(''); g.over = false; g.busy = false; $('#gt-thought').textContent = 'Robo has not moved yet.'; render(); if (g.first === 'robo') robo(); else turn(TTT, 'you', 'Click any empty square to place your <b class="you">X</b>.'); }
 $('#gt-new').addEventListener('click', newGame);
 seg($('#gt-first'), v => { g.first = v; newGame(); });
 seg($('#gt-brain'), v => { g.brain = v; newGame(); });
 newGame();
+cue($('#gt-ttt'));
 
 /* ================= tree puzzles ================= */
 function evalX(b, player){ // value from X's perspective
@@ -106,14 +114,19 @@ const POOL = { now: [], only: [], later: [] };
     }
   }
 })();
-const pz = { b: null, kind: '', picked: null, solved: 0, answered: false, order: ['now', 'only', 'later'], k: 0 };
+const pz = { b: null, kind: '', picked: null, solved: 0, answered: false, shown: false, verdict: null, order: ['now', 'only', 'later'], k: 0 };
+const PUZ = '#gt-mini';
 function puzzleNew(){
   const kind = pz.order[pz.k % 3]; pz.k++;
   const pool = POOL[kind].length ? POOL[kind] : POOL.now;
-  pz.b = pick(pool).slice(); pz.kind = kind; pz.picked = null; pz.answered = false;
+  pz.b = pick(pool).slice(); pz.kind = kind; pz.picked = null; pz.answered = false; pz.verdict = null;
   $('#gt-puz-rules').textContent = kind === 'now' ? 'X to move. One square wins on the spot.' : kind === 'only' ? 'X to move. Two squares lose. One does not.' : 'X to move. No square wins right away, but one wins for sure.';
-  $('#gt-puz-status').textContent = 'Click a square.'; $('#gt-tree').innerHTML = ''; $('#gt-tree-wrap').hidden = true;
+  turn(PUZ, 'you', `It is <b class="you">X</b>'s move. Click the empty square you think is best.`); $('#gt-tree').innerHTML = ''; $('#gt-tree-wrap').hidden = true; $('#gt-tree-note').hidden = false; pz.shown = false;
   miniRender();
+}
+function puzVerdict(){
+  const next = pz.shown ? 'Follow the yellow path down the tree, then press New puzzle.' : 'Press Show the tree to see why, or New puzzle for the next one.';
+  turn(PUZ, pz.verdict.ok ? 'win' : 'you', `${pz.verdict.text} ${next}`, pz.verdict.ok ? 'Right' : 'Not the best');
 }
 function miniRender(){
   const host = $('#gt-mini'); host.innerHTML = '';
@@ -126,8 +139,9 @@ function miniRender(){
       const vals = empties.map(j => { const nb = pz.b.slice(); nb[j] = 'X'; return evalX(nb, 'O'); });
       const best = Math.max.apply(null, vals); const mine = vals[empties.indexOf(i)];
       const name = v => v === 1 ? 'X wins' : v === 0 ? 'a draw' : 'O wins';
-      if (mine === best){ pz.solved++; $('#gt-solved').textContent = pz.solved; $('#gt-puz-status').innerHTML = `<span class="win-c">Right.</span> That square leads to ${name(mine)} with best play. Show the tree to see why.`; if (pz.solved >= 3) earn('gt-tree'); }
-      else $('#gt-puz-status').innerHTML = `<span class="you">Not the best.</span> That square leads to ${name(mine)}; the best square leads to ${name(best)}. Show the tree and follow the values.`;
+      pz.verdict = mine === best ? { ok: true, text: `That square leads to ${name(mine)} with best play.` } : { ok: false, text: `That square leads to ${name(mine)}; the best square leads to ${name(best)}.` };
+      if (mine === best){ pz.solved++; $('#gt-solved').textContent = pz.solved; if (pz.solved >= 3) earn('gt-tree'); }
+      puzVerdict();
     });
     host.appendChild(btn);
   });
@@ -152,8 +166,9 @@ function miniSvg(x, y, b, size, highlight){
 $('#gt-show').addEventListener('click', () => {
   const tree = buildTree(pz.b, 'X');
   const SIZE = 54, GAPX = 66, LEVEL = 100;
-  const width = Math.max(700, tree.leaves * GAPX + 40);
-  let s = ''; let cursor = 20;
+  const GUTTER = 104;   // room for the "X picks max" labels, so they never sit under a position
+  const width = Math.max(420, tree.leaves * GAPX + GUTTER + 20);
+  let s = ''; let cursor = GUTTER;
   const val = v => (v === 1 ? '+1' : v === 0 ? '0' : '−1');
   const col = v => (v === 1 ? 'var(--you)' : v === 0 ? 'var(--ink-soft)' : 'var(--robo)');
   function place(node, depth, onBest){
@@ -173,8 +188,11 @@ $('#gt-show').addEventListener('click', () => {
   place(tree, 0, true);
   const depthMax = 3; const height = (depthMax + 1) * LEVEL + 10;
   s += `<text class="lbl" x="4" y="${20 + SIZE / 2}">X picks max</text><text class="lbl" x="4" y="${LEVEL + 20 + SIZE / 2}">O picks min</text><text class="lbl" x="4" y="${2 * LEVEL + 20 + SIZE / 2}">X picks max</text>`;
-  const svg = $('#gt-tree'); svg.setAttribute('viewBox', `0 0 ${width} ${height}`); svg.innerHTML = s; $('#gt-tree-wrap').hidden = false;
-  if (!pz.answered) $('#gt-puz-status').textContent = 'The yellow path is the best line of play. Values: +1 X wins, 0 draw, −1 O wins.';
+  const svg = $('#gt-tree'); svg.setAttribute('viewBox', `0 0 ${width} ${height}`); svg.style.maxWidth = width + 'px'; svg.innerHTML = s; $('#gt-tree-wrap').hidden = false; $('#gt-tree-note').hidden = true;
+  pz.shown = true;
+  if (!pz.answered) turn(PUZ, 'math', 'The yellow path is the best line of play. Values: +1 X wins, 0 draw, −1 O wins. Now click the best square.', 'The tree');
+  else puzVerdict();
+  reveal($('#gt-tree-wrap'));
 });
 $('#gt-next').addEventListener('click', puzzleNew);
 puzzleNew();

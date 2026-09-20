@@ -1,7 +1,7 @@
 /* Chapter: The pond that everyone owns (a shared pond that regrows, and the public goods game). */
 (function(){
 'use strict';
-const { $, $$, wait, earn, seg, slider, clamp } = WM;
+const { $, $$, wait, earn, seg, slider, clamp, turn } = WM;
 
 /* ---------- model (pure) ---------- */
 const R = 0.5, K = 100, F0 = 60, SEASONS = 20;
@@ -112,7 +112,7 @@ function drawPond(){
   }
   c.fillStyle = t.ink; c.font = `700 16px ${t.display}`; c.textBaseline = 'middle';
   c.textAlign = 'left'; c.fillText(`${fmt(pond.F)} fish`, 22, 24);
-  c.textAlign = 'right'; c.fillText(`Season ${pond.s} of ${SEASONS}`, W - 22, 24);
+  c.textAlign = 'right'; c.fillText(`${pond.s} of ${SEASONS} seasons played`, W - 22, 24);
   if (n === 0){ c.textAlign = 'center'; c.fillStyle = t.soft; c.font = `600 18px ${t.display}`; c.fillText('The pond is empty.', W / 2, H / 2 + 8); }
 }
 function renderPond(){
@@ -129,15 +129,20 @@ function renderPond(){
   const dead = pond.over || pond.busy;
   $('#cm-next').disabled = dead; $('#cm-run').disabled = dead; $('#cm-hint').disabled = dead;
   $('#cm-q-wrap').classList.toggle('off', !pond.quota); $('#cm-fine-wrap').classList.toggle('off', !pond.quota);
-  $('#cm-log').innerHTML = pond.log.slice(-4).join('<br>');
+  $('#cm-q').disabled = !pond.quota; $('#cm-fine').disabled = !pond.quota;
+  $('#cm-log').innerHTML = pond.log.slice().reverse().join('<br>');
+  $('#cm-logn').textContent = pond.log.length ? `${pond.log.length} season${pond.log.length === 1 ? '' : 's'}` : 'nothing yet';
 }
-const pstatus = html => { $('#cm-status').innerHTML = html; };
+/* The strip under the board head is the narrator (CHAPTER_SPEC.md, "Game UX contract"). */
+const ptell = (who, html, tag) => turn('#cm-pond', who, html, tag);
+const seasonTag = () => `Season ${Math.min(pond.s + 1, SEASONS)} of ${SEASONS}`;
+const ROBOT_SAYS = { greedy: 'Greedy robots always take 10.', careful: 'Careful robots take 3 each.', copycat: 'Copycat robots take whatever you took last season.', mixed: 'One Greedy robot, one Careful, one Copycat.' };
 
-function pondReset(){
+function pondReset(lead){
   pond.id++; pond.F = F0; pond.s = 0; pond.caught = [0, 0, 0, 0]; pond.fines = [0, 0, 0, 0]; pond.this = [0, 0, 0, 0];
   pond.lastYou = +$('#cm-catch').value; pond.path = [F0]; pond.bars = []; pond.busy = false; pond.over = false; pond.log = [];
   renderPond();
-  pstatus(`Season 0 of ${SEASONS}. The pond has ${F0} fish. Choose your catch and press Next season.`);
+  ptell('you', `${lead ? lead + ' ' : ''}The pond has ${F0} fish. Drag <b>My catch this season</b> to choose how many to take, then press <b>Next season</b>.`, seasonTag());
 }
 function playSeason(){
   const you = clamp(Math.round(+$('#cm-catch').value) || 0, 0, 10);
@@ -161,11 +166,14 @@ function pondFinish(){
   const alive = pond.F >= 40, mine = net(0);
   const tamed = pond.type === 'greedy' && pond.quota && alive && mine >= 40;
   let s = `Twenty seasons are done. The pond has <b>${fmt(pond.F)}</b> fish and you caught <b class="you">${fmt(mine)}</b>. `;
+  let who = 'math', tag = 'Result';   // nobody beat anybody here: a pond that fails is a result, not a Robo win
   if (alive && mine >= 70){
-    s += `<span class="win-c">Pond alive, and 70 or more for you. That is the sustainable way to be a little greedy.</span>`;
+    s += `Pond alive, and 70 or more for you. That is the sustainable way to be a little greedy.`;
+    who = 'win'; tag = 'You did it';
     earn('cm-alive');
   } else if (tamed){
-    s += `<span class="win-c">Three Greedy robots, tamed by a rule.</span> The fine made obeying the quota their best move.`;
+    s += `Three Greedy robots, tamed by a rule. The fine made obeying the quota their best move.`;
+    who = 'win'; tag = 'Tamed';
   } else if (alive){
     s += `The pond is fine, but you caught less than 70. The pond can spare about 12.5 a season in total. How much of that is going to the robots?`;
   } else if (pond.F < 0.5){
@@ -174,13 +182,13 @@ function pondFinish(){
     s += `<span class="you">The pond is below 40.</span> Too much was taken, too often. Try a smaller catch, or a quota.`;
   }
   if (tamed) earn('cm-rules');
-  pstatus(s);
+  ptell(who, `${s} Press <b>Reset</b> to play again.`, tag);
 }
 async function nextSeason(){
   if (pond.over || pond.busy) return;
   pond.busy = true; renderPond();
   const id = pond.id;
-  pstatus('The robots are choosing...');
+  ptell('robo', 'The robots are choosing...', 'Robos');
   await wait(450);
   if (id !== pond.id) return;
   const o = playSeason();
@@ -188,19 +196,20 @@ async function nextSeason(){
   if (pond.s >= SEASONS) return pondFinish();
   renderPond();
   const total = o.caught.reduce((a, b) => a + b, 0);
-  let s = `Season ${pond.s}: ${fmt(total)} fish caught in total, ${fmt(o.left)} left, the pond regrew to ${fmt(pond.F)}.`;
-  if (pond.F < 0.5) s = `Season ${pond.s}: <span class="you">the pond is empty.</span> Nothing will grow back. Press Run 20 seasons to see the rest, or Reset.`;
-  pstatus(s);
+  if (pond.F < 0.5) ptell('math', `<span class="you">The pond is empty</span> after ${pond.s} season${pond.s === 1 ? '' : 's'}. Nothing will grow back. Press <b>Run 20 seasons</b> to see the rest, or <b>Reset</b>.`, 'Empty');
+  else ptell('you', `Last season ${fmt(total)} fish were caught in total, ${fmt(o.left)} were left, and the pond regrew to ${fmt(pond.F)}. Set your catch and press <b>Next season</b>.`, seasonTag());
 }
 async function runAll(){
   if (pond.over || pond.busy) return;
   pond.busy = true; renderPond();
   const id = pond.id;
-  pstatus(`Running with your catch at ${$('#cm-catch').value} every season...`);
+  const mine = $('#cm-catch').value;
+  ptell('robo', `Running with your catch at ${mine} every season...`, 'Running');
   while (pond.s < SEASONS){
     await wait(140);
     if (id !== pond.id) return;
     playSeason(); renderPond();
+    ptell('robo', `You take ${mine} every season. After season ${pond.s} the pond has ${fmt(pond.F)} fish.`, 'Running');
   }
   pondFinish();
 }
@@ -212,21 +221,38 @@ $('#cm-hint').addEventListener('click', () => {
   const rt = [1, 2, 3].map(robotAsk).reduce((a, b) => a + b.ask, 0);
   const g = growth(pond.F - rt - (+$('#cm-catch').value));
   const room = Math.max(0, 12.5 - rt);
-  pstatus(`Hint: the robots will take ${fmt(rt)} this season, and the pond never grows more than 12.5. ` +
+  ptell('math', `The robots will take ${fmt(rt)} this season, and the pond never grows more than 12.5. ` +
     (room > 0 ? `About ${fmt(room)} a season for you keeps it level; take more now and you must take less later.`
               : `That is already more than the pond can regrow. Only a quota can save this pond.`) +
-    ` With your slider where it is, ${fmt(Math.max(0, g))} fish would grow back.`);
+    ` With your slider where it is, ${fmt(Math.max(0, g))} fish would grow back.`, 'Hint');
 });
-seg($('#cm-type'), v => { pond.type = v; pondReset(); });
-$('#cm-quota').addEventListener('change', e => { pond.quota = e.target.checked; renderPond(); });
+seg($('#cm-type'), v => { pond.type = v; pondReset(ROBOT_SAYS[v]); });
+/* every reader action is narrated in the strip, but only while the game is waiting for the reader */
+const pondIdle = () => !pond.over && !pond.busy;
+const quotaSays = () => {
+  const mine = +$('#cm-catch').value;
+  return `Quota on: nobody may take more than ${pond.q} a season, and breaking it costs ${pond.fine} fish. ` +
+    (mine > pond.q ? `Your own catch of ${mine} is over the quota, so you would be fined too. ` : '') +
+    'Press <b>Next season</b> or <b>Run 20 seasons</b> to see whether the robots obey.';
+};
+$('#cm-quota').addEventListener('change', e => {
+  pond.quota = e.target.checked; renderPond();
+  if (pondIdle()) ptell('you', pond.quota ? quotaSays() : 'Quota off: everyone may take what they like again. Set your catch and press <b>Next season</b>.', seasonTag());
+});
 slider($('#cm-catch'), v => String(v));
 slider($('#cm-q'), v => String(v), v => { pond.q = clamp(v, 1, 10); });
 slider($('#cm-fine'), v => `${v} fish`, v => { pond.fine = clamp(v, 0, 10); });
+$('#cm-catch').addEventListener('input', e => {
+  if (!pondIdle()) return;
+  const v = +e.target.value, over = pond.quota && v > pond.q;
+  ptell('you', `You will take <b class="you">${v}</b> this season${over ? `, which is over the quota of ${pond.q}: that costs you a fine of ${pond.fine} fish` : ''}. Press <b>Next season</b>, or <b>Run 20 seasons</b> to take ${v} every season.`, seasonTag());
+});
+for (const k of ['#cm-q', '#cm-fine']) $(k).addEventListener('input', () => { if (pondIdle() && pond.quota) ptell('you', quotaSays(), seasonTag()); });
 pondReset();
 
 /* ================= what if everyone did that ================= */
 const CALC = []; for (let c = 0; c <= 10; c++) CALC[c] = everyone(c, SEASONS);
-function calcRender(c){
+function calcRender(c, speak){
   c = clamp(c, 0, 10);
   const o = CALC[c];
   drawChart($('#cm-calc-chart'), o.path, null, {});
@@ -235,7 +261,7 @@ function calcRender(c){
   for (let k = 0; k <= 10; k++){
     const z = CALC[k];
     h += `<tr class="${k === c ? 'hl' : ''}"><td>${k}</td>` +
-         `<td>${fmt(z.total)}<div class="bar ${z.empty ? 'you' : 'win'}"><i style="width:${(100 * z.total / best).toFixed(0)}%"></i></div></td>` +
+         `<td>${fmt(z.total)}<span class="bar ${z.empty ? 'you' : 'win'}"><i style="width:${(100 * z.total / best).toFixed(0)}%"></i></span></td>` +
          `<td>${z.empty ? `empty by season ${z.empty}` : fmt(z.F)}</td></tr>`;
   }
   $('#cm-calc-table').innerHTML = h;
@@ -245,8 +271,17 @@ function calcRender(c){
   else s += `The pond keeps up. Each fisher gets ${fmt(o.total)} fish in 20 seasons and the pond ends at ${fmt(o.F)}.`;
   if (c === 3) s += ' <span class="win-c">This is the sweet spot.</span>';
   $('#cm-calc-status').innerHTML = s;
+  /* the strip keeps its opening instruction until the reader moves the slider, then it gives the headline */
+  if (!speak) return;
+  const tag = `Each takes ${c}`;
+  if (c === 0) turn('#cm-calc', 'math', 'Nobody fishes: the pond fills up to 100 and nobody eats. Drag right.', tag);
+  else if (o.empty) turn('#cm-calc', 'math', `${4 * c} fish a season is more than the pond can regrow: <span class="you">empty by season ${o.empty}</span>, and each fisher ends with only ${fmt(o.total)}. Try a smaller catch.`, tag);
+  else if (c === 3) turn('#cm-calc', 'win', `The pond keeps up, and each fisher ends with ${fmt(o.total)} fish, more than any other row of the table. This is the sweet spot.`, tag);
+  else turn('#cm-calc', 'math', `The pond keeps up with ${4 * c} a season, and each fisher ends with ${fmt(o.total)} fish. Could a bigger catch do better? Keep dragging.`, tag);
 }
-slider($('#cm-calc'), v => String(v), calcRender);
+let calcLive = false;
+slider($('#cm-calc'), v => String(v), v => calcRender(v, calcLive));
+calcLive = true;
 
 /* ================= the public goods game ================= */
 const pg = { round: 0, totals: [0, 0, 0, 0], type: 'cond', punish: false, over: false, busy: false, id: 0, last: null, scared: [0, 0, 0, 0],
@@ -277,22 +312,28 @@ function pgRender(){
     host.appendChild(d);
   }
   let h = '<tr><th>Round</th><th>You</th><th>Robo 1</th><th>Robo 2</th><th>Robo 3</th><th>Pot × 1.6</th><th>Each gets</th></tr>';
-  pg.rows.forEach((r, i) => {
-    h += `<tr class="${i === pg.rows.length - 1 ? 'hl' : ''}"><td>${r.round}</td><td class="you">${r.c[0]}</td><td class="robo">${r.c[1]}</td><td class="robo">${r.c[2]}</td><td class="robo">${r.c[3]}</td><td>${fmt(r.pot)}</td><td>${fmt(r.each)}</td></tr>`;
+  pg.rows.slice().reverse().forEach((r, i) => {
+    h += `<tr class="${i === 0 ? 'hl' : ''}"><td>${r.round}</td><td class="you">${r.c[0]}</td><td class="robo">${r.c[1]}</td><td class="robo">${r.c[2]}</td><td class="robo">${r.c[3]}</td><td>${fmt(r.pot)}</td><td>${fmt(r.each)}</td></tr>`;
   });
   if (!pg.rows.length) h += '<tr><td colspan="7" style="text-align:center;color:var(--ink-soft)">No rounds yet.</td></tr>';
   $('#cm-ptable').innerHTML = h;
   $('#cm-put').disabled = pg.over || pg.busy;
-  const pr = $('#cm-punish'); pr.hidden = !(pg.punish && pg.round > 0 && !pg.over && !pg.busy);
-  $$('button', pr).forEach(b => { b.disabled = pg.punished[+b.dataset.p]; });
-  $('#cm-plog').innerHTML = pg.log.slice(-5).join('<br>');
+  /* the punish buttons are always on the board; they work once punishment is allowed and a round has been played */
+  const canPunish = pg.punish && pg.round > 0 && !pg.over && !pg.busy;
+  $$('#cm-punish button').forEach(b => { b.disabled = !canPunish || pg.punished[+b.dataset.p]; });
+  $('#cm-plog').innerHTML = pg.log.slice().reverse().join('<br>');
+  $('#cm-plogn').textContent = pg.round ? `${pg.round} round${pg.round === 1 ? '' : 's'}` : 'nothing yet';
 }
-const pgStatus = html => { $('#cm-pstatus').innerHTML = html; };
-function pgReset(){
+const pgTell = (who, html, tag) => turn('#cm-put', who, html, tag);
+const roundTag = () => `Round ${Math.min(pg.round + 1, ROUNDS)} of ${ROUNDS}`;
+const PG_SAYS = { giver: 'Givers put in all 10.', free: 'Free riders put in 0.', cond: 'Conditional robots put in what the other three averaged last round, starting at 5.', mixed: 'One Giver, one Free rider, one Conditional.' };
+const PLAY_ON = 'Drag <b>My contribution</b> and press <b>Put in</b>.';
+function pgReset(lead){
   pg.id++; pg.round = 0; pg.totals = [0, 0, 0, 0]; pg.over = false; pg.busy = false; pg.last = null; pg.scared = [0, 0, 0, 0];
   pg.punished = [false, false, false, false]; pg.log = []; pg.rows = [];
   pgRender();
-  pgStatus(`Round 0 of ${ROUNDS}. Everyone has 10 coins. Choose your contribution and press Put in.`);
+  if (lead) pgTell('you', `${lead} Everyone has 10 coins. ${PLAY_ON}`, roundTag());
+  else pgTell('you', quizOK ? `Everyone has 10 coins. ${PLAY_ON}` : 'Answer the question in the yellow box, or drag <b>My contribution</b> and press <b>Put in</b>.', roundTag());
 }
 function pgFinish(){
   pg.over = true; pg.busy = false; pg.games++; pgRender();
@@ -302,15 +343,15 @@ function pgFinish(){
   s += top === 0 ? `Nobody has more than you.` : `<b class="robo">${NAMES[top]}</b> has the most, with ${fmt(pg.totals[top])}.`;
   s += ` If all four had put in everything every round, everyone would have 160.`;
   if (quizOK){ earn('cm-free'); }
-  else s += ` Answer the question at the top of the board to finish the star.`;
-  pgStatus(s);
+  else s += ` Answer the question in the yellow box to finish the star.`;
+  pgTell('math', `${s} Press <b>New game</b> to play again.`, 'Result');
 }
 async function putIn(){
   if (pg.over || pg.busy) return;
   pg.busy = true; pgRender();
   const id = pg.id;
   const you = clamp(Math.round(+$('#cm-give').value) || 0, 0, 10);
-  pgStatus('The robots are deciding in secret...');
+  pgTell('robo', 'The robots are deciding in secret...', 'Robos');
   await wait(500);
   if (id !== pg.id) return;
   const c = [you, robotGive(1), robotGive(2), robotGive(3)];
@@ -321,7 +362,7 @@ async function putIn(){
   pg.rows.push({ round: pg.round, c, pot, each });
   for (let i = 0; i < 4; i++) pg.totals[i] += income[i];
   pg.log.push(`Round ${pg.round}: contributions ${c.join(', ')}. Pot ${c.reduce((a, b) => a + b, 0)} × 1.6 = ${fmt(pot)}, so ${fmt(each)} each.`);
-  let s = `Round ${pg.round}: you put in ${you} and got ${fmt(each)} back from the pot, so this round paid you ${fmt(income[0])}.`;
+  let s = `Last round you put in ${you} and got ${fmt(each)} back from the pot, so it paid you ${fmt(income[0])}.`;
   if (pg.punish){
     const avg = c.reduce((a, b) => a + b, 0) / 4;
     const lines = [];
@@ -334,11 +375,11 @@ async function putIn(){
       }
     }
     if (lines.length){ pg.log.push(lines.join('; ') + '.'); s += ` ${lines.join('. ')}.`; }
-    if (pg.round < ROUNDS) s += ' You may punish a robot now, or put in again.';
+    if (pg.round < ROUNDS) s += ' You may punish a robot now.';
   }
   pg.busy = false;
   if (pg.round >= ROUNDS) return pgFinish();
-  pgRender(); pgStatus(s);
+  pgRender(); pgTell('you', `${s} Set your next contribution and press <b>Put in</b>.`, roundTag());
 }
 $('#cm-put').addEventListener('click', putIn);
 $('#cm-pnew').addEventListener('click', pgReset);
@@ -348,24 +389,31 @@ $$('#cm-punish button').forEach(b => b.addEventListener('click', () => {
   pg.punished[i] = true; pg.totals[0] -= 1; pg.totals[i] -= 3; pg.scared[i] = 3;
   pg.log.push(`You paid 1 to take 3 from ${NAMES[i]}.`);
   pgRender();
-  pgStatus(`You paid 1 coin and ${NAMES[i]} lost 3. ${pgKind(i) === 'free' ? 'A punished free rider matches the others for three rounds.' : pgKind(i) === 'giver' ? 'It gave 10, so that was spite, not justice.' : 'It will keep matching the group average.'}`);
+  pgTell('you', `You paid 1 coin and ${NAMES[i]} lost 3. ${pgKind(i) === 'free' ? 'A punished free rider matches the others for three rounds.' : pgKind(i) === 'giver' ? 'It gave 10, so that was spite, not justice.' : 'It will keep matching the group average.'} Now press <b>Put in</b> for the next round.`, roundTag());
 }));
-seg($('#cm-ptype'), v => { pg.type = v; pgReset(); });
-$('#cm-punish-on').addEventListener('change', e => { pg.punish = e.target.checked; pgReset(); });
+seg($('#cm-ptype'), v => { pg.type = v; pgReset(PG_SAYS[v]); });
+$('#cm-punish-on').addEventListener('change', e => {
+  pg.punish = e.target.checked;
+  pgReset(pg.punish ? 'Punishment is on: after each round you may pay 1 coin to take 3 from a robot.' : 'Punishment is off.');
+});
 slider($('#cm-give'), v => `${v} coin${v === 1 ? '' : 's'}`);
+$('#cm-give').addEventListener('input', e => {
+  if (pg.over || pg.busy) return;
+  const v = +e.target.value;
+  pgTell('you', `You will put in <b class="you">${v}</b> of your 10 coins and keep ${COINS - v}. Press <b>Put in</b>.`, roundTag());
+});
 $$('#cm-quiz button').forEach(b => b.addEventListener('click', () => {
   const v = b.dataset.q;
-  const msg = $('#cm-quiz-msg');
   if (v === '0.4'){
-    quizOK = true; $('#cm-quiz').classList.add('done');
-    msg.innerHTML = `<span class="win-c">Right.</span> 1 coin becomes 1.6, split four ways: 0.4 for you, 1.2 for the other three. You lose 0.6 by contributing. Now play 10 rounds.`;
+    quizOK = true; $('#cm-quiz').classList.add('done'); b.classList.add('right');
+    $('#cm-quiz-msg').innerHTML = '1 coin becomes 1.6, split four ways: 0.4 for you, 1.2 for the other three. You lose 0.6 by contributing.';
+    pgTell('win', `0.4 is right: every coin you put in costs you 0.6. ${pg.over ? 'Press <b>New game</b> to play again.' : pg.games > 0 || pg.round > 0 ? 'Carry on: press <b>Put in</b>.' : 'Now play 10 rounds. ' + PLAY_ON}`, 'Right');
     if (pg.games > 0) earn('cm-free');
-  } else if (v === '1.6'){
-    msg.innerHTML = 'The pot grows to 1.6, but it is split among four players. What is your quarter?';
-  } else if (v === '1'){
-    msg.innerHTML = 'If it came back whole, contributing would cost you nothing. Do the multiplying and the splitting.';
   } else {
-    msg.innerHTML = '6.4 is what the pot would be if everyone put in one coin. Only a quarter of it is yours.';
+    const why = v === '1.6' ? 'The pot grows to 1.6, but it is split among four players. What is your quarter?'
+      : v === '1' ? 'If it came back whole, contributing would cost you nothing. Do the multiplying and the splitting.'
+      : '6.4 is what the pot would be if everyone put in one coin. Only a quarter of it is yours.';
+    pgTell('you', `${why} Pick again in the yellow box.`, 'Not quite');
   }
 }));
 pgReset();
@@ -377,13 +425,13 @@ $('#cm-preset-quota').addEventListener('click', () => {
   const q = $('#cm-quota'); if (!q.checked){ q.checked = true; q.dispatchEvent(new Event('change', { bubbles: true })); }
   $('#cm-q').value = 3; $('#cm-q').dispatchEvent(new Event('input', { bubbles: true }));
   $('#cm-catch').value = 3; $('#cm-catch').dispatchEvent(new Event('input', { bubbles: true }));
-  pstatus(`Three Greedy robots, quota 3. Set the fine, then run 20 seasons. A Greedy robot wants 7 extra fish: what is the smallest fine that stops it?`);
+  ptell('you', `Three Greedy robots, quota 3. Drag <b>Fine</b>, then press <b>Run 20 seasons</b>. A Greedy robot wants 7 extra fish: what is the smallest fine that stops it?`, seasonTag());
   $('#cm-type').closest('.board').scrollIntoView({ behavior: WM.reduced ? 'auto' : 'smooth', block: 'start' });
 });
 $('#cm-preset-punish').addEventListener('click', () => {
   const b = $$('#cm-ptype button').find(x => x.dataset.v === 'mixed'); if (b) b.click();
   const p = $('#cm-punish-on'); if (!p.checked){ p.checked = true; p.dispatchEvent(new Event('change', { bubbles: true })); }
-  pgStatus(`Mixed robots with punishment on. Play 10 rounds and watch Robo 2, the free rider, get brought into line.`);
+  pgTell('you', `Mixed robots with punishment on. Play 10 rounds and watch Robo 2, the free rider, get brought into line. ${PLAY_ON}`, roundTag());
   $('#cm-ptype').closest('.board').scrollIntoView({ behavior: WM.reduced ? 'auto' : 'smooth', block: 'start' });
 });
 

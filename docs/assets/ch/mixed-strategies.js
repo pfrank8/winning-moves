@@ -1,7 +1,7 @@
 /* Chapter 4: Being unpredictable. Matching Pennies, expected value, the probability square, and the indifference solver. */
 (function(){
 'use strict';
-const { $, $$, rand, earn, seg, slider, frac, payCell } = WM;
+const { $, $$, rand, earn, seg, slider, frac, turn, cue } = WM;
 
 /* ================= Matching Pennies ================= */
 const mp = { n: 0, score: 0, rh: 0, mode: 'fair', wins10: 0, strip: [] };
@@ -13,20 +13,25 @@ function mpRender(){
 $$('[data-coin]').forEach(b => b.addEventListener('click', () => {
   const y = b.dataset.coin, r = roboCoin(); const w = y !== r;
   mp.n++; mp.score += w ? 1 : -1; if (r === 'H') mp.rh++; mp.strip.push({ y, r, w });
-  $('#ms-status').innerHTML = `You: <span class="you">${y === 'H' ? 'Heads' : 'Tails'}</span>. Robo: <span class="robo">${r === 'H' ? 'Heads' : 'Tails'}</span>. ${w ? 'Different: you win a point.' : 'Same: Robo wins a point.'}`;
-  if (mp.mode === 'biased'){
-    const last10 = mp.strip.slice(-10);
-    if (last10.length === 10 && last10.filter(x => x.w).length >= 7) earn('ms-exploit');
-  }
+  const last10 = mp.strip.slice(-10);
+  if (mp.mode === 'biased' && last10.length === 10 && last10.filter(x => x.w).length >= 7) earn('ms-exploit');
+  /* the strip is the narrator: both coins, who got the point, and (against the favorite) how the hunt is going */
+  const tally = mp.mode === 'biased' ? ` You have won ${last10.filter(x => x.w).length} of your last ${last10.length}.` : '';
+  turn(b, w ? 'win' : 'lose', `You: <span class="you">${y === 'H' ? 'Heads' : 'Tails'}</span>. Robo: <span class="robo">${r === 'H' ? 'Heads' : 'Tails'}</span>. <b>${w ? 'Different: you win a point.' : 'Same: Robo wins a point.'}</b>${tally} Click Heads or Tails to go again.`, `Round ${mp.n}`);
   mpRender();
 }));
-function mpReset(){ mp.n = 0; mp.score = 0; mp.rh = 0; mp.strip = []; mpRender(); $('#ms-status').textContent = 'Pick a side.'; }
+const MP_HELP = {
+  fair: 'Click <b class="you">Heads</b> or <b class="you">Tails</b>. You win the point when your coin is different from Robo\'s.',
+  biased: 'Click <b class="you">Heads</b> or <b class="you">Tails</b>. This Robo likes one side: find out which, then be different. Win 7 of any 10 in a row.',
+};
+function mpReset(){ mp.n = 0; mp.score = 0; mp.rh = 0; mp.strip = []; mpRender(); turn('#ms-strip', 'you', MP_HELP[mp.mode]); }
 $('#ms-reset').addEventListener('click', mpReset);
 seg($('#ms-robo'), v => {
   mp.mode = v; mpReset();
   $('#ms-note').textContent = v === 'fair' ? 'A fair coin has no pattern to find.' : 'This Robo likes one side. Watch how often it plays Heads, then be different. Win 7 of any 10 in a row for a star.';
 });
 mpRender();
+cue($$('[data-coin]'));
 
 /* ================= expected value + square ================= */
 function pennyUpdate(){
@@ -52,6 +57,11 @@ function pennyUpdate(){
     lab(x + (1 - p) * S / 2, y + (1 - q) * S / 2, (1 - p) * S, (1 - q) * S, `TT ${pc(tt)}%`) +
     `<text class="ax" x="${ox + S / 2}" y="${oy + S + 22}" text-anchor="middle" fill="var(--you)">you: Heads ←→ Tails</text>` +
     `<text class="ax" transform="translate(${ox - 14} ${oy + S / 2}) rotate(-90)" text-anchor="middle" fill="var(--robo)">Robo: Tails ←→ Heads</text>`;
+  /* the strip reads the sliders back and says what to try next */
+  const evTxt = `${ev >= 0 ? '+' : '−'}${Math.abs(ev).toFixed(2)}`;
+  if (P === 50) turn('#ms-p', 'math', 'You are at exactly 50%, so your expected value is 0 wherever Robo\'s slider goes. Drag the blue slider to check, then press Flip 100 coins.');
+  else if (Q === 50) turn('#ms-p', 'math', 'Robo is at exactly 50%, so your expected value is 0 wherever your slider goes. Drag the blue slider away, then try your own at exactly 50%.', 'EV 0');
+  else turn('#ms-p', 'math', `Expected value ${evTxt} per round. ${ev > 0 ? 'You are ahead, but Robo could slide its odds and get ahead of you.' : 'Robo is ahead.'} Drag your red slider to exactly 50% and see what Robo can do about it.`, `EV ${evTxt}`);
 }
 slider($('#ms-p'), v => `${v}% (${frac(v)})`, pennyUpdate);
 slider($('#ms-q'), v => `${v}% (${frac(v)})`, pennyUpdate);
@@ -59,14 +69,17 @@ $('#ms-flip').addEventListener('click', () => {
   const p = +$('#ms-p').value / 100, q = +$('#ms-q').value / 100;
   let score = 0, wins = 0;
   for (let i = 0; i < 100; i++){ const y = Math.random() < p, r = Math.random() < q; if (y === r) score--; else { score++; wins++; } }
-  $('#ms-flip-result').innerHTML = `100 real flips: won ${wins}, lost ${100 - wins}. Score <b>${score >= 0 ? '+' : '−'}${Math.abs(score)}</b>.`;
+  const sc = `${score >= 0 ? '+' : '−'}${Math.abs(score)}`, ev100 = Math.round(-(2 * p - 1) * (2 * q - 1) * 100);
+  $('#ms-flip-result').innerHTML = `Last 100 flips: won ${wins}, lost ${100 - wins}. Score <b>${sc}</b>.`;
+  turn('#ms-p', p === 0.5 ? 'win' : 'math', `100 real flips: you won ${wins} and lost ${100 - wins}, so your score is <b>${sc}</b>. The math expected about ${ev100 === 0 ? '0' : (ev100 > 0 ? '+' : '−') + Math.abs(ev100)}. ${p === 0.5 ? 'At 50% nothing Robo does can move that. Flip again: luck wobbles, the average does not.' : 'Flip again, or drag your slider to exactly 50% and test that.'}`, p === 0.5 ? 'Tested' : 'Result');
   if (p === 0.5) earn('ms-safe');
 });
 pennyUpdate();
 
 /* ================= penalty kick solver ================= */
 const CLASSIC = [[50, 90], [80, 60]]; // rows: kick Left, kick Right; cols: dive Left, dive Right; goal chance %
-const kick = { g: CLASSIC.map(r => r.slice()), fresh: false };
+const kick = { g: CLASSIC.map(r => r.slice()), fresh: false, live: false };
+const KICK_HELP = 'Drag the red slider until the two lines on the chart cross. Then press Lock in these odds.';
 function optimalP(g){ // p on row 0 making the column player indifferent
   const a = g[0][0], b = g[0][1], c = g[1][0], d = g[1][1];
   const den = (a - c) - (b - d); if (den === 0) return null;
@@ -107,32 +120,37 @@ function chart(){
   $('#ms-chart').innerHTML = s;
   const lo = Math.min(L(p), R(p)), worst = lo.toFixed(0);
   $('[data-for="ms-kp"]').textContent = `${Math.round(p * 100)}%`;
-  $('#ms-lock-msg').innerHTML = `At these odds Robo's best dive holds you to <b>${worst}%</b>. ${Math.abs(L(p) - R(p)) < 0.5 ? 'The lines cross here: Robo does not care.' : L(p) < R(p) ? 'Robo would dive Left.' : 'Robo would dive Right.'}`;
+  $('#ms-vl').textContent = `${L(p).toFixed(0)}%`; $('#ms-vr').textContent = `${R(p).toFixed(0)}%`;
+  if (!kick.live) return; // the first draw keeps the plain instruction; after that the strip reads the slider back
+  if (optimalP(g) === null) turn('#ms-kick', 'math', 'With these numbers the lines never cross inside the chart: one kick is simply better, so no mixing is needed. Press New numbers or Classic numbers.', 'No crossing');
+  else if (Math.abs(L(p) - R(p)) < 0.5) turn('#ms-kick', 'you', `The lines cross at ${Math.round(p * 100)}%: you score about <b>${worst}%</b> whichever way Robo dives, so Robo does not care. Press Lock in these odds.`, 'Crossing');
+  else turn('#ms-kick', 'you', `At ${Math.round(p * 100)}% Left, Robo would dive ${L(p) < R(p) ? 'Left' : 'Right'} and hold you to <b>${worst}%</b>. Keep sliding until the two lines cross.`);
 }
 slider($('#ms-kp'), v => `${v}%`, chart);
 $('#ms-lock').addEventListener('click', () => {
   const p = +$('#ms-kp').value / 100, best = optimalP(kick.g);
-  if (best === null){ $('#ms-lock-msg').innerHTML = 'These numbers have no crossing inside the chart: one kick is simply better. No mixing needed.'; return; }
+  if (best === null){ turn('#ms-kick', 'math', 'These numbers have no crossing inside the chart: one kick is simply better. No mixing needed. Press New numbers or Classic numbers.', 'No crossing'); return; }
   const off = Math.abs(p - best) * 100;
   if (off <= 3){
-    $('#ms-lock-msg').innerHTML = `<b class="win-c">Locked in.</b> The exact answer is ${Math.round(best * 100)}%, and you are within ${off.toFixed(1)} points.`;
-    if (kick.fresh) earn('ms-solve'); else $('#ms-lock-msg').innerHTML += ' Press "New numbers" and solve a fresh game for the star.';
-  } else $('#ms-lock-msg').innerHTML = `<b class="you">Off by ${off.toFixed(0)} points.</b> Slide until the two lines meet.`;
+    turn('#ms-kick', 'win', `The exact answer is ${Math.round(best * 100)}%, and you are within ${off.toFixed(1)} points. ${kick.fresh ? 'Press Take 20 kicks to try it out.' : 'Press New numbers and solve a fresh game for the star.'}`, 'Locked in');
+    if (kick.fresh) earn('ms-solve');
+  } else turn('#ms-kick', 'you', `Off by ${off.toFixed(0)} points. Slide until the two lines meet, then lock in again.`, 'Not yet');
 });
 $('#ms-new').addEventListener('click', () => {
   // generate a game with an interior mixed solution
   let g;
   do { const a = 30 + rand(40), d = 30 + rand(40); g = [[a, 70 + rand(28)], [70 + rand(28), d]]; } while (optimalP(g) === null || optimalQ(g) === null || optimalP(g) < 0.1 || optimalP(g) > 0.9);
   kick.g = g; kick.fresh = true; $('#ms-kp').value = 50; kickRender();
-  $('#ms-kicks-msg').textContent = 'Fresh numbers. Find the crossing, lock it in.';
+  turn('#ms-kick', 'you', 'Fresh numbers, slider back at 50%. Drag it until the two lines cross, then press Lock in these odds.', 'New game');
 });
-$('#ms-classic').addEventListener('click', () => { kick.g = CLASSIC.map(r => r.slice()); kick.fresh = false; $('#ms-kp').value = 50; kickRender(); });
+$('#ms-classic').addEventListener('click', () => { kick.g = CLASSIC.map(r => r.slice()); kick.fresh = false; $('#ms-kp').value = 50; kickRender(); turn('#ms-kick', 'you', KICK_HELP); });
 $('#ms-kicks').addEventListener('click', () => {
   const g = kick.g, p = +$('#ms-kp').value / 100; const q = optimalQ(g); const qq = q === null ? 0.5 : q;
   let goals = 0;
   for (let i = 0; i < 20; i++){ const left = Math.random() < p, dl = Math.random() < qq; const chance = g[left ? 0 : 1][dl ? 0 : 1] / 100; if (Math.random() < chance) goals++; }
   const v = optimalP(g) === null ? null : (g[0][0] * optimalP(g) + g[1][0] * (1 - optimalP(g)));
-  $('#ms-kicks-msg').innerHTML = `Scored <b>${goals}</b> of 20 (${goals * 5}%).${v === null ? '' : ` The value of this game is ${v.toFixed(0)}%, so expect about ${Math.round(v / 5)} goals in 20.`}`;
+  turn('#ms-kick', 'math', `Kicking Left ${Math.round(p * 100)}% of the time, you scored <b>${goals}</b> of 20 (${goals * 5}%). Robo dived with its own best odds.${v === null ? '' : ` The value of this game is ${v.toFixed(0)}%, so expect about ${Math.round(v / 5)} goals in 20.`} Kick again, or move the slider.`, 'Result');
 });
 kickRender();
+kick.live = true;
 })();

@@ -40,13 +40,14 @@ if (typeof window === 'undefined'){
 }
 
 /* ================= DOM from here on ================= */
-const { $, $$, rand, pick, wait, earn, seg } = WM;
+const { $, $$, rand, pick, wait, earn, seg, turn, cue } = WM;
 const LET = ['A', 'B', 'C', 'D'];
 const bitsHTML = n => '<span class="nb-bits">' + bits(n).map(b => `<i class="${b ? 'on' : ''}">${b}</i>`).join('') + '</span>';
 const list = piles => piles.join(', ');
 const xorList = piles => piles.join(' ⊕ ');
 
-/* Draw piles as columns of stones. start[i] is the original size (ghost stones stay), piles[i] the current size.
+/* Draw piles as rows of stones (label, binary digits when asked, then stone 1 on the left). start[i] is the original
+   size (ghost stones stay), piles[i] the current size. Clicking stone j takes it and every stone to its right.
    opts: live (clickable), onClick(i, leave), onHover(i, leave) / onLeave(), who[i][j] ('you'|'robo'|null), sel {i, s}, bits. */
 function renderPiles(host, start, piles, opts){
   host.innerHTML = '';
@@ -75,11 +76,11 @@ function renderPiles(host, start, piles, opts){
       if (opts.sel && opts.sel.i === i && j >= opts.sel.s && !gone) s.classList.add('sel');
       col.appendChild(s);
     }
-    wrap.appendChild(col);
     const lab = document.createElement('div'); lab.className = 'nb-plab';
     lab.innerHTML = `<b>${piles[i]}</b><span>pile ${LET[i]}</span>`;
     wrap.appendChild(lab);
     if (opts.bits){ const b = document.createElement('div'); b.innerHTML = bitsHTML(piles[i]); wrap.appendChild(b.firstChild); }
+    wrap.appendChild(col);
     host.appendChild(wrap);
   });
 }
@@ -88,7 +89,8 @@ function renderPiles(host, start, piles, opts){
 const g = { id: 0, start: [3, 4, 5], piles: [3, 4, 5], who: [], turn: 'you', over: false, busy: false, first: 'you', misere: false, log: [], goofUsed: false };
 const goofOn = () => $('#nb-goof').checked;
 const secretOn = () => $('#nb-secret').checked;
-const status = html => { $('#nb-status').innerHTML = html; };
+const NIM = '#nb-piles';
+const ASK = 'Click a stone to take it and every stone to its right.';
 const yourTurn = () => !g.over && !g.busy && g.turn === 'you';
 
 function whoLabel(piles, misere, mover){
@@ -103,7 +105,7 @@ function secretLine(previewPiles, previewText){
   host.hidden = !secretOn();
   if (host.hidden) return;
   const mover = g.over ? 'nobody' : g.turn === 'you' ? 'you' : 'Robo';
-  let h = `<span>Nim-sum: ${bitsHTML(nimSum(g.piles))} = <b>${nimSum(g.piles)}</b>.</span> <span>${whoLabel(g.piles, g.misere, mover)}</span>`;
+  let h = `<span><span class="nb-sumlab">nim-sum</span>${bitsHTML(nimSum(g.piles))} = <b>${nimSum(g.piles)}</b>.</span> <span>${whoLabel(g.piles, g.misere, mover)}</span>`;
   if (previewPiles) h += `<span class="nb-preview">${previewText} leaves ${list(previewPiles)}: nim-sum ${nimSum(previewPiles)}.</span>`;
   host.innerHTML = h;
 }
@@ -130,23 +132,24 @@ function newGame(){
   g.piles = g.start.slice(); g.who = g.start.map(n => new Array(n).fill(null));
   g.over = false; g.busy = false; g.log = []; g.turn = g.first; g.goofUsed = goofOn(); g.id++;
   render();
-  if (g.turn === 'you') status('Your turn. Click a stone to take it and every stone above it.');
-  else { status('Robo goes first...'); roboMove(); }
+  if (g.turn === 'you') turn(NIM, 'you', ASK);
+  else roboMove('Robo goes first.');
 }
 function finish(lastTaker){
   g.over = true; g.busy = false; g.goofUsed = g.goofUsed || goofOn(); render();
   const youWon = g.misere ? lastTaker !== 'you' : lastTaker === 'you';
   if (youWon){
-    status(`<span class="win-c">${g.misere ? 'Robo had to take the last stone. You win!' : 'You took the last stone. You win!'}</span>`);
     const fair = !g.goofUsed && g.start.length >= 3 && total(g.start) >= 8;
+    const noStar = fair ? '' : g.goofUsed ? ' No star while Robo goofs: turn it off and try again.' : ' No star for this one: it needs three or more piles and at least 8 stones.';
+    turn(NIM, 'win', `${g.misere ? 'Robo had to take the last stone. You win!' : 'You took the last stone. You win!'}${noStar} Press New game to play again.`);
     if (fair) earn('nb-win');
-    else if (g.goofUsed) status($('#nb-status').innerHTML + ' <span class="note">(No star while Robo goofs. Turn it off and try again.)</span>');
   } else {
-    status(`<span class="robo">${g.misere ? 'You had to take the last stone.' : 'Robo took the last stone.'}</span> Try the hint, or show the secret.`);
+    turn(NIM, 'lose', `${g.misere ? 'You had to take the last stone.' : 'Robo took the last stone.'} Press New game, then try the Hint or tick Show the secret.`);
   }
 }
-async function roboMove(){
+async function roboMove(lead){
   g.turn = 'robo'; g.busy = true; g.goofUsed = g.goofUsed || goofOn(); render();
+  turn(NIM, 'robo', `${lead} Robo is thinking...`);
   const id = g.id;
   await wait(750);
   if (id !== g.id || g.over || total(g.piles) === 0) return;   // a New game started (or the game ended) while Robo was thinking
@@ -156,23 +159,23 @@ async function roboMove(){
   const took = applyMove(m, 'robo');
   if (total(g.piles) === 0) return finish('robo');
   g.turn = 'you'; g.busy = false; render();
-  status(`Robo took ${took} from pile ${LET[m.i]}. Your turn.` + (wins.length ? '' : ' <span class="note">(Robo had no winning move. You are on track.)</span>'));
+  turn(NIM, 'you', `<span class="robo">Robo took ${took} from pile ${LET[m.i]}${wins.length ? '' : ', but it had no winning move'}.</span> Piles: ${list(g.piles)}. ${ASK}`);
 }
 function youTake(i, leave){
   if (!yourTurn() || leave >= g.piles[i] || leave < 0) return;
-  applyMove({ i, s: leave }, 'you');
+  const took = applyMove({ i, s: leave }, 'you');
   if (total(g.piles) === 0) return finish('you');
-  status('Robo is thinking...'); roboMove();
+  roboMove(`You took ${took} from pile ${LET[i]}.`);
 }
 $('#nb-hint').addEventListener('click', () => {
   if (!yourTurn()) return;
   const m = g.misere ? (winningMoves(g.piles, true)[0] || null) : recipeMove(g.piles);
   if (m){
     const q = after(g.piles, m);
-    status(`Hint: take <b>${g.piles[m.i] - m.s}</b> from pile <b>${LET[m.i]}</b>, leaving ${list(q)}.` +
-      (g.misere ? ' That is a losing position for Robo in the last-stone-loses game.' : ` Its nim-sum is ${xorList(q)} = 0.`));
+    turn(NIM, 'you', `Take <b>${g.piles[m.i] - m.s}</b> from pile <b>${LET[m.i]}</b>: click its stone number <b>${m.s + 1}</b>. That leaves ${list(q)}.` +
+      (g.misere ? ' A losing position for Robo when the last stone loses.' : ` Its nim-sum is ${xorList(q)} = 0.`), 'Hint');
   } else {
-    status(`No winning move here. ${g.misere ? 'This is a losing position for the player to move, and that is you.' : 'The nim-sum is already 0, so you are standing on an L.'} Take something small and hope Robo goofs.`);
+    turn(NIM, 'you', `No winning move here. ${g.misere ? 'This is a losing position for the player to move, and that is you.' : 'The nim-sum is already 0, so you are standing on an L.'} Take something small and hope Robo goofs.`, 'Hint');
   }
 });
 $('#nb-secret').addEventListener('change', render);
@@ -181,6 +184,7 @@ $('#nb-piles-in').addEventListener('change', newGame);
 seg($('#nb-first'), v => { g.first = v; newGame(); });
 seg($('#nb-rule'), v => { g.misere = v === 'misere'; newGame(); });
 newGame();
+cue($$('#nb-piles .nb-col'));
 
 /* ================= base 2 toy ================= */
 const bn = { n: 13 };
@@ -200,7 +204,10 @@ function binRender(){
     b.className = lit ? 'on' : '';
     b.innerHTML = `<span class="p">${p}</span><span class="d">${lit ? 1 : 0}</span>`;
     b.title = (lit ? 'Switch off ' : 'Switch on ') + p;
-    b.addEventListener('click', () => { bn.n ^= p; binRender(); });
+    b.addEventListener('click', () => {
+      const was = bn.n; bn.n ^= p; binRender();
+      turn('#nb-places', 'math', `You switched the ${p} ${bn.n & p ? 'on' : 'off'}: ${was} became <b>${bn.n}</b>, which is <code>${bin(bn.n)}</code>. Click another box, or type a number from 0 to 15.`);
+    });
     host.appendChild(b);
   });
   $('#nb-bin-n').value = bn.n;
@@ -214,7 +221,10 @@ function binRender(){
 }
 $('#nb-bin-n').addEventListener('input', () => {
   const v = parseInt($('#nb-bin-n').value, 10);
-  if (Number.isInteger(v)){ bn.n = Math.min(15, Math.max(0, v)); binRender(); }
+  if (Number.isInteger(v)){
+    bn.n = Math.min(15, Math.max(0, v)); binRender();
+    turn('#nb-places', 'math', `<b>${bn.n}</b> is <code>${bin(bn.n)}</code>: the yellow boxes add up to it. Click a box to switch it, or type another number.`);
+  }
 });
 binTable(); binRender();
 
@@ -238,14 +248,19 @@ function xoRender(result){
     const c = +b.dataset.c;
     xo.marks[c] = xo.marks[c] === null ? 1 : xo.marks[c] === 1 ? 0 : 1;
     xoRender();
+    const todo = xo.marks.filter(m => m === null).length;
+    turn(XOR, 'you', todo ? `The ${PLACES[c]}s column says ${xo.marks[c]}. ${todo} box${todo > 1 ? 'es' : ''} to go. Click a box again to flip it.` : `The ${PLACES[c]}s column says ${xo.marks[c]}. All four are filled: press Check.`);
   }));
-  $('#nb-xor-streak').textContent = `Streak: ${xo.streak}`;
+  $('#nb-xor-streak').textContent = `Streak: ${xo.streak} of 5`;
+  $('#nb-xor-check').disabled = xo.done;
 }
+const XOR = '#nb-xor-table';
+const XO_HELP = 'Click each <b>?</b> box under the line: once for 1, twice for 0. Fill all four, then press Check.';
 function xoLoad(piles){
   xo.piles = piles; xo.marks = [null, null, null, null]; xo.done = false;
   $('#nb-xor-in').value = list(piles);
   xoRender();
-  $('#nb-xor-msg').textContent = 'Click the four answer boxes, then check.';
+  turn(XOR, 'you', XO_HELP);
 }
 function xoRandom(){
   const k = pick([2, 3, 3, 3, 4]);
@@ -255,7 +270,7 @@ function xoRandom(){
 }
 $('#nb-xor-check').addEventListener('click', () => {
   if (xo.done) return;
-  if (xo.marks.some(m => m === null)){ $('#nb-xor-msg').textContent = 'Fill in all four columns first. A column with no 1s at all is 0.'; return; }
+  if (xo.marks.some(m => m === null)){ turn(XOR, 'you', 'Fill in all four <b>?</b> boxes first. A column with no 1s at all is 0.', 'Not yet'); return; }
   const want = bits(nimSum(xo.piles));
   const result = want.map((b, c) => b === xo.marks[c]);
   xoRender(result);
@@ -265,16 +280,16 @@ $('#nb-xor-check').addEventListener('click', () => {
     const fresh = !xo.solved.has(xoKey(xo.piles));
     if (fresh){ xo.solved.add(xoKey(xo.piles)); xo.streak++; }
     xoRender();
-    $('#nb-xor-msg').innerHTML = `<span class="win-c">Correct.</span> ${xorList(xo.piles)} = <code>${bin(s)}</code> = <b>${s}</b>. ` +
+    turn(XOR, 'win', `${xorList(xo.piles)} = <code>${bin(s)}</code> = <b>${s}</b>. ` +
       (s === 0 ? 'Zero: <b class="you">L</b> for the player to move.' : 'Not zero: <b class="win-c">W</b> for the player to move.') +
-      (fresh ? ' Press New piles for another.' : ' (You had already solved these piles, so the streak stays put.)');
+      (fresh ? '' : ' You had already solved these piles, so the streak stays put.') + ' Press New piles for another.', 'Correct');
     if (xo.streak >= 5) earn('nb-xor');
   } else {
     xo.streak = 0;
     const c = result.indexOf(false);
     const ones = xo.piles.filter(p => p & PLACES[c]).length;
-    $('#nb-xor-msg').innerHTML = `<span class="you">Not yet.</span> Look at the ${PLACES[c]}s column: it has ${ones} one${ones === 1 ? '' : 's'}, ${ones % 2 ? 'an odd number, so it should be 1' : 'an even number, so it should be 0'}. Fix the red boxes and check again.`;
-    $('#nb-xor-streak').textContent = 'Streak: 0';
+    turn(XOR, 'you', `Look at the ${PLACES[c]}s column: it has ${ones} one${ones === 1 ? '' : 's'}, ${ones % 2 ? 'an odd number, so it should be 1' : 'an even number, so it should be 0'}. Click the red boxes to fix them, then check again.`, 'Not yet');
+    $('#nb-xor-streak').textContent = 'Streak: 0 of 5';
   }
 });
 $('#nb-xor-clear').addEventListener('click', () => xoLoad(xo.piles.slice()));
@@ -284,13 +299,13 @@ xoLoad([3, 4, 5]);
 
 /* ================= find the winning move ================= */
 const fm = { piles: [3, 4, 5], sel: null, streak: 0, done: false };
-const fmMsg = html => { $('#nb-fm-msg').innerHTML = html; };
+const FM = '#nb-fm-piles';
 function fmRender(){
   renderPiles($('#nb-fm-piles'), fm.piles, fm.piles, {
     live: !fm.done, sel: fm.sel, bits: $('#nb-fm-bits').checked,
     onClick: (i, j) => {
       fm.sel = { i, s: j }; fmRender();
-      fmMsg(`Take <b>${fm.piles[i] - j}</b> from pile <b>${LET[i]}</b>, leaving ${list(after(fm.piles, fm.sel))}? Click another stone to change your mind, or check it.`);
+      turn(FM, 'you', `Take <b>${fm.piles[i] - j}</b> from pile <b>${LET[i]}</b>, leaving ${list(after(fm.piles, fm.sel))}? Press Check my move, or click another stone to change your mind.`);
     },
   });
   $('#nb-fm-streak').textContent = `Streak: ${fm.streak} of 3`;
@@ -304,7 +319,7 @@ function fmNew(){
   } while (nimSum(p) === 0 || xoKey(p) === xoKey(fm.piles));
   fm.piles = p; fm.sel = null; fm.done = false;
   fmRender();
-  fmMsg(`Piles ${list(p)}. The nim-sum is not 0, so a winning move exists. Click a stone to choose it.`);
+  turn(FM, 'you', `Piles ${list(p)}. Click a stone to choose your move: you take it and every stone to its right. Then press Check my move.`);
 }
 $('#nb-fm-check').addEventListener('click', () => {
   if (fm.done || !fm.sel) return;
@@ -312,13 +327,13 @@ $('#nb-fm-check').addEventListener('click', () => {
   fm.done = true;
   if (nimSum(q) === 0){
     fm.streak++;
-    fmMsg(`<span class="win-c">Yes.</span> ${xorList(q)} = 0. Robo would be stuck on an L. Press Next position.`);
+    turn(FM, 'win', `${xorList(q)} = 0. Robo would be stuck on an L. ${fm.streak >= 3 ? 'That is three in a row.' : `${fm.streak} of 3 in a row.`} Press Next position.`, 'Yes');
     fmRender();
     if (fm.streak >= 3) earn('nb-move');
   } else {
     fm.streak = 0;
     const r = recipeMove(fm.piles);
-    fmMsg(`<span class="you">Not that one.</span> ${xorList(q)} = ${nimSum(q)}, not 0. One move that works: take ${fm.piles[r.i] - r.s} from pile ${LET[r.i]}, leaving ${list(after(fm.piles, r))}. Press Next position.`);
+    turn(FM, 'you', `${xorList(q)} = ${nimSum(q)}, not 0. One move that works: take ${fm.piles[r.i] - r.s} from pile ${LET[r.i]}, leaving ${list(after(fm.piles, r))}. Press Next position.`, 'Not that one');
     fmRender();
   }
 });

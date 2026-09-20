@@ -1,7 +1,7 @@
 /* Chapter: Hex (the game, the no-draw theorem, strategy stealing, Monte Carlo Robo). */
 (function(){
 'use strict';
-const { $, $$, rand, pick, wait, earn, seg, fmtNum } = WM;
+const { $, $$, rand, pick, wait, earn, seg, fmtNum, turn, cue } = WM;
 
 /* @core-start
    Pure game logic. No DOM in here: the unit tests slice this block out and run it in node. */
@@ -170,7 +170,7 @@ function makeView(host, n, opts){
   opts = opts || {};
   const g = geo(n, opts.labels !== false);
   host.innerHTML = '';
-  const svg = svgEl('svg', { viewBox: `0 0 ${g.width.toFixed(0)} ${g.height.toFixed(0)}`, class: 'hx-svg' + (opts.small ? ' small' : '') + (opts.paint ? ' paint' : ''), role: 'img' });
+  const svg = svgEl('svg', { viewBox: `0 0 ${g.width.toFixed(0)} ${g.height.toFixed(0)}`, class: 'hx-svg' + (opts.small ? ' small' : '') + (opts.paint ? ' paint' : ''), role: 'group' });   // a group, not an img: the cells inside are buttons
   svg.setAttribute('aria-label', `${n} by ${n} Hex board`);
   // coloured edges, drawn under the cells so half the band shows outside the rhombus
   const top = [], bottom = [], left = [], right = [];
@@ -184,7 +184,7 @@ function makeView(host, n, opts){
   const polys = [];
   for (let r = 0; r < n; r++) for (let c = 0; c < n; c++){
     const i = r * n + c;
-    const p = svgEl('polygon', { class: 'cell e', points: P(g.verts(r, c)), 'data-i': i });
+    const p = svgEl('polygon', { class: 'cell e', points: P(g.verts(r, c)), 'data-i': i, tabindex: 0, role: 'button', 'aria-label': 'cell ' + cellName(n, i) });
     p.appendChild(svgEl('title', {})).textContent = cellName(n, i);
     cellsG.appendChild(p); polys.push(p);
   }
@@ -213,14 +213,19 @@ function makeView(host, n, opts){
       marks.appendChild(svgEl('circle', { class: 'last', cx: g.cx(Math.floor(st.last / n), st.last % n).toFixed(1), cy: g.cy(Math.floor(st.last / n)).toFixed(1), r: 5 }));
     }
   };
-  view.onCell = fn => svg.addEventListener('click', ev => { const p = ev.target.closest && ev.target.closest('polygon[data-i]'); if (p) fn(+p.dataset.i); });
+  view.onCell = fn => {
+    const cellOf = ev => ev.target.closest && ev.target.closest('polygon[data-i]');
+    svg.addEventListener('click', ev => { const p = cellOf(ev); if (p) fn(+p.dataset.i); });
+    svg.addEventListener('keydown', ev => { const p = cellOf(ev); if (p && (ev.key === 'Enter' || ev.key === ' ')){ ev.preventDefault(); fn(+p.dataset.i); } });
+  };
   return view;
 }
 
 /* ================= board 1: play Robo ================= */
 const game = { n: 6, cells: null, turn: RED, first: RED, over: false, busy: false, playouts: 200, hint: -1, last: -1, hintUsed: false, bridged: false, s: null, log: [], lastThink: null, id: 0 };
 let view1 = null;
-const st1 = html => { $('#hx-status').innerHTML = html; };
+const say1 = (who, html, tag) => turn('#hx-board', who, html, tag);   // the strip narrates the whole game
+const YOUR_MOVE = 'Click any empty cell to place a red stone. Join the red top edge to the red bottom edge.';
 function renderGame(chain){
   view1.update({ cells: game.cells, chain: chain || null, hint: game.hint, last: game.last, live: !game.over && !game.busy && game.turn === RED });
   $('#hx-hint').disabled = game.over || game.busy || game.turn !== RED;
@@ -233,8 +238,8 @@ function newGame(){
   view1.onCell(youPlay);
   renderGame();
   $('#hx-rules').textContent = `${game.n} by ${game.n}. Red joins top to bottom. Blue joins left to right. No draws.`;
-  if (game.turn === RED) st1('Your turn. Click any empty cell.');
-  else { st1('Robo goes first...'); roboMove(); }
+  if (game.turn === RED) say1('you', YOUR_MOVE);
+  else roboMove();
 }
 /* Run the Monte Carlo evaluation for player on the current position, yielding to the browser now and then. */
 async function think(cells, n, player, N){
@@ -254,11 +259,11 @@ function finish(winner){
   renderGame(chain);
   if (winner === RED){
     const fair = game.n >= 6 && !game.hintUsed;
-    st1(`<span class="win-c">You connected top to bottom. You win!</span>` + (fair ? '' : game.hintUsed ? ' <span class="note">(A win with hints does not earn the star. Play one without.)</span>' : ' <span class="note">(The star needs a 6 by 6 board or bigger.)</span>'));
+    say1('win', 'You connected top to bottom: follow the green line. ' + (fair ? '' : game.hintUsed ? 'A win with hints does not earn the star, so play one without. ' : 'The star needs a 6 by 6 board or bigger. ') + 'Press New game to play again.');
     game.log.push('You win.');
     if (fair){ earn('hx-win'); if (game.bridged) earn('hx-bridge'); }
   } else {
-    st1(`<span class="robo">Robo connected left to right.</span> Look at where its chain crossed yours, then try again.`);
+    say1('lose', 'Robo connected left to right: follow the green line. Look at where its chain crossed yours, then press New game to try again.');
     game.log.push('Robo wins.');
   }
   $('#hx-log').innerHTML = game.log.slice(-3).join('<br>');
@@ -266,7 +271,7 @@ function finish(winner){
 async function roboMove(){
   game.turn = BLUE; game.busy = true; game.hint = -1; renderGame();
   const id = game.id, N = game.playouts, empties = emptiesOf(game.cells).length;
-  st1(`Robo is imagining ${fmtNum(empties * N)} finished games...`);
+  say1('robo', `${empties === game.cells.length ? 'Robo goes first. ' : ''}Robo is thinking: imagining ${fmtNum(empties * N)} finished games...`);
   await wait(500);
   if (id !== game.id) return;   // a new game started while Robo was waiting
   const th = await think(game.cells, game.n, BLUE, N);
@@ -275,15 +280,16 @@ async function roboMove(){
   game.cells[th.choice] = BLUE; game.last = th.choice;
   const name = cellName(game.n, th.choice), top = th.results[0];
   game.log.push(`Robo: ${name} (won ${top.wins} of ${N} imagined games).`);
-  showThink(th);
+  showThink(th, true);
   $('#hx-imagined').textContent = fmtNum(th.playouts); $('#hx-pick').textContent = name;
   $('#hx-rate').textContent = Math.round(100 * top.wins / N) + '%'; $('#hx-ms').textContent = Math.round(th.ms) + ' ms';
   if (spans(game.cells, game.n, BLUE, game.s)) return finish(BLUE);
   game.turn = RED; game.busy = false; renderGame();
-  st1(`Robo played <b class="robo">${name}</b> after imagining ${fmtNum(th.playouts)} finished games. Your turn.`);
+  say1('you', `Robo played <b class="robo">${name}</b>, the cell with the dot, after imagining ${fmtNum(th.playouts)} games. Click any empty cell.`);
 }
 function youPlay(i){
-  if (game.over || game.busy || game.turn !== RED || game.cells[i] !== EMPTY) return;
+  if (game.over || game.busy || game.turn !== RED) return;   // the strip already says why: the game is over, or Robo is thinking
+  if (game.cells[i] !== EMPTY){ say1('you', `${cellName(game.n, i)} already has a stone on it. Click an empty cell.`, 'Not that one'); return; }
   game.cells[i] = RED; game.last = i; game.hint = -1;
   const made = bridgePartners(game.cells, game.n, i);   // stones this one forms a bridge with, both gap cells still empty
   if (made.length){ game.bridged = true; game.log.push(`You: ${cellName(game.n, i)}. That makes a bridge with ${made.map(b => cellName(game.n, b.stone)).join(' and ')}.`); }
@@ -296,12 +302,12 @@ $('#hx-hint').addEventListener('click', async () => {
   if (game.over || game.busy || game.turn !== RED) return;
   game.busy = true; game.hintUsed = true; renderGame();
   const id = game.id;
-  st1('Imagining games for you...');
+  say1('math', `Imagining ${fmtNum(emptiesOf(game.cells).length * game.playouts)} finished games for you...`, 'Hint');
   const th = await think(game.cells, game.n, RED, game.playouts);
   if (id !== game.id || game.over) return;
   game.busy = false; game.hint = th.choice; renderGame();
   const top = th.results[0];
-  st1(`Hint: <b class="you">${cellName(game.n, th.choice)}</b> won ${top.wins} of ${game.playouts} random finishes, the best of ${th.results.length} cells. (Hints switch off the star for this game.)`);
+  say1('you', `<b class="you">${cellName(game.n, th.choice)}</b>, ringed in yellow, won ${top.wins} of ${game.playouts} random finishes, the best of ${th.results.length} cells. Click it, or any empty cell. Hints switch off the star for this game.`, 'Hint');
 });
 $('#hx-new').addEventListener('click', newGame);
 seg($('#hx-first'), v => { game.first = v === 'you' ? RED : BLUE; newGame(); });
@@ -309,29 +315,33 @@ seg($('#hx-size'), v => { game.n = +v; newGame(); });
 seg($('#hx-strength'), v => { game.playouts = +v; });
 
 /* ================= inside Robo's head (the live table) ================= */
-function showThink(th){
+const say3 = (who, html, tag) => turn('#hx-table', who, html, tag);
+function showThink(th, fromGame, verb){
   const n = Math.sqrt(th.cells.length);
   const rows = th.results.slice(0, 5).map(r => `<tr class="${r.idx === th.choice ? 'hl' : ''}"><td>${cellName(n, r.idx)}</td><td>${r.wins}</td><td>${th.N}</td><td>${(100 * r.wins / th.N).toFixed(1)}%</td></tr>`).join('');
   $('#hx-table').innerHTML = `<tr><th>Cell</th><th>Wins</th><th>Playouts</th><th>Win rate</th></tr>${rows}`;
   const worst = th.results[th.results.length - 1];
-  $('#hx-table-note').innerHTML = `${th.results.length} empty cells, ${th.N} random finishes each, ${fmtNum(th.playouts)} games in ${Math.round(th.ms)} ms. Robo played <b class="robo">${cellName(n, th.choice)}</b>. The worst cell was ${cellName(n, worst.idx)} with ${worst.wins} wins.`;
+  $('#hx-table-note').innerHTML = `${th.results.length} empty cells, ${th.N} random finishes each, ${fmtNum(th.playouts)} games in ${Math.round(th.ms)} ms. ${verb || 'Robo played'} <b class="robo">${cellName(n, th.choice)}</b>. The worst cell was ${cellName(n, worst.idx)} with ${worst.wins} wins.`;
   $('#hx-again').disabled = false;
+  if (fromGame) say3('math', `The table now shows Robo's latest move in the game above, <b class="robo">${cellName(n, th.choice)}</b>. Press Imagine again to rerun it with fresh random games.`);
 }
 $('#hx-again').addEventListener('click', async () => {
   const prev = game.lastThink; if (!prev) return;
   $('#hx-again').disabled = true;
+  say3('robo', `Robo is imagining ${fmtNum(prev.playouts)} fresh games from the same position...`);
   const th = await think(prev.cells, Math.sqrt(prev.cells.length), prev.player, prev.N);
+  if (game.lastThink !== prev){ $('#hx-again').disabled = false; return; }   // Robo moved in the game above meanwhile: its table wins
   const before = prev.results[0], after = th.results[0];
-  showThink(th);
+  showThink(th, false, 'This time Robo would play');
   const n = Math.sqrt(th.cells.length);
-  $('#hx-table-note').innerHTML += ` <b>Same position, new random games:</b> last time the top cell was ${cellName(n, before.idx)} with ${before.wins} wins, now it is ${cellName(n, after.idx)} with ${after.wins}. That wobble is the sampling error.`;
+  say3('math', `Same position, new random games. Last time the top cell was ${cellName(n, before.idx)} with ${before.wins} wins. Now it is ${cellName(n, after.idx)} with ${after.wins}. That wobble is the sampling error. Press Imagine again.`, 'Result');
   game.lastThink = Object.assign({}, prev, { results: th.results, choice: th.choice, ms: th.ms });
 });
 
 /* ================= board 2: fill the board ================= */
 const fill = { n: 6, cells: null, mode: 'trace', sel: [], revealed: false, traced: 0, s: null, counted: false };
 let view2 = null;
-const st2 = html => { $('#hx-fill-status').innerHTML = html; };
+const say2 = (who, html, tag) => turn('#hx-fill-board', who, html, tag);
 function renderFill(chain){
   view2.update({ cells: fill.cells, chain: chain || null, sel: fill.sel, live: true });
   $('#hx-traced').textContent = `Chains traced: ${fill.traced} of 3`;
@@ -340,31 +350,31 @@ function fillRandom(){
   fill.cells = new Uint8Array(fill.n * fill.n); randomFill(fill.cells, fill.n, RED);
   fill.mode = 'trace'; fill.sel = []; fill.revealed = false; fill.counted = false;
   renderFill();
-  st2('A random full board. Somebody won. Click every cell of one winning chain, edge to edge, to trace it.');
+  say2('you', 'This board is full, so somebody won. Click every cell of the winning chain, from one of its edges to the other.');
 }
 function fillClear(){
   fill.cells = new Uint8Array(fill.n * fill.n); fill.mode = 'paint'; fill.sel = []; fill.revealed = false; fill.counted = false;
   renderFill();
-  st2(`Empty board. Click a cell to paint it red, again for blue, again to clear. Try to fill all ${fill.n * fill.n} cells with no winner.`);
+  say2('you', `Empty board. Click a cell to paint it <b class="you">red</b>, click it again for <b class="robo">blue</b>, and again to clear. Try to fill all ${fill.n * fill.n} cells with no winner.`);
 }
 function fillShow(){
   const w = winnerOf(fill.cells, fill.n, fill.s);
-  if (!w){ st2('No winner yet: the board is not full. Finish painting it.'); return; }
+  if (!w){ say2('you', 'The board is not full yet. Keep clicking cells until every one is painted, then it looks for the winner.', 'Not yet'); return; }
   fill.revealed = true; fill.sel = [];
   renderFill(chainOf(fill.cells, fill.n, w, fill.s));
-  st2(`${w === RED ? '<b class="you">Red</b> connects top to bottom' : '<b class="robo">Blue</b> connects left to right'}. Follow the green line.`);
+  say2('math', `${w === RED ? '<b class="you">Red</b> connects top to bottom' : '<b class="robo">Blue</b> connects left to right'}. Follow the green line. ${fill.mode === 'paint' ? 'Click any cell to change it and look again.' : 'Press Fill the board randomly for a new one.'}`, 'Answer');
 }
 function fillClick(i){
   if (fill.mode === 'paint'){
     fill.cells[i] = (fill.cells[i] + 1) % 3;
     const left = emptiesOf(fill.cells).length;
-    if (left){ renderFill(); st2(`${left} cell${left > 1 ? 's' : ''} still empty. No winner is possible until the board is full.`); return; }
+    if (left){ renderFill(); say2('you', `${left} cell${left > 1 ? 's' : ''} still empty. Keep painting: click a cell for red, again for blue. When the board is full it looks for the winner.`); return; }
     const w = winnerOf(fill.cells, fill.n, fill.s);
     renderFill(chainOf(fill.cells, fill.n, w, fill.s));
-    st2(`Full board, and ${w === RED ? '<b class="you">red</b> connects top to bottom' : '<b class="robo">blue</b> connects left to right'}. Change any cell and check again: there is always a winner.`);
+    say2('math', `Full board, and ${w === RED ? '<b class="you">red</b> connects top to bottom' : '<b class="robo">blue</b> connects left to right'}. Click any cell to change it and look again: there is always a winner.`, 'Result');
     return;
   }
-  if (fill.revealed) return;
+  if (fill.revealed){ say2('math', 'This chain is already shown in green. Press Fill the board randomly for a new board.', 'Done'); return; }
   const k = fill.sel.indexOf(i);
   if (k >= 0) fill.sel.splice(k, 1); else fill.sel.push(i);
   if (isTracedChain(fill.cells, fill.n, fill.sel)){
@@ -372,14 +382,15 @@ function fillClick(i){
     if (!fill.counted){ fill.counted = true; fill.traced++; }
     fill.revealed = true;
     renderFill(chainOf(fill.cells, fill.n, col, fill.s));
-    st2(`<span class="win-c">That is a winning chain.</span> ${col === RED ? 'Red' : 'Blue'} owns this board.` + (fill.traced < 3 ? ' Fill again for a new one.' : ''));
+    say2('win', `That is a winning chain. ${col === RED ? 'Red' : 'Blue'} owns this board. ` + (fill.traced < 3 ? `That is ${fill.traced} of 3. Press Fill the board randomly for a new one.` : 'That makes three. Press Clear and paint by hand, and try to build a board with no winner.'), 'Traced');
     if (fill.traced >= 3) earn('hx-chain');
     return;
   }
   renderFill();
   const colours = new Set(fill.sel.map(x => fill.cells[x]));
-  if (colours.size > 1) st2(`${fill.sel.length} cells selected, but they are not all one colour. A chain is one colour only.`);
-  else st2(`${fill.sel.length} cell${fill.sel.length === 1 ? '' : 's'} selected. Keep going until the chain touches both of its edges with no gaps.`);
+  if (colours.size > 1) say2('you', `${fill.sel.length} cells ringed, but they are not all one color. A chain is one color only. Click a ringed cell to let go of it.`, 'Not yet');
+  else if (!fill.sel.length) say2('you', 'Nothing ringed. Click every cell of the winning chain, from one of its edges to the other.');
+  else say2('you', `${fill.sel.length} cell${fill.sel.length === 1 ? '' : 's'} ringed. Keep going until the chain touches both of its edges with no gaps. Click a ringed cell to let go of it.`);
 }
 function fillNew(){ fill.s = makeScratch(fill.n); view2 = makeView($('#hx-fill-board'), fill.n, { paint: true }); view2.onCell(fillClick); fillRandom(); }
 $('#hx-fill-random').addEventListener('click', fillRandom);
@@ -420,12 +431,13 @@ $$('.hx-mini').forEach(host => {
 /* ================= boot ================= */
 newGame();
 fillNew();
+cue(view1.svg);   // the first thing to click in the chapter's first game: the board
 /* The table must show a real result on load: what Robo would play first on an empty 6 by 6 board. */
 (async () => {
   if (game.lastThink) return;
   const th = await think(new Uint8Array(36), 6, BLUE, 200);
   if (game.lastThink) return;
-  game.lastThink = th; showThink(th);
+  game.lastThink = th; showThink(th, false, 'Robo would play');
   $('#hx-table-note').innerHTML += ' <b>This is the empty 6 by 6 board with Robo to move.</b> Once Robo moves in the game above, the table follows its latest move.';
 })();
 })();

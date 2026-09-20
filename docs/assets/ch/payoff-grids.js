@@ -37,6 +37,7 @@ cue($$('#pg-cookie tr.pickable th.rh'));
 /* ================= best-response marking ================= */
 const MARKG = { rows: ['Top', 'Middle', 'Bottom'], cols: ['Left', 'Center', 'Right'],
   pay: [[[2, 3], [5, 0], [1, 2]], [[4, 1], [1, 4], [3, 2]], [[0, 5], [2, 1], [6, 0]]] };
+const MARK_HELP = 'Click a box to mark it: once for <b class="you">red</b>, twice for <b class="robo">blue</b>, three times for both. Six marks, then press Check.';
 const marks = {}; // "r,c" -> 0 none, 1 red, 2 blue, 3 both
 function markRender(){
   $('#pg-mark').innerHTML = grid(MARKG, { clickable: true, render: (cell, r, c) => {
@@ -47,9 +48,11 @@ function markRender(){
     const k = `${td.dataset.r},${td.dataset.c}`; marks[k] = ((marks[k] || 0) + 1) % 4; markRender();
   }));
   let n = 0; for (const k in marks) n += (marks[k] & 1) + (marks[k] >> 1);
-  $('#pg-mark-count').textContent = `${n} of 6 marks placed.`;
+  if (n === 0) turn('#pg-mark', 'you', MARK_HELP);
+  else if (n < 6) turn('#pg-mark', 'you', `${n} of 6 marks placed. Keep going: click once for <b class="you">red</b>, twice for <b class="robo">blue</b>, three times for both.`);
+  else if (n === 6) turn('#pg-mark', 'you', 'Six marks placed. Press <b>Check my marks</b>.');
+  else turn('#pg-mark', 'you', `${n} marks is too many: there are exactly three red and three blue. Click a box again to change its mark.`, 'Too many');
 }
-const MARK_HELP = 'Click a box to mark it: once for <b class="you">red</b>, twice for <b class="robo">blue</b>, three times for both. Six marks, then press Check.';
 $('#pg-mark-check').addEventListener('click', () => {
   const want = {};
   for (let c = 0; c < 3; c++) bestResponsesRow(MARKG.pay, c).forEach(r => { want[`${r},${c}`] = (want[`${r},${c}`] || 0) | 1; });
@@ -64,7 +67,7 @@ $('#pg-mark-check').addEventListener('click', () => {
   if (wrong === 0){ turn('#pg-mark', 'win', 'All six marks are right. Three red (one per column), three blue (one per row), and no box has both.', 'Solved'); earn('pg-best'); }
   else turn('#pg-mark', 'you', `${wrong} box${wrong > 1 ? 'es are' : ' is'} wrong, shaded red. Fix ${wrong > 1 ? 'them' : 'it'} and check again. Red compares down a column, blue compares across a row.`, 'Not yet');
 });
-$('#pg-mark-clear').addEventListener('click', () => { for (const k in marks) delete marks[k]; markRender(); turn('#pg-mark', 'you', MARK_HELP); });
+$('#pg-mark-clear').addEventListener('click', () => { for (const k in marks) delete marks[k]; markRender(); });
 markRender();
 
 /* ================= iterated elimination ================= */
