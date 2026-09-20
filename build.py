@@ -222,7 +222,8 @@ def chapter_page(site: Site, ch: Chapter, template: str, build_id: str) -> str:
     })
 
 
-BOARD_RE = re.compile(r'<div class="board"(?![^>]*\bid=)([^>]*)>(\s*<div class="board-head">\s*<h3>)(.*?)(</h3>)(\s*<span class="rules"[^>]*>(.*?)</span>)?', re.S)
+BOARD_RE = re.compile(r'<div class="(board(?: [^"]*)?)"([^>]*)>(\s*<div class="board-head">\s*<h3>)(.*?)(</h3>)(\s*<span class="rules"[^>]*>(.*?)</span>)?', re.S)
+BOARD_ID_RE = re.compile(r'\bid="([^"]+)"')
 
 
 @dataclass(frozen=True)
@@ -240,11 +241,17 @@ def anchor_boards(ch: Chapter) -> list[Board]:
 
     def repl(m: re.Match[str]) -> str:
         nonlocal counter
-        counter += 1
-        anchor = f"board-{counter}"
-        rules = re.sub(r"<[^>]+>", "", m.group(6) or "").strip()
-        boards.append(Board(chapter=ch, title=re.sub(r"<[^>]+>", "", m.group(3)).strip(), anchor=anchor, rules=rules))
-        return f'<div class="board" id="{anchor}"{m.group(1)}>{m.group(2)}{m.group(3)}{m.group(4)}{m.group(5) or ""}'
+        classes, attrs = m.group(1), m.group(2)
+        own_id = BOARD_ID_RE.search(attrs)
+        if own_id:  # a board that names itself keeps its id, and still belongs in the Arcade
+            anchor = own_id.group(1)
+        else:
+            counter += 1
+            anchor = f"board-{counter}"
+            attrs = f' id="{anchor}"{attrs}'
+        rules = re.sub(r"<[^>]+>", "", m.group(7) or "").strip()
+        boards.append(Board(chapter=ch, title=re.sub(r"<[^>]+>", "", m.group(4)).strip(), anchor=anchor, rules=rules))
+        return f'<div class="{classes}"{attrs}>{m.group(3)}{m.group(4)}{m.group(5)}{m.group(6) or ""}'
 
     ch.body = BOARD_RE.sub(repl, ch.body)
     return boards
