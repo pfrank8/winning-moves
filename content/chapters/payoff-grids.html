@@ -12,8 +12,9 @@
 <style>
   .pg-mark td{ cursor:pointer }
   .pg-mark td .arrow-you,.pg-mark td .arrow-robo{ font-size:1.3rem; line-height:1 }
-  .pg-cross th.click{ cursor:pointer; text-decoration:underline dotted; text-underline-offset:4px }
-  .pg-cross th.click:hover{ background:var(--math-soft); border-radius:8px }
+  .pg-cross th.click{ cursor:pointer; border:2px solid var(--line); border-radius:10px; background:var(--surface); box-shadow:3px 3px 0 var(--drop); padding:6px 12px }
+  .pg-cross th.click:hover,.pg-cross th.click:focus-visible{ background:var(--math-soft) }
+  .pg-cross th.dead{ box-shadow:none; cursor:default }
   .pg-cross th.dead{ opacity:.3; text-decoration:line-through }
 </style>
 
@@ -30,22 +31,19 @@
 
   <div class="board">
     <div class="board-head"><h3>Share or Grab?</h3><span class="rules">You pick the row. Robo picks the column.</span></div>
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Click a row in the grid: <b class="you">Share</b> or <b class="you">Grab</b>.</span></div>
     <div class="two">
       <div class="scroll"><table class="pay" id="pg-cookie"></table></div>
       <div class="stack">
-        <div class="row">
-          <button class="btn btn-robo btn-sm" type="button" id="pg-if-share">What if Robo shares?</button>
-          <button class="btn btn-robo btn-sm" type="button" id="pg-if-grab">What if Robo grabs?</button>
-        </div>
-        <div id="pg-msg" class="note">The green outline will show your bigger number in that column.</div>
-        <div id="pg-dominant" hidden>
-          <p><b>Grab wins both times.</b> A choice that is at least as good <i>no matter what</i> the other player does is called a <span class="term">dominant strategy</span> <span class="say">(say: DOM-in-ent)</span>. Robo has done the same math. Now play for real.</p>
-          <div class="row">
-            <button class="btn btn-you" type="button" data-cookie="Share">Share</button>
-            <button class="btn btn-you" type="button" data-cookie="Grab">Grab</button>
+        <div>
+          <div class="note" style="margin-top:0">Not sure which row? Ask first:</div>
+          <div class="row" style="margin-top:8px">
+            <button class="btn btn-robo btn-sm" type="button" id="pg-if-share">What if Robo shares?</button>
+            <button class="btn btn-robo btn-sm" type="button" id="pg-if-grab">What if Robo grabs?</button>
           </div>
-          <div class="status" id="pg-result"></div>
         </div>
+        <div id="pg-msg" class="note">Each button lights up one column and outlines your bigger number in green.</div>
+        <p id="pg-dominant" style="font-size:1rem;margin:0" hidden><b>Grab wins both times.</b> A choice that is at least as good <i>no matter what</i> the other player does is called a <span class="term">dominant strategy</span> <span class="say">(say: DOM-in-ent)</span>. Robo has done the same math.</p>
       </div>
     </div>
   </div>
@@ -63,11 +61,12 @@
   </div>
   <div class="board">
     <div class="board-head"><h3>Find the best responses</h3><span class="rules">Down a column for red. Across a row for blue.</span></div>
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Click a box to mark it: once for <b class="you">red</b>, twice for <b class="robo">blue</b>, three times for both. Six marks, then press Check.</span></div>
     <div class="two">
       <div class="scroll"><table class="pay pg-mark" id="pg-mark"></table></div>
       <div class="stack">
         <div class="row"><button class="btn btn-win" type="button" id="pg-mark-check">Check my marks</button><button class="btn btn-sm" type="button" id="pg-mark-clear">Clear</button></div>
-        <div class="note" id="pg-mark-msg">Six marks in total.</div>
+        <div class="note" id="pg-mark-count">0 of 6 marks placed.</div>
       </div>
     </div>
   </div>
@@ -84,11 +83,12 @@
   </div>
   <div class="board">
     <div class="board-head"><h3>Cross it out</h3><span class="rules">Rows are your choices. Columns are Robo's.</span></div>
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Click a row name or a column name to cross it out. Look for one that loses to another in every box still standing.</span></div>
     <div class="two">
       <div class="scroll"><table class="pay pg-cross" id="pg-cross"></table></div>
       <div class="stack">
-        <div class="note" id="pg-cross-msg">Find a row that is worse than another row in every column, or a column that is worse for Robo than another column in every row.</div>
-        <button class="btn btn-sm" type="button" id="pg-cross-reset">Reset</button>
+        <div class="note" id="pg-cross-count" style="margin-top:0">3 rows and 3 columns standing.</div>
+        <div class="row"><button class="btn btn-sm" type="button" id="pg-cross-reset">Reset</button></div>
       </div>
     </div>
   </div>

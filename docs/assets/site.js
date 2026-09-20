@@ -118,6 +118,65 @@ function slider(input, fmt, onChange){
   return upd;
 }
 
+/* ---------- the "your move" strip (CHAPTER_SPEC.md, "Game UX contract") ----------
+   turn(board, who, html): one strip per board, directly under the board head. who is
+   'you' (it is the reader's turn: say exactly what to click), 'robo' (Robo is moving or thinking),
+   'win' / 'lose' (what just happened), or 'math' (a tool with no opponent: say what to try).
+   The strip may also be written statically in the chapter HTML; this finds and updates it. */
+const TURN_TAGS = { you: 'Your move', robo: 'Robo', win: 'You win', lose: 'Robo wins', math: 'Try it' };
+function turn(board, who, html, tag){
+  board = typeof board === 'string' ? $(board) : board;
+  if (!board) return null;
+  if (!board.classList.contains('board')) board = board.closest('.board') || board;
+  let t = $(':scope > .turn', board);
+  if (!t){
+    t = document.createElement('div'); t.className = 'turn';
+    const head = $(':scope > .board-head', board);
+    if (head) head.after(t); else board.prepend(t);
+  }
+  t.setAttribute('role', 'status'); t.setAttribute('aria-live', 'polite');
+  t.dataset.who = who;
+  t.innerHTML = `<span class="turn-tag">${tag || TURN_TAGS[who] || ''}</span><span class="turn-text">${html}</span>`;
+  return t;
+}
+/* reveal(el): scroll el into view only if it is not already fully visible below the top bar. */
+function reveal(el){
+  if (!el) return;
+  const r = el.getBoundingClientRect(), top = 64, vh = window.innerHeight;
+  if (r.top >= top && r.bottom <= vh) return;
+  const y = window.scrollY + (r.height > vh - top ? r.top - top - 8 : r.bottom - vh + 16);
+  window.scrollTo({ top: r.top < top ? window.scrollY + r.top - top - 8 : y, behavior: reduced ? 'auto' : 'smooth' });
+}
+/* pickRows(table, onPick): make the rows of a rendered table.pay the reader's buttons.
+   Call again after every re-render of the table. Returns {lock(bool), mark(r), clear()}. */
+function pickRows(table, onPick){
+  table = typeof table === 'string' ? $(table) : table;
+  table.classList.add('pick-rows');
+  const rows = $$('tr', table).filter(tr => $('th.rh', tr));
+  rows.forEach((tr, r) => {
+    tr.classList.add('pickable'); tr.tabIndex = 0; tr.setAttribute('role', 'button');
+    tr.setAttribute('aria-label', 'Pick the row ' + $('th.rh', tr).textContent.trim());
+    const go = () => { if (!table.classList.contains('locked')) onPick(r, tr); };
+    tr.addEventListener('click', go);
+    tr.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); } });
+  });
+  const api = {
+    lock(on){ table.classList.toggle('locked', on !== false); rows.forEach(tr => { tr.tabIndex = on === false ? 0 : -1; }); return api; },
+    mark(r){ rows.forEach((tr, i) => tr.classList.toggle('picked', i === r)); return api; },
+    clear(){ rows.forEach(tr => tr.classList.remove('picked')); return api; },
+  };
+  return api;
+}
+/* cue(els): pulse the things the reader should click, until they interact with that board once. */
+function cue(els){
+  els = (Array.isArray(els) ? els : [els]).filter(Boolean);
+  if (!els.length) return;
+  els.forEach(e => e.classList.add('cue'));
+  const board = els[0].closest('.board') || document;
+  const off = () => { els.forEach(e => e.classList.remove('cue')); board.removeEventListener('pointerdown', off, true); board.removeEventListener('keydown', off, true); };
+  board.addEventListener('pointerdown', off, true); board.addEventListener('keydown', off, true);
+}
+
 /* ---------- boot ---------- */
 document.addEventListener('DOMContentLoaded', () => {
   renderStars();
@@ -126,5 +185,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.WM = { $, $$, rand, pick, reduced, wait, clamp, fmtN, fmtS, fmtNum, gcd, frac, fracOf, payCell, grid, isNash, bestResponsesRow, bestResponsesCol,
-  has, earn, count, toast, seg, slider, renderStars, STAR_SVG, chapters: CHAPTERS };
+  has, earn, count, toast, seg, slider, turn, reveal, pickRows, cue, renderStars, STAR_SVG, chapters: CHAPTERS };
 })();
