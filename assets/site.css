@@ -255,7 +255,7 @@ input[type=text],select{ width:auto; max-width:100% }
 .pay th.corner{ font:500 .8rem var(--f-mono); color:var(--ink-soft); text-align:right; white-space:nowrap }
 .pay td{ width:96px; height:62px; text-align:center; border:2px solid var(--line); border-radius:10px; background:var(--surface-2); font-size:1.15rem; font-weight:600; position:relative }
 .pay td .sep{ color:var(--ink-soft); margin:0 .35em; font-weight:400 }
-.pay td.click{ cursor:pointer } .pay td.click:hover{ background:var(--math-soft) }
+.pay td.click{ cursor:pointer } .pay td.click:not(.no):not(.ne):not(.hit):not(.win):not(.lose):hover{ background:var(--math-soft) }  /* a verdict color must stay visible under the cursor: you are always hovering the box you just clicked */
 .pay td.hit{ outline:4px solid var(--math); outline-offset:-2px; background:var(--math-soft) }
 .pay td.colhl{ background:var(--robo-soft); border-color:var(--robo) }
 .pay td.rowhl{ background:var(--you-soft); border-color:var(--you) }

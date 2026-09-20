@@ -158,6 +158,9 @@ are the reference implementation. `scripts/ux_audit.py` enforces the measurable 
    reachable by keyboard (a `<button>`, or `tabindex="0"` + `role="button"` + Enter and Space).
    Call `WM.cue(els)` once, at load, on the first thing to click in the chapter's FIRST game only.
    Pulsing on every board is noise.
+   Never change the strip (or anything that changes a board's height) on hover: the strip reflows,
+   the rows move under the mouse, the hover changes again, and the board flickers. Hover may only
+   recolor. Narrate on click.
 8. **While Robo thinks,** lock the inputs and set the strip to `robo` ("Robo is thinking..."). Keep
    the race-token pattern from the script section below.
 9. **Do not change** game logic, perfect play, the teaching copy in the prose, or the color
