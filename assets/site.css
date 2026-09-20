@@ -120,6 +120,8 @@ svg text{ font-family:var(--f-display) }
   background:var(--surface); border:3px solid var(--line); border-radius:16px; box-shadow:8px 8px 0 var(--drop);
   padding:clamp(16px,3vw,28px); margin:26px 8px 34px 0; max-width:840px;
 }
+/* Arcade and glossary links jump straight to a board or heading: keep it clear of the sticky top bar. */
+.board, h2[id], h3[id], section[id], [id].term{ scroll-margin-top:74px }
 .board-head{ display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:8px 16px; margin-bottom:14px }
 .board-head h3{ margin:0 }
 .board-head .rules{ color:var(--ink-soft); font-size:.95rem }
