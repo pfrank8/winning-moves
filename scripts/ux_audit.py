@@ -170,8 +170,7 @@ def main() -> int:
             for i, b in enumerate(page.evaluate(PROBE)):
                 reports.append(judge(slug, i, b))
                 if not args.no_shots:
-                    # hide the sticky top bar so it does not paint over the board in the element screenshot
-                    page.add_style_tag(content=".topbar{visibility:hidden}")
+                    page.add_style_tag(content=".topbar{visibility:hidden} .turn{position:static}")  # sticky parts would paint mid-board in a tall element screenshot
                     page.locator("div.board").nth(i).screenshot(path=str(args.shots / f"{slug}-{i}.png"))
                 if args.play and b["interactive"] and b["strip"]:
                     play_first_move(page, i, reports[-1], None if args.no_shots else args.shots / f"{slug}-{i}-played.png")
