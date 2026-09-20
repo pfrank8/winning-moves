@@ -28,6 +28,12 @@ ASSETS = ROOT / "assets"
 TEMPLATE = ROOT / "templates" / "page.html"
 OUT = ROOT / "docs"
 
+# The site is served under a sub-path (east11ventures.com/gametheory/) and every link in it is
+# relative. A visitor who types the directory URL without its trailing slash would have those links
+# resolve against the parent directory, so the home page fixes the URL before anything loads.
+MOUNT_GUARD = ("<script>(function(){var p=location.pathname,last=p.split('/').pop();"
+               "if(last&&last!=='index'&&last!=='index.html'){location.replace(p+'/'+location.search+location.hash);}})();</script>\n")
+
 META_RE = re.compile(r"^\s*<!--meta\s*(\{.*?\})\s*-->", re.S)
 ROMANS = ["I", "II", "III", "IV", "V", "VI"]
 
@@ -202,6 +208,7 @@ def chapter_page(site: Site, ch: Chapter, template: str, build_id: str) -> str:
     scripts = f'<script src="assets/ch/{ch.slug}.js?v={build_id}"></script>' if script_path.exists() else ""
     return render_template(template, {
         "title": f"{ch.num}. {ch.title}",
+        "head_extra": "",
         "description": ch.description,
         "root": "./",
         "build": build_id,
@@ -275,6 +282,7 @@ def page_page(site: Site, page: Page, template: str, build_id: str, boards: list
     scripts = f'<script src="assets/ch/{page.slug}.js?v={build_id}"></script>' if script_path.exists() else ""
     return render_template(template, {
         "title": page.title,
+        "head_extra": MOUNT_GUARD if page.slug == "index" else "",
         "description": page.description,
         "root": "./",
         "build": build_id,
