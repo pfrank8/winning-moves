@@ -206,7 +206,7 @@ input[type=text],select{ width:auto; max-width:100% }
    that says what to do right now, and then what just happened. It sticks under the top bar while a tall
    board scrolls, so the instruction and the result are never off screen. */
 .turn{
-  position:sticky; top:58px; z-index:3; display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+  position:sticky; top:60px; z-index:3; display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
   margin:0 0 16px; padding:9px 14px; border:2px solid var(--line); border-left-width:8px; border-radius:12px;
   background:var(--surface-2); font:600 1.02rem var(--f-display); line-height:1.35;
 }
@@ -217,7 +217,7 @@ input[type=text],select{ width:auto; max-width:100% }
 .turn[data-who="win"]{ border-left-color:var(--win); background:var(--win-soft) }    .turn[data-who="win"] .turn-tag{ color:var(--win) }
 .turn[data-who="lose"]{ border-left-color:var(--robo); background:var(--robo-soft) } .turn[data-who="lose"] .turn-tag{ color:var(--robo) }
 .turn[data-who="math"]{ border-left-color:var(--math); background:var(--math-soft) }
-@media (max-width:520px){ .turn{ top:52px; font-size:.97rem; padding:8px 11px } }
+@media (max-width:520px){ .turn{ font-size:.97rem; padding:8px 11px } }
 @media print{ .turn{ position:static } }
 
 /* The play controls: one row, directly under the strip and above the play area. */
