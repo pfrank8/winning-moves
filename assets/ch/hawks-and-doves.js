@@ -1,7 +1,7 @@
 /* Chapter: Hawks and doves (Hawk-Dove payoff grid, payoff-versus-p chart, replicator simulation, lizard rock-paper-scissors). */
 (function(){
 'use strict';
-const { $, $$, earn, slider, grid, fmtN, fmtS, clamp } = WM;
+const { $, $$, earn, slider, grid, fmtN, fmtS, clamp, turn, cue } = WM;
 
 /* @pure-start
    Everything between the pure markers is DOM-free. The node test (scratch) evaluates this block on its own. */
@@ -93,6 +93,7 @@ function lizardStep(x){
 
 /* ---------- shared state, theme colors, canvas helpers ---------- */
 const state = { V: 10, C: 20 };
+let booted = false;   // the strips keep their written instruction until the reader moves something
 function css(name, el){ return getComputedStyle(el || document.documentElement).getPropertyValue(name).trim(); }
 function theme(el){
   return { you: css('--you'), robo: css('--robo'), math: css('--math'), ink: css('--ink'), soft: css('--ink-soft'), line: css('--line'),
@@ -152,7 +153,8 @@ function drawGrid(){
   if (fight < 0) msg += `<span class="you">Fighting is expensive.</span> Two hawks both do worse than two doves (${num(V / 2)} each).`;
   else if (fight === 0) msg += `A fight is worth exactly nothing, and beating a dove is worth ${V}. Hawks will not shrink.`;
   else msg += `<span class="you">Fighting pays.</span> Even a fight beats what a dove gets against a hawk (0). Hawks will take over.`;
-  $('#hd-grid-status').innerHTML = msg;
+  msg += fight < 0 ? ' Now drag C below V and look at that cell again.' : ' Drag C back above V to make fighting expensive again.';
+  if (booted) turn('#hd-b1', 'math', msg);
 }
 
 /* ================= board 2: payoff versus p ================= */
@@ -192,11 +194,10 @@ function drawLines(){
   const eh = EH(p2, V, C), ed = ED(p2, V, C);
   $('#hd-eh').textContent = num(eh); $('#hd-ed').textContent = num(ed);
   $('#hd-pstar').textContent = ps < 1 ? `${V}/${C} = ${pct(ps)}` : `${num(V / C)}, so 100%`;
-  let s;
-  if (Math.abs(eh - ed) < 1e-9) s = `At p = ${pct(p2)} a hawk and a dove earn the same, ${num(eh)}. Nothing changes. This is the equilibrium.`;
-  else if (eh > ed) s = `At p = ${pct(p2)} hawks earn ${num(eh)} and doves earn ${num(ed)}. <span class="you">Hawks are spreading</span>, so p goes up.`;
-  else s = `At p = ${pct(p2)} hawks earn ${num(eh)} and doves earn ${num(ed)}. <span class="robo">Doves are spreading</span>, so p goes down.`;
-  $('#hd-lines-status').innerHTML = s;
+  if (!booted) return;
+  if (Math.abs(eh - ed) < 1e-9) turn('#hd-b2', 'win', `At p = ${pct(p2)} a hawk and a dove earn the same, ${num(eh)}. Nothing changes. This is the equilibrium. Change V or C and find the new one.`, 'Equilibrium');
+  else if (eh > ed) turn('#hd-b2', 'math', `At p = ${pct(p2)} hawks earn ${num(eh)} and doves earn ${num(ed)}. <span class="you">Hawks are spreading</span>, so p goes up. ${ps < 1 ? 'Drag p to the right, toward the crossing.' : 'The red line is higher everywhere, so there is no crossing to find.'}`);
+  else turn('#hd-b2', 'math', `At p = ${pct(p2)} hawks earn ${num(eh)} and doves earn ${num(ed)}. <span class="robo">Doves are spreading</span>, so p goes down. Drag p to the left, toward the crossing.`);
 }
 
 /* ================= board 3: the simulation ================= */
@@ -210,13 +211,20 @@ function simReset(){
   sim.gen = 0; sim.hist = [sim.p]; sim.lock = null; sim.fights = 0; sim.hawkAvg = NaN; sim.doveAvg = NaN;
   sim.pairs = playGeneration(sim.nH, state.V, state.C).pairs;   // a first random pairing, just for the picture
   simDraw();
-  const pred = parsePrediction($('#hd-pred').value);
-  $('#hd-sim-status').innerHTML = pred === null
-    ? `Type your prediction for the final hawk fraction, then press Run. (Hint if you need it.)`
-    : `Prediction ready: <b>${Math.round(pred)}%</b>. Press Run and see if the animals agree.`;
+  simKey = '';
+  simAsk();
+}
+/* The strip narrates states, not generations: the live numbers are in the readouts beside the chart. */
+const SIM = '#hd-b3';
+let simKey = '';
+function simAsk(){
+  const raw = $('#hd-pred').value.trim(), pred = parsePrediction(raw);
+  if (pred !== null) turn(SIM, 'you', `Prediction ready: <b>${Math.round(pred)}%</b>. Press <b>Run</b> and see if the animals agree.`);
+  else if (raw) turn(SIM, 'you', 'I cannot read that. Try 50%, 0.5, or 1/2.', 'Not yet');
+  else turn(SIM, 'you', 'Work out V/C for these sliders, type it into <b>My prediction</b> (like 50% or 1/2), then press <b>Run</b>.');
 }
 function simStep(){
-  if (sim.gen >= MAX_GEN){ simPause(); $('#hd-sim-status').innerHTML = `That is ${MAX_GEN} generations. Press Reset to start again.`; return; }
+  if (sim.gen >= MAX_GEN){ simPause(); turn(SIM, 'math', `That is ${MAX_GEN} generations. Press Reset to start again.`, 'Done'); return; }
   if (sim.gen === 0){
     const pred = parsePrediction($('#hd-pred').value);
     sim.lock = { pred, V: state.V, C: state.C };
@@ -229,31 +237,43 @@ function simStep(){
   sim.gen++; sim.hist.push(sim.p);
   simDraw(); simStatus();
 }
-function simStatus(){
+function simStatus(paused){
   const { V, C } = state; const ps = pStar(V, C); const L = sim.lock;
-  const predTxt = L && L.pred !== null ? `Your prediction: <b>${Math.round(L.pred)}%</b>. ` : `No prediction was typed before this run, so no star this time. `;
-  let s = predTxt;
-  const took = sim.nH >= N;
+  const has = !!(L && L.pred !== null), late = sim.gen >= 30;
+  const predTxt = has ? `Your prediction: <b>${Math.round(L.pred)}%</b>. ` : 'No prediction was typed before this run, so no star this time. ';
+  const took = sim.nH >= N || sim.p >= 0.97, extinct = sim.nH === 0;
+  let who = 'math', tag = 'Evolving', s = predTxt;
   if (V < C){
-    s += `Equation says <b>${pct(ps)}</b>. Now: <b>${pct(sim.p)}</b> hawks.`;
-    if (sim.gen >= 30 && L && L.pred !== null && Math.abs(L.pred - 100 * ps) <= 5){ s += ` <span class="win-c">Within 5 points. Nice.</span>`; earn('hd-predict'); }
-    else if (sim.gen >= 30 && L && L.pred !== null) s += ` Your guess was ${Math.round(L.pred)}%. Reset, divide V by C, and try again.`;
+    if (late && has && Math.abs(L.pred - 100 * ps) <= 5){
+      who = 'win'; tag = 'Star';
+      s += `The equation says <b>${pct(ps)}</b>, and after ${sim.gen} generations the animals sit at <b>${pct(sim.p)}</b>. Within 5 points. Nice. Press Reset, then start from 5% hawks.`;
+      earn('hd-predict');
+    } else if (late && has){
+      who = 'lose'; tag = 'Not this time';
+      s += `The equation says <b>${pct(ps)}</b>, and the animals are at <b>${pct(sim.p)}</b>. Press Reset, divide V by C, and try again.`;
+    } else s += `The equation says <b>${pct(ps)}</b>: the dashed line. Watch the red line head for it.`;
   } else {
-    s += `V ≥ C, so hawks should take over. Now: <b>${pct(sim.p)}</b> hawks.`;
-    if (took || sim.p >= 0.97){
-      s += ` <span class="you">Hawks have taken over.</span>`;
-      if (sim.gen >= 30 && L && L.pred !== null && L.pred >= 95) earn('hd-allhawk');
-    }
+    s += 'V is at least C, so hawks should take over.';
+    if (took){
+      s += ' <span class="you">Hawks have taken over.</span>';
+      if (late && has && L.pred >= 95){ who = 'win'; tag = 'Star'; earn('hd-allhawk'); }
+      s += ' Press Reset and make fighting expensive again.';
+    } else s += ' Watch the red line climb.';
   }
-  if (sim.nH === 0) s += ` <span class="robo">Hawks are extinct.</span> Nobody is left to fight, and with no hawks there is nothing to pull them back. Reset to try again.`;
-  $('#hd-sim-status').innerHTML = s;
+  if (extinct) s += ` <span class="robo">Hawks are extinct.</span> Nobody is left to fight, and with no hawks there is nothing to pull them back. Reset to try again.`;
+  if (paused) s += ` Paused at generation ${sim.gen}: press <b>Continue</b>, or <b>Step</b> to go one generation at a time.`;
+  const key = [V < C, late, has, took, extinct, !!paused].join('|');
+  if (key === simKey) return;
+  simKey = key;
+  turn(SIM, who, s, paused && tag === 'Evolving' ? 'Paused' : tag);
 }
 function simDraw(){
   /* the animals */
   const pv = $('#hd-pop'); { const { c, W, H } = ctx2d(pv); const t = theme(pv);
     c.fillStyle = t.surface; c.fillRect(0, 0, W, H);
     const pairs = sim.pairs || [];
-    const cols = 15, cw = 40, rh = 24, x0 = 20, y0 = 8;
+    const cols = 20, x0 = 6, y0 = 6, rows = Math.max(1, Math.ceil(pairs.length / cols));
+    const cw = (W - 2 * x0) / cols, rh = (H - 2 * y0) / rows, pw = cw - 3, ph = Math.min(rh - 3, 14), rad = Math.min(pw / 4 - 0.8, ph / 2 - 1.2);
     /* draw pairs so that the picture matches the counts: hawks drawn = round(p * N) */
     const shownH = Math.round(sim.p * N);
     let drawn = pairs.map(pr => pr.slice());
@@ -270,9 +290,9 @@ function simDraw(){
       const x = x0 + col * cw, y = y0 + row * rh;
       const [a, b] = pr;
       c.fillStyle = a && b ? t.youSoft : (!a && !b) ? t.roboSoft : t.surface2;
-      c.beginPath(); c.roundRect(x, y, 36, 20, 10); c.fill();
-      for (const [dx, kind] of [[10, a], [26, b]]){
-        c.beginPath(); c.arc(x + dx, y + 10, 6.5, 0, Math.PI * 2); c.fillStyle = kind ? t.you : t.robo; c.fill();
+      c.beginPath(); c.roundRect(x, y, pw, ph, ph / 2); c.fill();
+      for (const [dx, kind] of [[pw * 0.27, a], [pw * 0.73, b]]){
+        c.beginPath(); c.arc(x + dx, y + ph / 2, rad, 0, Math.PI * 2); c.fillStyle = kind ? t.you : t.robo; c.fill();
       }
     });
   }
@@ -313,28 +333,43 @@ function simLoop(){
 }
 function simRun(){ if (sim.running) return; sim.running = true; $('#hd-run').textContent = 'Pause'; simLoop(); }
 function simPause(){ sim.running = false; clearTimeout(sim.timer); cancelAnimationFrame(sim.timer); $('#hd-run').textContent = sim.gen ? 'Continue' : 'Run'; }
-$('#hd-run').addEventListener('click', () => sim.running ? simPause() : simRun());
+$('#hd-run').addEventListener('click', () => {
+  if (!sim.running){ simRun(); return; }
+  simPause(); simStatus(true);
+});
 $('#hd-step').addEventListener('click', () => { simPause(); simStep(); });
 $('#hd-reset').addEventListener('click', simReset);
 $('#hd-exact').addEventListener('change', simReset);
 $('#hd-hint').addEventListener('click', () => {
-  $('#hd-sim-status').innerHTML = `Hint: hawks stop spreading at the p where a hawk and a dove earn the same, and that is <b>p = V/C</b>. Divide the prize by the cost, then type it in. If V is bigger than C, the answer is 100%.`;
+  simKey = '';
+  turn(SIM, 'you', 'Hawks stop spreading at the p where a hawk and a dove earn the same, and that is <b>p = V/C</b>. Divide the prize by the cost, then type it in. If V is bigger than C, the answer is 100%.', 'Hint');
 });
-$('#hd-pred').addEventListener('input', () => { if (sim.gen === 0){ const pr = parsePrediction($('#hd-pred').value); $('#hd-sim-status').innerHTML = pr === null ? ($('#hd-pred').value.trim() ? 'I cannot read that. Try 50%, 0.5, or 1/2.' : 'Type your prediction, then press Run.') : `Prediction ready: <b>${Math.round(pr)}%</b>. Press Run and see if the animals agree.`; } });
+$('#hd-pred').addEventListener('input', () => { if (sim.gen === 0) simAsk(); });
 $('#hd-pred').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); if (sim.gen === 0) simRun(); } });
 
 /* ================= board 4: the lizards ================= */
 const liz = { x: [0.5, 0.3, 0.2], gen: 0, hist: [], running: false, timer: null };
 const LIZ_MAX = 5000;
-function lizReset(){ lizPause(); liz.x = [0.5, 0.3, 0.2]; liz.gen = 0; liz.hist = [liz.x.slice()]; lizDraw(); $('#hd-lstatus').innerHTML = 'Press Run and watch which color is winning.'; }
+const LIZ = '#hd-b4';
+let lizKey = '';
+function lizReset(){ lizPause(); liz.x = [0.5, 0.3, 0.2]; liz.gen = 0; liz.hist = [liz.x.slice()]; lizKey = ''; lizDraw(); turn(LIZ, 'math', 'Press <b>Run</b> and watch the three colors chase each other. Orange starts ahead: who gains from that?'); }
 function lizStep(){
-  if (liz.gen >= LIZ_MAX){ lizPause(); $('#hd-lstatus').innerHTML = `That is ${LIZ_MAX} generations. Reset to go again.`; return; }
+  if (liz.gen >= LIZ_MAX){ lizPause(); turn(LIZ, 'math', `That is ${LIZ_MAX} generations. Press Reset to go again.`, 'Done'); return; }
   liz.x = lizardStep(liz.x); liz.gen++; liz.hist.push(liz.x.slice()); lizDraw();
+  lizSay(false);
+}
+function lizSay(paused){
   const names = ['orange', 'blue', 'yellow'], beats = ['blue', 'yellow', 'orange'], beatenBy = ['yellow', 'orange', 'blue'];
   const top = liz.x.indexOf(Math.max.apply(null, liz.x));
-  let s = `Generation ${liz.gen}: <b>${names[top]}</b> is the most common, which is good news for <b>${beatenBy[top]}</b> (it beats ${names[top]}) and bad news for <b>${beats[top]}</b>.`;
-  if (liz.gen >= 200){ s += ` <span class="win-c">Two hundred generations and still going around.</span>`; earn('hd-cycle'); }
-  $('#hd-lstatus').innerHTML = s;
+  const done = liz.gen >= 200;
+  if (done) earn('hd-cycle');
+  const key = top + '|' + done + '|' + paused;
+  if (key === lizKey) return;                      // the strip changes when the leader changes, not every generation
+  lizKey = key;
+  let s = `<b>${names[top][0].toUpperCase() + names[top].slice(1)}</b> is the most common now, which is good news for <b>${beatenBy[top]}</b> (it beats ${names[top]}) and bad news for <b>${beats[top]}</b>. Watch ${beatenBy[top]} rise next.`;
+  if (paused) s += ` Paused at generation ${liz.gen}: press <b>Continue</b>, or <b>Step</b> to go one generation at a time.`;
+  if (done) turn(LIZ, 'win', `Two hundred generations and still going around. ${s}`, 'Star');
+  else turn(LIZ, 'math', s, paused ? 'Paused' : 'Cycling');
 }
 function lizDraw(){
   const cv = $('#hd-lchart'); const { c, W, H } = ctx2d(cv); const t = theme(cv);
@@ -361,7 +396,10 @@ function lizLoop(){
 }
 function lizRun(){ if (liz.running) return; liz.running = true; $('#hd-lrun').textContent = 'Pause'; lizLoop(); }
 function lizPause(){ liz.running = false; clearTimeout(liz.timer); cancelAnimationFrame(liz.timer); $('#hd-lrun').textContent = liz.gen ? 'Continue' : 'Run'; }
-$('#hd-lrun').addEventListener('click', () => liz.running ? lizPause() : lizRun());
+$('#hd-lrun').addEventListener('click', () => {
+  if (!liz.running){ lizRun(); return; }
+  lizPause(); lizSay(true);
+});
 $('#hd-lstep').addEventListener('click', () => { lizPause(); lizStep(); });
 $('#hd-lreset').addEventListener('click', lizReset);
 function drawRps(){
@@ -384,6 +422,8 @@ slider($('#hd-start'), v => v + '%', () => simReset());
 slider($('#hd-speed'), v => SPEED_NAME[clamp(v, 1, 5)]);
 slider($('#hd-lspeed'), v => SPEED_NAME[clamp(v, 1, 5)]);
 drawGrid(); drawLines(); simReset(); drawRps(); lizReset();
+booted = true;
+cue($('#hd-v1').closest('.slider'));
 /* redraw when the color scheme flips, so canvases pick up the new theme */
 try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { drawLines(); simDraw(); lizDraw(); }); } catch (e) {}
 })();

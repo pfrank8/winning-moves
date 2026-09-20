@@ -23,8 +23,19 @@
   .hd-note{ font-size:.92rem; color:var(--ink-soft); margin:8px 0 0 }
   .hd-chart{ margin-top:12px }
   .hd-eq{ font-family:var(--f-mono); font-variant-numeric:tabular-nums }
+  /* board 1: sliders first in the DOM (they lead on a phone), placed to the right of the grid on a laptop */
   .hd-two{ display:grid; grid-template-columns:auto minmax(0,1fr); gap:10px 26px; align-items:start }
-  @media (max-width:700px){ .hd-two{ grid-template-columns:1fr } }
+  .hd-two > .hd-ctl{ grid-column:2; grid-row:1 } .hd-two > .scroll{ grid-column:1; grid-row:1 }
+  /* boards 2 to 4: a narrow column of sliders and readouts beside the chart, so the whole board fits one screen */
+  .hd-dash{ display:grid; grid-template-columns:var(--side,250px) minmax(0,1fr); gap:12px 20px; align-items:start }
+  .hd-side .slider{ margin-bottom:10px } .hd-side .slider .lab{ font-size:.95rem }
+  .hd-side .stats{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:4px }
+  .hd-side .stat{ min-width:0; padding:7px 10px } .hd-side .stat .v{ font-size:1.12rem } .hd-side .stat.wide{ grid-column:1 / -1 }
+  .hd-dash .hd-chart{ margin-top:0 } .hd-dash .hd-chart + .hd-legend{ margin:6px 0 10px }
+  .controls .slider{ flex:1 1 180px; max-width:260px; margin:0 }
+  .hd-rps td{ width:56px; height:40px; font-size:.95rem }
+  .hd-rps th.corner{ white-space:normal; width:96px; font-size:.62rem; line-height:1.3 }
+  @media (max-width:700px){ .hd-two,.hd-dash{ grid-template-columns:minmax(0,1fr) } .hd-two > .hd-ctl,.hd-two > .scroll{ grid-column:auto; grid-row:auto } }
 </style>
 
 <section>
@@ -39,18 +50,18 @@
     <p>That is the whole <span class="term">Hawk-Dove game</span>. The grid below shows it with <span class="var">V</span> = 10 and <span class="var">C</span> = 20. Look at the top-left cell: Hawk meets Hawk is <code>−5</code> each. A fight over a 10-point worm costs more than the worm is worth, so two hawks both come out worse than if they had never met. Fighting is expensive. Move the sliders and watch every cell change.</p>
   </div>
 
-  <div class="board">
+  <div class="board" id="hd-b1">
     <div class="board-head"><h3>Two ways to fight over a worm</h3><span class="rules">Both animals are the same kind of animal, so the grid is symmetric.</span></div>
+    <div class="turn" data-who="math"><span class="turn-tag">Try it</span><span class="turn-text">Drag the <b>Prize V</b> slider or the <b>Cost C</b> slider and watch every cell change. What happens to Hawk meets Hawk when C drops below V?</span></div>
     <div class="hd-two">
-      <div class="scroll"><table class="pay hd-grid" id="hd-grid"></table></div>
-      <div>
+      <div class="hd-ctl">
         <div class="slider"><label class="lab" for="hd-v1"><span>Prize V</span><span class="v" data-for="hd-v1">10</span></label><input type="range" id="hd-v1" min="2" max="20" value="10"></div>
         <div class="slider"><label class="lab" for="hd-c1"><span>Cost of losing a fight C</span><span class="v" data-for="hd-c1">20</span></label><input type="range" id="hd-c1" min="2" max="40" value="20"></div>
         <div class="hd-legend"><span><i class="sq" style="background:var(--you)"></i>first number: the row animal's payoff</span><span><i class="sq" style="background:var(--robo)"></i>second number: the column animal's payoff</span></div>
         <p class="hd-note">Colors in this chapter: the grid uses the site's row and column colors. Everywhere else, <span class="hd-hawk">red is a hawk</span> and <span class="hd-dove">blue is a dove</span>.</p>
       </div>
+      <div class="scroll"><table class="pay hd-grid" id="hd-grid"></table></div>
     </div>
-    <div class="status" id="hd-grid-status"></div>
   </div>
 </section>
 
@@ -87,22 +98,22 @@
     <p>The chart draws <code>E<sub>H</sub></code> in red and <code>E<sub>D</sub></code> in blue for every <span class="var">p</span> from 0 to 1. Where the lines cross is <span class="var">p</span>*. Slide <span class="var">p</span> around and see who is winning on each side of the crossing.</p>
   </div>
 
-  <div class="board">
+  <div class="board" id="hd-b2">
     <div class="board-head"><h3>Payoff versus p</h3><span class="rules">Hawks spread where the red line is higher. Doves spread where the blue line is higher.</span></div>
-    <div class="two">
-      <div>
+    <div class="turn" data-who="math"><span class="turn-tag">Try it</span><span class="turn-text">Drag the <b>Fraction of hawks p</b> slider. Find the p where a hawk and a dove earn the same.</span></div>
+    <div class="hd-dash">
+      <div class="hd-side">
         <div class="slider"><label class="lab" for="hd-p2"><span>Fraction of hawks p</span><span class="v" data-for="hd-p2">30%</span></label><input type="range" id="hd-p2" min="0" max="100" value="30"></div>
         <div class="slider"><label class="lab" for="hd-v2"><span>Prize V</span><span class="v" data-for="hd-v2">10</span></label><input type="range" id="hd-v2" min="2" max="20" value="10"></div>
         <div class="slider"><label class="lab" for="hd-c2"><span>Cost C</span><span class="v" data-for="hd-c2">20</span></label><input type="range" id="hd-c2" min="2" max="40" value="20"></div>
+        <div class="stats">
+          <div class="stat"><span class="k">Hawk average</span><span class="v you" id="hd-eh">0</span></div>
+          <div class="stat"><span class="k">Dove average</span><span class="v robo" id="hd-ed">0</span></div>
+          <div class="stat wide"><span class="k">p* = V/C</span><span class="v math-c" id="hd-pstar">0</span></div>
+        </div>
       </div>
-      <div class="stats">
-        <div class="stat"><span class="k">Hawk average</span><span class="v you" id="hd-eh">0</span></div>
-        <div class="stat"><span class="k">Dove average</span><span class="v robo" id="hd-ed">0</span></div>
-        <div class="stat"><span class="k">p* = V/C</span><span class="v math-c" id="hd-pstar">0</span></div>
-      </div>
+      <canvas class="sim hd-chart" id="hd-lines" width="508" height="330"></canvas>
     </div>
-    <canvas class="sim hd-chart" id="hd-lines" width="640" height="340"></canvas>
-    <div class="status" id="hd-lines-status"></div>
   </div>
 </section>
 
@@ -114,40 +125,38 @@
     <p>The line wobbles because of luck: who bumps into whom changes a little each generation. Tick "No luck" to use exact averages instead, and the wobble disappears.</p>
   </div>
 
-  <div class="board">
+  <div class="board" id="hd-b3">
     <div class="board-head"><h3>Let it evolve</h3><span class="rules">300 animals. Random pairs. Babies in proportion to points.</span></div>
-    <div class="two">
-      <div>
-        <div class="slider"><label class="lab" for="hd-start"><span>Starting fraction of hawks</span><span class="v" data-for="hd-start">90%</span></label><input type="range" id="hd-start" min="0" max="100" value="90"></div>
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Work out V/C for these sliders, type it into <b>My prediction</b> (like 50% or 1/2), then press <b>Run</b>.</span></div>
+    <div class="controls">
+      <span class="field hd-pred">My prediction <input type="text" id="hd-pred" placeholder="50% or 1/2" autocomplete="off"></span>
+      <button class="btn btn-you" id="hd-run" type="button">Run</button>
+      <button class="btn" id="hd-step" type="button">Step</button>
+      <button class="btn btn-sm" id="hd-reset" type="button">Reset</button>
+      <button class="btn btn-math btn-sm" id="hd-hint" type="button">Hint</button>
+      <label class="chk"><input type="checkbox" id="hd-exact"> No luck (exact averages)</label>
+    </div>
+    <div class="hd-dash">
+      <div class="hd-side">
+        <div class="slider"><label class="lab" for="hd-start"><span>Hawks at the start</span><span class="v" data-for="hd-start">90%</span></label><input type="range" id="hd-start" min="0" max="100" value="90"></div>
         <div class="slider"><label class="lab" for="hd-v3"><span>Prize V</span><span class="v" data-for="hd-v3">10</span></label><input type="range" id="hd-v3" min="2" max="20" value="10"></div>
         <div class="slider"><label class="lab" for="hd-c3"><span>Cost C</span><span class="v" data-for="hd-c3">20</span></label><input type="range" id="hd-c3" min="2" max="40" value="20"></div>
+        <div class="slider"><label class="lab" for="hd-speed"><span>Speed</span><span class="v" data-for="hd-speed">normal</span></label><input type="range" id="hd-speed" min="1" max="5" value="3"></div>
+        <div class="stats">
+          <div class="stat"><span class="k">Generation</span><span class="v" id="hd-gen">0</span></div>
+          <div class="stat"><span class="k">Fights</span><span class="v" id="hd-fights">0</span></div>
+          <div class="stat"><span class="k">Hawks</span><span class="v you" id="hd-nh">0</span></div>
+          <div class="stat"><span class="k">Doves</span><span class="v robo" id="hd-nd">0</span></div>
+          <div class="stat"><span class="k">Hawk avg</span><span class="v you" id="hd-havg">0</span></div>
+          <div class="stat"><span class="k">Dove avg</span><span class="v robo" id="hd-davg">0</span></div>
+        </div>
       </div>
       <div>
-        <div class="slider"><label class="lab" for="hd-speed"><span>Speed</span><span class="v" data-for="hd-speed">normal</span></label><input type="range" id="hd-speed" min="1" max="5" value="3"></div>
-        <div class="row">
-          <span class="field hd-pred">My prediction <input type="text" id="hd-pred" placeholder="50% or 1/2" autocomplete="off"></span>
-          <label class="chk"><input type="checkbox" id="hd-exact"> No luck (exact averages)</label>
-        </div>
-        <div class="row">
-          <button class="btn btn-you" id="hd-run" type="button">Run</button>
-          <button class="btn" id="hd-step" type="button">Step</button>
-          <button class="btn btn-sm" id="hd-reset" type="button">Reset</button>
-          <button class="btn btn-math btn-sm" id="hd-hint" type="button">Hint</button>
-        </div>
+        <canvas class="sim hd-chart" id="hd-pop" width="508" height="140"></canvas>
+        <div class="hd-legend"><span><i style="background:var(--you)"></i>hawk</span><span><i style="background:var(--robo)"></i>dove</span><span><i class="sq" style="background:var(--you-soft)"></i>a fight</span><span><i class="sq" style="background:var(--robo-soft)"></i>a share</span></div>
+        <canvas class="sim hd-chart" id="hd-hist" width="508" height="230"></canvas>
       </div>
     </div>
-    <canvas class="sim hd-chart" id="hd-pop" width="640" height="250"></canvas>
-    <div class="hd-legend"><span><i style="background:var(--you)"></i>hawk</span><span><i style="background:var(--robo)"></i>dove</span><span><i class="sq" style="background:var(--you-soft)"></i>a fight</span><span><i class="sq" style="background:var(--robo-soft)"></i>a share</span></div>
-    <canvas class="sim hd-chart" id="hd-hist" width="640" height="260"></canvas>
-    <div class="stats" style="margin-top:12px">
-      <div class="stat"><span class="k">Generation</span><span class="v" id="hd-gen">0</span></div>
-      <div class="stat"><span class="k">Hawks</span><span class="v you" id="hd-nh">0</span></div>
-      <div class="stat"><span class="k">Doves</span><span class="v robo" id="hd-nd">0</span></div>
-      <div class="stat"><span class="k">Fights</span><span class="v" id="hd-fights">0</span></div>
-      <div class="stat"><span class="k">Hawk avg</span><span class="v you" id="hd-havg">0</span></div>
-      <div class="stat"><span class="k">Dove avg</span><span class="v robo" id="hd-davg">0</span></div>
-    </div>
-    <div class="status" id="hd-sim-status"></div>
   </div>
 </section>
 
@@ -159,28 +168,30 @@
     <p>The simulation below uses the same babies-in-proportion-to-points rule with a rock-paper-scissors grid: beating a color is worth <code>+1</code>, losing to one is <code>−1</code>, a tie is <code>0</code>, plus 4 to keep every score positive. One dose of reality: 1 newborn in 200 gets a random color, so no color ever vanishes. Watch the three lines chase each other.</p>
   </div>
 
-  <div class="board">
+  <div class="board" id="hd-b4">
     <div class="board-head"><h3>Three lizards</h3><span class="rules">Orange beats blue, blue beats yellow, yellow beats orange.</span></div>
-    <div class="hd-two">
-      <div class="scroll"><table class="pay small hd-grid" id="hd-rps"></table></div>
-      <div>
-        <div class="slider"><label class="lab" for="hd-lspeed"><span>Speed</span><span class="v" data-for="hd-lspeed">normal</span></label><input type="range" id="hd-lspeed" min="1" max="5" value="3"></div>
-        <div class="row">
-          <button class="btn btn-you" id="hd-lrun" type="button">Run</button>
-          <button class="btn" id="hd-lstep" type="button">Step</button>
-          <button class="btn btn-sm" id="hd-lreset" type="button">Reset</button>
-        </div>
-        <div class="stats" style="margin-top:12px">
+    <div class="turn" data-who="math"><span class="turn-tag">Try it</span><span class="turn-text">Press <b>Run</b> and watch the three colors chase each other. Orange starts ahead: who gains from that?</span></div>
+    <div class="controls">
+      <button class="btn btn-you" id="hd-lrun" type="button">Run</button>
+      <button class="btn" id="hd-lstep" type="button">Step</button>
+      <button class="btn btn-sm" id="hd-lreset" type="button">Reset</button>
+      <div class="slider"><label class="lab" for="hd-lspeed"><span>Speed</span><span class="v" data-for="hd-lspeed">normal</span></label><input type="range" id="hd-lspeed" min="1" max="5" value="3"></div>
+    </div>
+    <div class="hd-dash" style="--side:306px">
+      <div class="hd-side">
+        <div class="scroll" style="padding-bottom:6px"><table class="pay small hd-grid hd-rps" id="hd-rps"></table></div>
+        <div class="stats">
           <div class="stat"><span class="k">Generation</span><span class="v" id="hd-lgen">0</span></div>
           <div class="stat"><span class="k">Orange</span><span class="v hd-orange" id="hd-lo">0</span></div>
           <div class="stat"><span class="k">Blue</span><span class="v hd-blue" id="hd-lb">0</span></div>
           <div class="stat"><span class="k">Yellow</span><span class="v hd-yellow" id="hd-ly">0</span></div>
         </div>
       </div>
+      <div>
+        <canvas class="sim hd-chart" id="hd-lchart" width="452" height="290"></canvas>
+        <div class="hd-legend"><span><i style="background:var(--hd-orange)"></i>orange: big territory, many mates</span><span><i style="background:var(--robo)"></i>blue: guards one mate</span><span><i style="background:var(--math)"></i>yellow: sneaks</span></div>
+      </div>
     </div>
-    <canvas class="sim hd-chart" id="hd-lchart" width="640" height="260"></canvas>
-    <div class="hd-legend"><span><i style="background:var(--hd-orange)"></i>orange: big territory, many mates</span><span><i style="background:var(--robo)"></i>blue: guards one mate</span><span><i style="background:var(--math)"></i>yellow: sneaks</span></div>
-    <div class="status" id="hd-lstatus"></div>
   </div>
 </section>
 

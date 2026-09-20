@@ -10,54 +10,63 @@
   ]
 } -->
 <style>
-  .vo-groups{ display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:12px; margin:14px 0 }
-  .vo-group{ position:relative; border:2px solid var(--line); border-radius:12px; padding:10px 12px 8px; background:var(--surface-2) }
+  /* ballots: each group is a compact card; its ranking reads first choice to last, left to right */
+  #vo-builder > .board-head{ margin-bottom:10px } #vo-builder > .turn,#vo-builder > .controls{ margin-bottom:12px }
+  .vo-build{ display:grid; grid-template-columns:max-content minmax(0,1fr); gap:12px 16px; align-items:start }
+  .vo-side{ display:grid; gap:8px; min-width:0 }
+  .vo-cap{ font:600 .72rem var(--f-mono); letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft) }
+  .vo-groups{ display:grid; gap:8px }
+  .vo-group{ display:grid; gap:6px; border:2px solid var(--line); border-radius:12px; padding:6px 8px 8px; background:var(--surface-2) }
   .vo-group.vo-mark{ outline:4px solid var(--math); outline-offset:-1px }
-  .vo-ghead{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px; padding-right:30px }
-  .vo-ghead.vo-plain{ padding-right:0 }
-  .vo-gname{ font:700 1rem var(--f-display) }
-  .vo-ghead .field input{ width:3.8em }
-  .vo-size{ font:600 .9rem var(--f-mono); color:var(--ink-soft) }
-  .vo-x{ position:absolute; top:8px; right:8px; border:2px solid var(--line); background:var(--surface); color:var(--ink); border-radius:8px; width:26px; height:26px; font:700 1rem var(--f-display); cursor:pointer; line-height:1; padding:0 }
+  .vo-ghead{ display:flex; align-items:center; gap:8px; min-height:26px }
+  .vo-gname{ font:700 .95rem var(--f-display) }
+  .vo-ghead .field{ font-size:.88rem; gap:6px }
+  .vo-ghead .field input{ width:3.3em; padding:.15em .35em; font-size:.95rem }
+  .vo-size{ font:600 .88rem var(--f-mono); color:var(--ink-soft) }
+  .vo-x{ margin-left:auto; border:2px solid var(--line); background:var(--surface); color:var(--ink); border-radius:8px; width:24px; height:24px; font:700 .95rem var(--f-display); cursor:pointer; line-height:1; padding:0 }
   .vo-x:hover{ background:var(--you-soft) }
-  .vo-rank{ list-style:none; margin:0; padding:0; display:grid; gap:6px }
-  .vo-rank li{ display:flex; align-items:center; gap:8px }
-  .vo-pos{ font:600 .75rem var(--f-mono); color:var(--ink-soft); width:2.2em }
-  .vo-chip{ display:inline-flex; align-items:center; gap:6px; background:var(--surface); border:2px solid var(--line); border-radius:999px; padding:2px 10px 2px 4px; font:600 .95rem var(--f-display); flex:1 1 auto; min-width:0 }
-  .vo-chip b{ display:inline-grid; place-items:center; width:22px; height:22px; border-radius:50%; background:var(--ink); color:var(--paper); font:700 .8rem var(--f-mono) }
-  .vo-arrows{ display:inline-flex; gap:3px; margin-left:auto }
-  .vo-arrows button{ width:26px; height:24px; border:2px solid var(--line); border-radius:6px; background:var(--surface); color:var(--ink); font-size:.7rem; cursor:pointer; padding:0; line-height:1 }
-  .vo-arrows button:hover:not(:disabled){ background:var(--math-soft) }
-  .vo-arrows button:disabled{ opacity:.25; cursor:default }
-  .vo-results{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px }
-  .vo-results.vo-one{ grid-template-columns:minmax(0,440px) }
-  .vo-card{ border:3px solid var(--line); border-radius:14px; padding:12px 14px 10px; background:var(--surface); box-shadow:4px 4px 0 var(--drop) }
+  .vo-rank{ display:flex; flex-wrap:wrap; align-items:center; gap:4px }
+  .vo-chip{ display:inline-flex; align-items:center; background:var(--surface); border:2px solid var(--line); border-radius:999px; padding:1px 10px; font:600 .92rem var(--f-display); white-space:nowrap }
+  .vo-n4 .vo-chip{ padding-inline:7px; font-size:.84rem }
+  .vo-rank .vo-sw{ display:inline-grid; place-items:center; width:26px; height:26px; border:2px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); box-shadow:2px 2px 0 var(--drop); cursor:pointer; padding:0 }
+  .vo-n4 .vo-rank .vo-sw{ width:24px }
+  .vo-rank .vo-sw:hover{ background:var(--math-soft) }
+  .vo-rank .vo-sw:active{ transform:translate(2px,2px); box-shadow:none }
+  .vo-sw svg,.vo-ico{ width:14px; height:14px; display:block }
+  .vo-ico{ display:inline-block; vertical-align:-2px }
+  .vo-then{ color:var(--ink-soft); font:700 1rem var(--f-mono) }
+  .vo-hintout{ width:0; min-width:100%; margin:0 }
+  /* results: always beside the ballots, so a change and its effect are on screen together */
+  .vo-results{ display:grid; grid-template-columns:1fr 1fr; gap:8px 10px; min-width:0 }
+  .vo-results.vo-one{ grid-template-columns:minmax(0,420px) }
+  .vo-card{ border:2px solid var(--line); border-radius:12px; padding:6px 12px; background:var(--surface); box-shadow:3px 3px 0 var(--drop); min-width:0 }
   .vo-card.vo-wide{ grid-column:1 / -1 }
-  .vo-rule{ font:700 1.1rem var(--f-display) }
-  .vo-sub{ font-size:.85rem; color:var(--ink-soft); min-height:2.6em; line-height:1.3; margin:2px 0 8px }
-  .vo-winner{ font:700 1.5rem var(--f-display); color:var(--win); line-height:1.1; margin-bottom:10px }
-  .vo-winner.vo-tie{ color:var(--ink-soft); font-size:1.2rem }
-  .vo-wlab{ display:block; font:600 .7rem var(--f-mono); letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft) }
-  .vo-srow{ display:grid; grid-template-columns:5em 1fr 2.2em; align-items:center; gap:8px; font-size:.9rem; margin-bottom:5px }
-  .vo-srow .bar{ height:12px } .vo-srow .bar i{ background:var(--ink-soft) } .vo-srow.win .bar i{ background:var(--win) }
+  .vo-chead{ display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:0 10px }
+  .vo-rule{ font:700 1.02rem var(--f-display) }
+  .vo-sub{ font-size:.8rem; color:var(--ink-soft); line-height:1.3; margin:0 0 5px }
+  .vo-winner{ font:700 1.08rem var(--f-display); color:var(--win); line-height:1.2 }
+  .vo-winner.vo-tie{ color:var(--ink-soft); font-size:.98rem }
+  .vo-wlab{ font:600 .66rem var(--f-mono); letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); margin-right:5px }
+  .vo-srow{ display:grid; grid-template-columns:4.2em 1fr 2em; align-items:center; gap:6px; font-size:.85rem; line-height:1.2; margin-bottom:3px }
+  .vo-srow .bar{ height:10px } .vo-srow .bar i{ background:var(--ink-soft) } .vo-srow.win .bar i{ background:var(--win) }
   .vo-srow.win .vo-slab{ font-weight:700 }
-  .vo-sn{ font-family:var(--f-mono); font-size:.9rem; text-align:right; font-variant-numeric:tabular-nums }
-  .vo-rounds{ margin:0; padding-left:1.2em; font-size:.88rem; line-height:1.4 }
-  .vo-rounds li{ margin-bottom:5px }
-  .vo-condgrid{ display:grid; grid-template-columns:auto 1fr; gap:10px 22px; align-items:start }
-  .vo-pair{ margin:0 } .vo-pair td,.vo-pair th{ text-align:center; white-space:nowrap; padding:5px 8px }
+  .vo-sn{ font-family:var(--f-mono); font-size:.85rem; text-align:right; font-variant-numeric:tabular-nums }
+  .vo-rounds{ margin:0; padding-left:1.2em; font-size:.84rem; line-height:1.35 }
+  .vo-rounds li{ margin-bottom:3px }
+  .vo-card table.vo-pair{ margin:0 0 5px; font-size:.84rem } .vo-card table.vo-pair td,.vo-card table.vo-pair th{ text-align:center; white-space:nowrap; padding:2px 7px }
   .vo-pair td.w{ background:var(--win-soft); color:var(--win); font-weight:700 }
   .vo-pair td.l{ background:var(--you-soft); color:var(--you) }
   .vo-pair td.t{ color:var(--ink-soft) }
   .vo-pair td.d{ color:var(--ink-soft); background:var(--surface-2) }
-  .vo-verdict{ font-size:.95rem } .vo-verdict p{ margin-bottom:.5em }
+  .vo-verdict{ font-size:.86rem; line-height:1.35 } .vo-verdict p{ margin:0 0 .3em }
   .vo-cyc{ display:block; width:100%; max-width:360px; height:auto; margin:6px 0 18px }
   .vo-cyc circle{ fill:var(--surface); stroke:var(--line); stroke-width:3 }
   .vo-cyc text{ fill:var(--ink); font-weight:700; font-size:17px; text-anchor:middle; dominant-baseline:middle }
   .vo-cyc text.lab{ font-family:var(--f-mono); font-weight:600; font-size:13px; fill:var(--ink-soft) }
   .vo-cyc path.a{ fill:none; stroke:var(--ink); stroke-width:3; marker-end:url(#vo-arr) }
   .vo-cyc marker path{ fill:var(--ink) }
-  @media (max-width:720px){ .vo-results{ grid-template-columns:1fr } .vo-condgrid{ grid-template-columns:1fr } }
+  @media (max-width:720px){ .vo-build{ grid-template-columns:minmax(0,1fr) } }
+  @media (max-width:420px){ .vo-results{ grid-template-columns:minmax(0,1fr) } }
 </style>
 
 <section>
@@ -74,28 +83,31 @@
   </div>
 
   <div class="board" id="vo-builder">
-    <div class="board-head"><h3>The ballot builder</h3><span class="rules">Every student ranks every pet. Change anything and all four counts update.</span></div>
-    <div class="row">
+    <div class="board-head"><h3>The ballot builder</h3><span class="rules">Each ballot reads first choice to last, left to right. All four counts update as you edit.</span></div>
+    <div class="turn" data-who="math"><span class="turn-tag">Try it</span><span class="turn-text">One pile of ballots, three different winners. Press a swap button <svg class="vo-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5h11M10 2l3 3-3 3M14 11H3M6 8l-3 3 3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> to swap two pets on a ballot, or type a new group size, and watch the four counts.</span></div>
+    <div class="controls">
       <button class="btn btn-sm btn-math" id="vo-p-three" type="button">The three-way split</button>
       <button class="btn btn-sm btn-math" id="vo-p-cycle" type="button">A cycle</button>
       <button class="btn btn-sm" id="vo-p-reset" type="button">Reset</button>
-      <span style="flex:1 0 12px"></span>
+      <span style="flex:1 0 4px"></span>
       <button class="btn btn-sm" id="vo-add-group" type="button">Add a group</button>
       <button class="btn btn-sm" id="vo-cand" type="button">Add a fourth pet</button>
-    </div>
-    <div class="vo-groups" id="vo-groups"></div>
-    <div class="row">
-      <span class="note" style="margin-top:0" id="vo-total"></span>
-      <span style="flex:1 0 12px"></span>
       <button class="btn btn-math btn-sm" id="vo-hint" type="button">Hint</button>
     </div>
-    <div class="status" id="vo-status"></div>
-    <div class="vo-results" id="vo-results"></div>
+    <div class="vo-build">
+      <div class="vo-side">
+        <div class="vo-cap">first choice &rarr; last choice</div>
+        <div class="vo-groups" id="vo-groups"></div>
+        <div class="note" style="margin-top:0" id="vo-total"></div>
+        <p class="note vo-hintout" id="vo-hint-out" hidden></p>
+      </div>
+      <div class="vo-results" id="vo-results"></div>
+    </div>
   </div>
 
   <div class="prose">
     <p>Why? Each rule reads a different part of the ballot. Plurality reads only the top line, so Hamster wins with a loyal group of 11 even though 16 students put it dead last. The Borda count reads the whole ballot, so Turtle wins: 21 students put it second and nobody puts it last. Instant runoff reads the top line and throws out the pet with the fewest firsts. That is Turtle, with 9, so it is eliminated in round one even though it would beat Hamster 19 to 11 and Fish 20 to 10 head to head. The rule you pick decides which of these facts counts.</p>
-    <p>To earn the first star, build a three-way split of your own: change at least one number or ranking and keep all three rules disagreeing, or press Reset and build one from nothing. The status line under the groups tells you what the rules are saying.</p>
+    <p>To earn the first star, build a three-way split of your own: change at least one number or ranking and keep all three rules disagreeing, or press Reset and build one from nothing. The strip at the top of the board tells you what the rules are saying.</p>
   </div>
 </section>
 
@@ -145,12 +157,17 @@
     <p>Honest count: Hamster 12, Turtle 10, Fish 8. Hamster wins, and the 8 Fish fans get their last choice. But watch what happens if the Fish group votes Turtle first, even though every one of them likes Fish better. Turtle 18, Hamster 12. Turtle wins, which the Fish group prefers to Hamster. By lying about their favorite, they got a result they like more.</p>
   </div>
 
-  <div class="board">
+  <div class="board" id="vo-s1-board">
     <div class="board-head"><h3>The Fish group's trick</h3><span class="rules">Rule: plurality. Most first-place votes wins.</span></div>
-    <div class="row"><div class="seg" id="vo-s1"><button class="on" data-v="honest" type="button">Fish group votes honestly</button><button data-v="lie" type="button">Fish group votes strategically</button></div></div>
-    <div class="vo-groups" id="vo-s1-groups"></div>
-    <div class="vo-results vo-one" id="vo-s1-results"></div>
-    <div class="status" id="vo-s1-status"></div>
+    <div class="turn" data-who="math"><span class="turn-tag">Try it</span><span class="turn-text">Press <b>Fish group votes strategically</b> and watch the winner change.</span></div>
+    <div class="controls"><div class="seg" id="vo-s1"><button class="on" data-v="honest" type="button">Fish group votes honestly</button><button data-v="lie" type="button">Fish group votes strategically</button></div></div>
+    <div class="vo-build">
+      <div class="vo-side">
+        <div class="vo-cap">first choice &rarr; last choice</div>
+        <div class="vo-groups" id="vo-s1-groups"></div>
+      </div>
+      <div class="vo-results vo-one" id="vo-s1-results"></div>
+    </div>
   </div>
 
   <div class="prose">
@@ -159,14 +176,19 @@
     <p>Your turn. The rule below is the Borda count and the honest votes are already in: Turtle wins with 40 points. Change one group's ranking so that group ends up with a pet it likes more than Turtle.</p>
   </div>
 
-  <div class="board">
+  <div class="board" id="vo-s2-board">
     <div class="board-head"><h3>Find the trick</h3><span class="rules">Rule: Borda count. 2 points for a first place, 1 for a second, 0 for a third.</span></div>
-    <div class="vo-groups" id="vo-s2-groups"></div>
-    <div class="vo-results vo-one" id="vo-s2-results"></div>
-    <div class="status" id="vo-s2-status"></div>
-    <div class="row" style="margin-top:12px">
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Press a swap button <svg class="vo-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5h11M10 2l3 3-3 3M14 11H3M6 8l-3 3 3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> on one group's ballot. Make that group end up with a pet it likes more than Turtle.</span></div>
+    <div class="controls">
       <button class="btn btn-math btn-sm" id="vo-s2-hint" type="button">Hint</button>
       <button class="btn btn-sm" id="vo-s2-reset" type="button">Back to the honest votes</button>
+    </div>
+    <div class="vo-build">
+      <div class="vo-side">
+        <div class="vo-cap">first choice &rarr; last choice</div>
+        <div class="vo-groups" id="vo-s2-groups"></div>
+      </div>
+      <div class="vo-results vo-one" id="vo-s2-results"></div>
     </div>
   </div>
 </section>
