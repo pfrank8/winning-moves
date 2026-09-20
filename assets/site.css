@@ -201,6 +201,48 @@ input[type=text],select{ width:auto; max-width:100% }
 .slider .lab{ display:flex; justify-content:space-between; gap:12px; font:600 1rem var(--f-display) }
 .slider .lab .v{ font-family:var(--f-mono); font-weight:600; white-space:nowrap }
 
+/* ---------- the "your move" strip + direct manipulation (see CHAPTER_SPEC.md, "Game UX contract") ----------
+   Every game board carries exactly one .turn strip, directly under the board head. It is the single place
+   that says what to do right now, and then what just happened. It sticks under the top bar while a tall
+   board scrolls, so the instruction and the result are never off screen. */
+.turn{
+  position:sticky; top:58px; z-index:3; display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+  margin:0 0 16px; padding:9px 14px; border:2px solid var(--line); border-left-width:8px; border-radius:12px;
+  background:var(--surface-2); font:600 1.02rem var(--f-display); line-height:1.35;
+}
+.turn .turn-tag{ font:600 .72rem var(--f-mono); letter-spacing:.09em; text-transform:uppercase; white-space:nowrap; color:var(--ink-soft) }
+.turn .turn-text{ flex:1 1 16ch; min-width:0 }
+.turn[data-who="you"]{ border-left-color:var(--you); background:var(--you-soft) }   .turn[data-who="you"] .turn-tag{ color:var(--you) }
+.turn[data-who="robo"]{ border-left-color:var(--robo); background:var(--robo-soft) } .turn[data-who="robo"] .turn-tag{ color:var(--robo) }
+.turn[data-who="win"]{ border-left-color:var(--win); background:var(--win-soft) }    .turn[data-who="win"] .turn-tag{ color:var(--win) }
+.turn[data-who="lose"]{ border-left-color:var(--robo); background:var(--robo-soft) } .turn[data-who="lose"] .turn-tag{ color:var(--robo) }
+.turn[data-who="math"]{ border-left-color:var(--math); background:var(--math-soft) }
+@media (max-width:520px){ .turn{ top:52px; font-size:.97rem; padding:8px 11px } }
+@media print{ .turn{ position:static } }
+
+/* The play controls: one row, directly under the strip and above the play area. */
+.controls{ display:flex; flex-wrap:wrap; gap:10px 12px; align-items:center; margin:0 0 16px }
+.controls .lab{ font:600 .95rem var(--f-display) }
+
+/* Pickable payoff-grid rows: if the rules say "you pick the row", the row is the button. */
+.pay.pick-rows tr.pickable{ cursor:pointer }
+.pay.pick-rows tr.pickable th.rh{
+  border:2px solid var(--you); border-radius:10px; padding:6px 14px; background:var(--surface); box-shadow:3px 3px 0 var(--drop); text-align:center;
+}
+.pay.pick-rows tr.pickable:hover td, .pay.pick-rows tr.pickable:focus-visible td{ background:var(--you-soft); border-color:var(--you) }
+.pay.pick-rows tr.pickable:hover th.rh, .pay.pick-rows tr.pickable:focus-visible th.rh{ background:var(--you); color:var(--on-accent) }
+.pay.pick-rows tr.pickable:focus-visible{ outline:none }
+.pay.pick-rows tr.pickable:focus-visible th.rh{ outline:3px solid var(--focus); outline-offset:2px }
+.pay.pick-rows tr.picked td{ background:var(--you-soft); border-color:var(--you) }
+.pay.pick-rows tr.picked th.rh{ background:var(--you); color:var(--on-accent) }
+.pay.pick-rows.locked tr.pickable{ cursor:default; pointer-events:none }
+.pay.pick-rows.locked tr.pickable th.rh{ box-shadow:none; opacity:.55 }
+
+/* A gentle "this is the thing you click" cue. WM.cue() removes it on the first interaction. */
+@keyframes wm-pulse{ 0%{ box-shadow:0 0 0 0 color-mix(in srgb, var(--you) 55%, transparent) } 100%{ box-shadow:0 0 0 12px transparent } }
+.cue{ animation:wm-pulse 1.4s ease-out infinite; border-radius:12px }
+@media (prefers-reduced-motion: reduce){ .cue{ outline:3px dashed var(--you); outline-offset:3px } }
+
 /* ---------- payoff tables ---------- */
 .scroll{ overflow-x:auto; padding:4px 10px 12px 2px }
 .pay{ border-collapse:separate; border-spacing:6px; font-family:var(--f-mono); font-variant-numeric:tabular-nums }

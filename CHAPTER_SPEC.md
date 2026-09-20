@@ -114,6 +114,60 @@ of a real thing (chocolate, cake). Use the CSS variables: `--you`, `--robo`,
 `--ink`, `--ink-soft`, `--line`, `--surface`, `--surface-2`, `--paper`, `--grid`.
 The site renders in light and dark mode; anything using the variables works in both.
 
+## Game UX contract (every board, no exceptions)
+
+Born 2026-09-20. Peter, about "Share or Grab?", whose rules line said "You pick the row. Robo picks
+the column.": "the UI for the games is a little unintuitive. For example for this one you have to
+scroll down to pick your choice and that's not really obvious." The grid was inert, and the real
+Share / Grab buttons were hidden until two other buttons had been pressed. The reader should never
+have to hunt for how to play. `content/chapters/payoff-grids.html` + `assets/ch/payoff-grids.js`
+are the reference implementation. `scripts/ux_audit.py` enforces the measurable half of this.
+
+1. **One "your move" strip per interactive board.** Written statically in the HTML, directly after
+   `.board-head`:
+   `<div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Click a row in the grid: <b class="you">Share</b> or <b class="you">Grab</b>.</span></div>`
+   The first text names the exact first action and the exact thing to act on ("Click a door",
+   "Click any empty cell", "Type a bid from 0 to 100 and press Bid", "Drag the slider"). One
+   imperative sentence, two at most. Never "scroll down", never "use the controls below".
+2. **The strip is the narrator.** Update it on every state change with
+   `WM.turn(boardOrAnythingInside, who, html, tag?)`: `you` when it is the reader's turn (say what to
+   click), `robo` while Robo thinks or moves, `win` / `lose` for an outcome, `math` for tools with
+   no opponent. After an outcome, the same strip says how to go again ("Click a row to play again",
+   "Press New game"). Pass `tag` when the default label is wrong for the moment: `'Solved'`,
+   `'Not yet'`, `'Result'`, `'Round 3 of 10'`. The strip is sticky, so on a tall board the
+   instruction and the result stay on screen. A detailed `.status`, `.log` or `.note` may stay for
+   the long version, but the headline lives in the strip, and no board keeps two competing
+   "what to do" messages.
+3. **Direct manipulation.** The thing the rules line names is the thing you click. If the reader
+   picks a row of a payoff grid, the rows are the buttons: `WM.pickRows(table, r => ...)` (call it
+   again after each re-render; it returns `{lock, mark, clear}`). Delete the duplicate buttons. Keep
+   real buttons only when they are the natural object (Rock / Paper / Scissors hands, Stay /
+   Switch), and then they follow rule 4.
+4. **Order inside a board:** head, strip, `.controls` row(s), play area, then stats, logs and
+   explanations. `.controls` holds setup (who goes first, size, New game) and the move buttons. The
+   button that makes something happen never sits underneath a tall play area. In a `.two` layout
+   the side column counts as "beside", which is fine on a laptop; put that column first in the DOM
+   if its controls must come before the grid on a phone.
+5. **Nothing the reader needs is `hidden` at load.** A gated control is visible and `disabled`, and
+   the strip says what unlocks it. `hidden` is for explanations that appear after an action.
+6. **Fit one laptop screen** (740px tall at 1280 by 800) wherever you can: smaller cells, stats
+   beside the play area with `.two`, long explanations moved to the prose under the board or into
+   `<details>`. When a board truly cannot fit, rule 4 still holds, and call `WM.reveal(el)` on
+   whatever changed so it scrolls into view.
+7. **Clickable things look clickable:** a border and drop shadow or a hover fill, `cursor:pointer`,
+   reachable by keyboard (a `<button>`, or `tabindex="0"` + `role="button"` + Enter and Space).
+   Call `WM.cue(els)` once, at load, on the first thing to click in the chapter's FIRST game only.
+   Pulsing on every board is noise.
+8. **While Robo thinks,** lock the inputs and set the strip to `robo` ("Robo is thinking..."). Keep
+   the race-token pattern from the script section below.
+9. **Do not change** game logic, perfect play, the teaching copy in the prose, or the color
+   semantics. Star ids stay; a star keeps the same cleverness bar even if the gate that used to
+   guard it is gone.
+
+Verify, in this order: `python3 scripts/smoke.py --only <slug>` and again with `--phone`;
+`python3 scripts/ux_audit.py --only <slug>` with zero FAIL; then open the board screenshots it
+writes to `.scratch/ux/shots/` and look at every one, at load and after a move.
+
 ## Chapter script: `assets/ch/<slug>.js`
 
 ```js
@@ -157,6 +211,8 @@ Do not use: calculus, matrix multiplication, formal logic symbols, set-builder
 notation, Greek letters other than in a "mathematicians write this as" aside.
 
 ## Mandatory self-check before you finish
+
+Run the Game UX contract verification above first: smoke, phone smoke, `scripts/ux_audit.py`, then look.
 
 1. `python3 build.py --check` passes.
 2. Open `docs/<slug>.html` in a browser (or render it headless) and confirm

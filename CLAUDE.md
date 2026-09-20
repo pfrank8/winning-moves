@@ -24,6 +24,9 @@ real mathematics. Built into `docs/` and served at https://east11ventures.com/ga
 - No em-dashes in any copy. No emoji decoration.
 - Perfect play must be computed, never faked.
 - Stars (`WM.earn`) are for genuinely clever actions only.
+- Every game board follows the Game UX contract in `CHAPTER_SPEC.md` (a "your move" strip, the
+  thing the rules name is the thing you click, controls above the play area, nothing needed is
+  hidden). `python3 scripts/ux_audit.py` is the gate; it also writes a screenshot of every board.
 - Verify a chapter by rendering it headless (Chrome `--headless=new --screenshot`) and looking.
 
 ## Deploy

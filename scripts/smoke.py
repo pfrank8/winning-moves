@@ -2,7 +2,7 @@
 """Smoke-test built pages with Playwright.
 
 For each page: load it, collect JavaScript errors and console errors, then
-click every visible button once (in document order), move every range slider,
+click every visible button (and every role=button element, e.g. a pickable grid row) once (in document order), move every range slider,
 and toggle every checkbox, re-collecting errors after each interaction. Any
 error fails the page. Also checks that the page body never scrolls
 horizontally at phone width (a layout bug the design rules forbid).
@@ -48,7 +48,7 @@ def run_page(browser: Browser, path: Path, phone: bool) -> PageReport:
     page.wait_for_timeout(300)
 
     # interact: buttons, sliders, checkboxes, selects
-    buttons = page.locator("button:visible")
+    buttons = page.locator("button:visible, [role=button]:visible")  # role=button covers pickable grid rows
     n = buttons.count()
     for i in range(min(n, 120)):
         b = buttons.nth(i)
