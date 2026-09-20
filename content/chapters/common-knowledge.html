@@ -10,7 +10,18 @@
   ]
 } -->
 <style>
-  .ck-kids{ display:grid; grid-template-columns:repeat(auto-fill, minmax(122px, 1fr)); gap:14px 10px; margin:14px 0 6px }
+  /* Board layout: strip, then the move buttons, then setup and the counters on one row, then the children. */
+  .controls .ck-push{ margin-left:auto }
+  @media (max-width:720px){ .controls .ck-push{ margin-left:0 } }
+  .controls .stats .stat{ padding:5px 12px; min-width:0 } .controls .stats .stat .v{ font-size:1.15rem }
+  #ck-n{ width:4em }
+  .ck-kids{ display:grid; grid-template-columns:repeat(auto-fill, minmax(118px, 1fr)); gap:14px 10px; margin:0 0 6px }
+  @media (min-width:721px){ #ck-kids{ grid-template-columns:repeat(var(--ck-cols, 5), minmax(0, 1fr)) } }   /* the script sets --ck-cols: one row up to 6 children, two even rows for 7 or 8 */
+  #ck-log{ columns:2; column-gap:24px; margin-top:8px } #ck-log div{ break-inside:avoid }
+  @media (max-width:720px){ #ck-log{ columns:1 } }
+  .ck-ladder{ display:grid; grid-template-columns:minmax(0,4fr) minmax(0,5fr); gap:18px 22px; align-items:start }
+  .ck-ladder .ck-kids{ gap:14px 6px }
+  @media (max-width:720px){ .ck-ladder{ grid-template-columns:1fr } }
   .ck-kid{ display:grid; gap:6px; justify-items:center; align-content:start; padding:8px 6px 10px; border:3px solid transparent; border-radius:14px; transition:transform .25s, border-color .25s, background .25s }
   .ck-kid.fwd{ transform:translateY(-8px); border-color:var(--win); background:var(--win-soft) }
   .ck-kid .name{ font:600 .9rem var(--f-display) }
@@ -31,8 +42,7 @@
   .ck-bubble{ position:relative; font-size:.78rem; line-height:1.35; color:var(--ink); background:var(--surface-2); border:2px solid var(--line); border-radius:12px; padding:6px 8px; min-height:6.2em; width:100%; margin-top:4px }
   .ck-bubble::before{ content:""; position:absolute; top:-11px; left:50%; width:9px; height:9px; margin-left:-6px; border-radius:50%; background:var(--surface-2); border:2px solid var(--line) }
   .ck-bubble.you{ background:var(--you-soft); border-color:var(--you) } .ck-bubble.you::before{ background:var(--you-soft); border-color:var(--you) }
-  .ck-teacher{ font:600 1rem var(--f-display); background:var(--math-soft); border-left:6px solid var(--math); padding:8px 12px; border-radius:0 10px 10px 0; margin:4px 0 10px }
-  .ck-rungs{ list-style:none; padding:0; margin:12px 0 0; display:grid; gap:8px }
+  .ck-rungs{ list-style:none; padding:0; margin:0; display:grid; gap:8px }
   .ck-rung{ display:grid; grid-template-columns:38px 1fr; gap:10px; align-items:start; padding:8px 10px; border-radius:10px; background:var(--surface-2); border:2px solid var(--line) }
   .ck-rung .mark{ font:700 1rem var(--f-display); text-align:center; border-radius:8px; padding:3px 0; color:var(--on-accent) }
   .ck-rung.ok .mark{ background:var(--win) } .ck-rung.no .mark{ background:var(--you) }
@@ -41,6 +51,7 @@
   #ck-mode{ flex-wrap:wrap; gap:3px; background:var(--line) }      /* six choices: let the segmented control wrap on phones, the gaps draw the dividers */
   #ck-mode button{ border-left:0; flex:1 1 auto }
   .ck-chips{ display:flex; flex-wrap:wrap; gap:8px; margin:12px 0 }
+  .ck-chip.wait .n{ color:var(--ink-soft) }
   .ck-chip{ display:grid; justify-items:center; gap:1px; min-width:62px; padding:6px 8px; border:2px solid var(--line); border-radius:10px; background:var(--surface-2); font-family:var(--f-mono) }
   .ck-chip .n{ font:700 1.25rem var(--f-display) } .ck-chip .who{ font-size:.68rem; color:var(--ink-soft); white-space:nowrap }
   .ck-chip.you{ border-color:var(--you); background:var(--you-soft) } .ck-chip.you .n{ color:var(--you) }
@@ -51,8 +62,8 @@
   .ck-line .cap{ position:absolute; top:0; bottom:0; left:0; display:flex; align-items:center; padding:0 8px; font:600 .8rem var(--f-mono); white-space:nowrap }
   .ck-ticks{ display:flex; justify-content:space-between; font:600 .75rem var(--f-mono); color:var(--ink-soft); margin-bottom:8px }
   .ck-steps{ font-size:.95rem; min-height:3.2em }
-  .ck-hats{ display:flex; flex-wrap:wrap; gap:14px 18px; margin:12px 0; align-items:flex-start }
-  .ck-hat{ display:grid; gap:4px; justify-items:center; width:118px; text-align:center }
+  .ck-hats{ display:flex; flex-wrap:wrap; gap:12px; margin:0 0 14px; align-items:flex-start }
+  .ck-hat{ display:grid; gap:4px; justify-items:center; flex:1 1 90px; max-width:130px; text-align:center }
   .ck-hat .name{ font:600 .9rem var(--f-display) } .ck-hat.you .name{ color:var(--you) } .ck-hat.robo .name{ color:var(--robo) }
   .ck-hat .says{ font-size:.82rem; min-height:2.5em; line-height:1.3 }
   .ck-red{ color:var(--you); font-weight:700 } .ck-blue{ color:var(--robo); font-weight:700 }
@@ -63,7 +74,6 @@
   table.ck-table td.hats span{ display:inline-block; width:16px; height:16px; border-radius:4px; border:2px solid var(--line); vertical-align:-3px; margin-right:3px }
   table.ck-table td.hats span.h0{ background:var(--you) } table.ck-table td.hats span.h1{ background:var(--robo) }
   table.ck-table td{ text-align:center } table.ck-table td:first-child{ text-align:left; white-space:nowrap }
-  .ck-nowrap{ white-space:nowrap }
 </style>
 
 <section>
@@ -75,28 +85,26 @@
 
   <div class="board">
     <div class="board-head"><h3>The muddy children</h3><span class="rules">You are one of the children. Robots reason perfectly and never peek.</span></div>
-    <div class="row">
+    <div class="turn" data-who="you"><span class="turn-tag">Round 1</span><span class="turn-text">Teacher: "At least one of you has a muddy forehead. If you know you are muddy, step forward." Press <b>I stay put</b> or <b>I step forward</b>.</span></div>
+    <div class="controls">
+      <button class="btn btn-you" id="ck-stay" type="button">I stay put</button>
+      <button class="btn btn-you" id="ck-step" type="button">I step forward</button>
+      <button class="btn btn-math btn-sm" id="ck-hint" type="button">Hint</button>
+    </div>
+    <div class="controls">
       <span class="field">Children <input type="number" id="ck-n" min="3" max="8" value="5"></span>
       <span class="field">Muddy <select id="ck-k"><option value="secret">Secret</option></select></span>
       <button class="btn btn-sm" id="ck-new" type="button">New game</button>
+      <div class="stats ck-push">
+        <div class="stat"><span class="k">Round</span><span class="v" id="ck-round">1</span></div>
+        <div class="stat"><span class="k">Muddy children</span><span class="v" id="ck-kshow">?</span></div>
+        <div class="stat"><span class="k">You see</span><span class="v" id="ck-sees">0 muddy</span></div>
+      </div>
     </div>
-    <div class="stats" style="margin-top:14px">
-      <div class="stat"><span class="k">Round</span><span class="v" id="ck-round">0</span></div>
-      <div class="stat"><span class="k">Muddy children</span><span class="v" id="ck-kshow">?</span></div>
-      <div class="stat"><span class="k">You see</span><span class="v" id="ck-sees">0 muddy</span></div>
-    </div>
-    <div class="ck-teacher" id="ck-teacher"></div>
     <div class="ck-kids" id="ck-kids"></div>
-    <div class="row">
-      <button class="btn btn-you" id="ck-stay" type="button">I stay put</button>
-      <button class="btn btn-you" id="ck-step" type="button">I step forward</button>
-      <span style="flex:1 0 12px"></span>
-      <button class="btn btn-math btn-sm" id="ck-hint" type="button">Hint</button>
-    </div>
-    <div class="status" id="ck-status"></div>
     <div class="log" id="ck-log"></div>
-    <p class="note">The star needs a secret muddy count of at least 3, and it needs you to be one of the muddy ones. The deal is random, so it can take a few games.</p>
   </div>
+  <p class="note" style="max-width:66ch;margin:-18px 0 22px">The star needs a secret muddy count of at least 3, and it needs you to be one of the muddy ones. The deal is random, so it can take a few games.</p>
 
   <div class="prose">
     <p>Now the reasoning, one muddy child at a time.</p>
@@ -126,13 +134,15 @@
 
   <div class="board">
     <div class="board-head"><h3>The knowledge ladder</h3><span class="rules">Every robot shown is muddy. Which rungs hold?</span></div>
-    <div class="row">
+    <div class="turn" data-who="math"><span class="turn-tag">Before</span><span class="turn-text">Before the announcement the ladder stops at rung 1. The round-2 argument needs rung 2, so nobody ever moves. Press <b>After</b> to let the teacher speak.</span></div>
+    <div class="controls">
       <div class="seg" id="ck-lk"><button class="on" data-v="2" type="button">2 muddy</button><button data-v="3" type="button">3 muddy</button></div>
       <div class="seg" id="ck-lwhen"><button class="on" data-v="before" type="button">Before the announcement</button><button data-v="after" type="button">After</button></div>
     </div>
-    <div class="ck-kids" id="ck-lkids"></div>
-    <ol class="ck-rungs" id="ck-rungs"></ol>
-    <div class="status" id="ck-lstatus"></div>
+    <div class="ck-ladder">
+      <div class="ck-kids" id="ck-lkids"></div>
+      <ol class="ck-rungs" id="ck-rungs"></ol>
+    </div>
   </div>
 </section>
 
@@ -145,37 +155,39 @@
 
   <div class="board">
     <div class="board-head"><h3>Two thirds of the average</h3><span class="rules">You and nine Robos. Closest to two thirds of the average wins.</span></div>
-    <div class="row">
-      <div class="seg" id="ck-mode"><button data-v="0" type="button">Level 0</button><button data-v="1" type="button">Level 1</button><button data-v="2" type="button">Level 2</button><button data-v="3" type="button">Level 3</button><button class="on" data-v="mixed" type="button">Mixed</button><button data-v="perfect" type="button">Perfect</button></div>
-    </div>
-    <div class="row">
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Type a whole number from 0 to 100, then press <b>Play the round</b>.</span></div>
+    <div class="controls">
       <span class="field">Your number <input type="number" id="ck-guess" min="0" max="100" value="33"></span>
       <button class="btn btn-you" id="ck-play" type="button">Play the round</button>
-      <span class="note" id="ck-modenote" style="margin-top:0"></span>
     </div>
+    <div class="controls" style="margin-bottom:6px">
+      <span class="lab">The crowd</span>
+      <div class="seg" id="ck-mode"><button data-v="0" type="button">Level 0</button><button data-v="1" type="button">Level 1</button><button data-v="2" type="button">Level 2</button><button data-v="3" type="button">Level 3</button><button class="on" data-v="mixed" type="button">Mixed</button><button data-v="perfect" type="button">Perfect</button></div>
+    </div>
+    <p class="note" id="ck-modenote" style="margin-top:0"></p>
     <div class="ck-chips" id="ck-chips"></div>
     <div class="stats">
       <div class="stat"><span class="k">Average</span><span class="v" id="ck-avg">?</span></div>
       <div class="stat"><span class="k">Two thirds of it</span><span class="v" id="ck-target">?</span></div>
       <div class="stat"><span class="k">Winner</span><span class="v" id="ck-winner">?</span></div>
     </div>
-    <div class="status" id="ck-gstatus"></div>
     <div class="log" id="ck-glog"></div>
+  </div>
 
-    <h3 style="margin-top:26px">Reason it out</h3>
-    <p class="note" style="margin-top:0">Imagine a huge crowd, so your own number hardly moves the average, and allow fractions. Cross out the numbers that can never be a best pick, one step at a time.</p>
-    <div class="ck-line"><div class="dead" id="ck-dead"></div><div class="cap" id="ck-cap">every number from 0 to 100 is still in</div></div>
-    <div class="ck-ticks"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
-    <div class="row">
+  <div class="board">
+    <div class="board-head"><h3>Reason it out</h3><span class="rules">Imagine a huge crowd, so your own number hardly moves the average, and allow fractions.</span></div>
+    <div class="turn" data-who="math"><span class="turn-tag">Try it</span><span class="turn-text">Press <b>Cross out the next step</b> to cross out the numbers that can never be a best pick, one step at a time.</span></div>
+    <div class="controls">
       <button class="btn btn-math" id="ck-cross" type="button">Cross out the next step</button>
       <button class="btn btn-sm" id="ck-cross-reset" type="button">Reset</button>
     </div>
+    <div class="ck-line"><div class="dead" id="ck-dead"></div><div class="cap" id="ck-cap">every number from 0 to 100 is still in</div></div>
+    <div class="ck-ticks"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
     <div class="ck-steps" id="ck-steps"></div>
-    <div class="row" style="margin-top:14px">
+    <div class="controls" style="margin:14px 0 0">
       <span class="field">If everyone reasons perfectly, forever, and everyone knows it, the crowd picks <input type="number" id="ck-zero" min="0" max="100" placeholder="?"></span>
       <button class="btn btn-win btn-sm" id="ck-zero-check" type="button">Check</button>
     </div>
-    <div class="status" id="ck-zstatus"></div>
   </div>
 
   <div class="prose">
@@ -193,24 +205,24 @@
 
   <div class="board">
     <div class="board-head"><h3>Red hat or blue hat?</h3><span class="rules">You are a player. The two Robos follow the clever plan. Hat colors here are just hat colors.</span></div>
-    <div class="ck-hats" id="ck-hatrow"></div>
-    <div class="row">
+    <div class="turn" data-who="you"><span class="turn-tag">Your move</span><span class="turn-text">Your hat is hidden. Look at the two Robo hats, then press <b>Guess red</b>, <b>Guess blue</b> or <b>Pass</b>. The Robos decide at the same moment.</span></div>
+    <div class="controls">
       <button class="btn btn-you" id="ck-say-red" type="button">Guess red</button>
       <button class="btn btn-robo" id="ck-say-blue" type="button">Guess blue</button>
       <button class="btn" id="ck-say-pass" type="button">Pass</button>
       <button class="btn btn-sm" id="ck-deal" type="button">New hats</button>
     </div>
-    <div class="status" id="ck-hstatus"></div>
-    <div class="two" style="margin-top:20px">
+    <div class="two">
       <div>
-        <h4>A thousand games</h4>
+        <div class="ck-hats" id="ck-hatrow"></div>
+        <h4>A thousand games at a time</h4>
         <div class="ck-tally">
           <div><div class="lab"><span>One guesser, two pass</span><span id="ck-t-one">0 of 0</span></div><div class="bar win"><i id="ck-b-one" style="width:0%"></i></div></div>
           <div><div class="lab"><span>The clever plan</span><span id="ck-t-clever">0 of 0</span></div><div class="bar win"><i id="ck-b-clever" style="width:0%"></i></div></div>
         </div>
         <div class="row" style="margin-top:12px">
-          <button class="btn btn-sm" id="ck-run-one" type="button">Run 1000: one guesser</button>
-          <button class="btn btn-sm btn-win" id="ck-run-clever" type="button">Run 1000: clever plan</button>
+          <button class="btn btn-sm" id="ck-run-one" type="button">Run: one guesser</button>
+          <button class="btn btn-sm btn-win" id="ck-run-clever" type="button">Run: clever plan</button>
           <button class="btn btn-sm" id="ck-run-reset" type="button">Reset</button>
         </div>
         <p class="note">All three players are Robos in these runs. Expect about 500 and about 750.</p>

@@ -1,7 +1,7 @@
 /* Chapter: Common knowledge (the muddy children, the knowledge ladder, guess two thirds of the average, the three hats). */
 (function(){
 'use strict';
-const { $, $$, rand, earn, seg, clamp } = WM;
+const { $, $$, rand, earn, seg, clamp, turn, cue } = WM;
 
 /* @pure-start
    Everything between the pure markers is DOM-free. The node test evaluates this block on its own. */
@@ -109,7 +109,9 @@ function kidCard(o){
 /* ================= the muddy children ================= */
 const YOU = 0;
 const mg = { n: 5, mode: 'secret', k: 1, muddy: [], round: 0, over: false, fwd: [], youFwd: 0, log: [] };
-const mStatus = html => { $('#ck-status').innerHTML = html; };
+/* The strip is the teacher and the narrator: it asks each round, and it gives the verdict. */
+const mSay = (who, html, tag) => turn('#ck-kids', who, html, tag);
+const ASK = 'Press <b>I stay put</b> or <b>I step forward</b>.';
 const roboName = i => 'Robo ' + i;
 
 function kOptions(){
@@ -128,11 +130,12 @@ function newMuddy(){
   mg.muddy = new Array(mg.n).fill(false);
   for (let i = 0; i < mg.k; i++) mg.muddy[idx[i]] = true;
   mg.round = 0; mg.over = false; mg.fwd = new Array(mg.n).fill(0); mg.youFwd = 0; mg.log = [];
-  mStatus('Look at the faces, then decide: stay put or step forward?');
+  mSay('you', `Teacher: "At least one of you has a muddy forehead. If you know you are muddy, step forward." ${ASK}`, 'Round 1');
   renderMuddy();
 }
 function renderMuddy(){
   const host = $('#ck-kids'); host.innerHTML = '';
+  host.style.setProperty('--ck-cols', String(mg.n <= 6 ? mg.n : Math.ceil(mg.n / 2)));
   const m = seesCount(mg.muddy, YOU);
   const youMud = mg.over ? mg.muddy[YOU] : null;
   host.appendChild(kidCard({
@@ -156,32 +159,32 @@ function renderMuddy(){
   $('#ck-round').textContent = String(mg.over ? mg.round : mg.round + 1);   // the round the teacher is asking about now
   $('#ck-kshow').textContent = (mg.mode === 'secret' && !mg.over) ? '?' : String(mg.k);
   $('#ck-sees').textContent = `${m} muddy`;
-  $('#ck-teacher').innerHTML = mg.over
-    ? `Teacher: "That is the end of round ${mg.round}."`
-    : `Teacher: "At least one of you has a muddy forehead." <span class="ck-nowrap">Round ${mg.round + 1}:</span> "If you know you are muddy, step forward."`;
   $('#ck-stay').disabled = mg.over; $('#ck-step').disabled = mg.over; $('#ck-hint').disabled = mg.over;
-  $('#ck-log').innerHTML = mg.log.slice(-5).join('<br>');
+  $('#ck-log').innerHTML = mg.log.slice(-6).map(l => `<div>${l}</div>`).join('');
 }
 function verdict(step, r){
   const k = mg.k, m = seesCount(mg.muddy, YOU), youMuddy = mg.muddy[YOU];
   const secret = mg.mode === 'secret';
   const reveal = secret ? ` There were ${k} muddy ${k === 1 ? 'child' : 'children'}.` : '';
-  let h;
+  let h, tag = 'Right';
   if (step && youMuddy && r === k){
-    h = `<span class="win-c">Right, and on exactly the right round.</span> You saw ${facesWord(m)}, ${m ? `and they did not step forward on round ${m}` : 'and the teacher said somebody was muddy'}, so it had to be you.${reveal}`;
+    h = `Right, and on exactly the right round. You saw ${facesWord(m)}, ${m ? `and they did not step forward on round ${m}` : 'and the teacher said somebody was muddy'}, so it had to be you.${reveal}`;
     if (k >= 3 && secret) earn('ck-muddy');
-    else if (k >= 3) h += ' <span class="note">(For the star, set the muddy count to Secret.)</span>';
-    else h += ' <span class="note">(The star needs at least 3 muddy children.)</span>';
+    else if (k >= 3) h += ' (For the star, set the muddy count to Secret.)';
+    else h += ' (The star needs at least 3 muddy children.)';
   } else if (step && youMuddy){
-    h = `<span class="you">Too early.</span> You are muddy, but on round ${r} you could not have known it. You saw ${facesWord(m)}, and the earliest you could be sure was round ${m + 1}, after watching whether they stepped forward on round ${m}. A lucky guess is not knowing.${reveal}`;
+    tag = 'Too early';
+    h = `Too early. You are muddy, but on round ${r} you could not have known it. You saw ${facesWord(m)}, and the earliest you could be sure was round ${m + 1}, after watching whether they stepped forward on round ${m}. A lucky guess is not knowing.${reveal}`;
   } else if (step){
-    h = `<span class="you">Wrong: you are clean.</span> You saw ${facesWord(m)}, which is all of the mud there is. ${r === m ? 'They stepped forward this very round, which told you that you were clean.' : `The way to find out was to wait: if they stepped forward on round ${m}, you were clean.`}${reveal}`;
+    tag = 'Wrong';
+    h = `Wrong: you are clean. You saw ${facesWord(m)}, which is all of the mud there is. ${r === m ? 'They stepped forward this very round, which told you that you were clean.' : `The way to find out was to wait: if they stepped forward on round ${m}, you were clean.`}${reveal}`;
   } else if (youMuddy){
-    h = `<span class="you">You missed it.</span> You are muddy. ${m ? `The ${facesWord(m)} you saw did not step forward on round ${m}, and that could only mean one thing.` : 'You saw no mud at all, and the teacher said somebody was muddy. That somebody was you.'} Round ${k} was your moment.${reveal}`;
+    tag = 'Missed it';
+    h = `You missed it. You are muddy. ${m ? `The ${facesWord(m)} you saw did not step forward on round ${m}, and that could only mean one thing.` : 'You saw no mud at all, and the teacher said somebody was muddy. That somebody was you.'} Round ${k} was your moment.${reveal}`;
   } else {
-    h = `<span class="win-c">Right: you are clean, and you never had to guess.</span> The ${facesWord(m)} you saw stepped forward on round ${m}, exactly as they would if you were clean.${reveal}`;
+    h = `Right: you are clean, and you never had to guess. The ${facesWord(m)} you saw stepped forward on round ${m}, exactly as they would if you were clean.${reveal}`;
   }
-  mStatus(h);
+  mSay(tag === 'Right' ? 'win' : 'you', `${h} Press <b>New game</b> to play again.`, tag);
 }
 function act(step){
   if (mg.over) return;
@@ -196,7 +199,7 @@ function act(step){
   if (step) line += ' You stepped forward.';
   mg.log.push(line);
   if (step || r >= mg.k){ mg.over = true; verdict(step, r); }
-  else mStatus(`Round ${r}: nobody moved. The teacher asks again.`);
+  else mSay('you', `Round ${r} is over: nobody moved. Teacher: "If you know you are muddy, step forward." ${ASK}`, `Round ${r + 1}`);
   renderMuddy();
 }
 $('#ck-stay').addEventListener('click', () => act(false));
@@ -204,14 +207,15 @@ $('#ck-step').addEventListener('click', () => act(true));
 $('#ck-hint').addEventListener('click', () => {
   if (mg.over) return;
   const m = seesCount(mg.muddy, YOU);
-  mStatus(m
-    ? `Hint: you see ${facesWord(m)}. If you were clean, they would step forward on round ${m}. So wait through round ${m}. If they step forward, you are clean. If they do not, step forward on round ${m + 1}.`
-    : 'Hint: you see no mud at all, and the teacher said somebody is muddy. Who else could it be?');
+  mSay('you', m
+    ? `You see ${facesWord(m)}. If you were clean, they would step forward on round ${m}. So wait through round ${m}. If they step forward, you are clean. If they do not, step forward on round ${m + 1}.`
+    : 'You see no mud at all, and the teacher said somebody is muddy. Who else could it be?', `Hint, round ${mg.round + 1}`);
 });
 $('#ck-new').addEventListener('click', newMuddy);
 $('#ck-n').addEventListener('change', newMuddy);
 $('#ck-k').addEventListener('change', newMuddy);
 newMuddy();
+cue([$('#ck-stay'), $('#ck-step')]);   // the first thing to click in the chapter's first game
 
 /* ================= the knowledge ladder ================= */
 const lad = { k: 2, after: false };
@@ -243,6 +247,7 @@ function rungs(k, after){
 }
 function renderLadder(){
   const kids = $('#ck-lkids'); kids.innerHTML = '';
+  kids.style.gridTemplateColumns = `repeat(${lad.k}, minmax(0, 1fr))`;
   for (let i = 1; i <= lad.k; i++){
     kids.appendChild(kidCard({
       cls: 'robo', name: roboName(i), face: faceSVG({ kind: 'robo', mud: true }),
@@ -256,9 +261,8 @@ function renderLadder(){
     li.innerHTML = `<span class="mark">${r.ok ? 'yes' : 'no'}</span><div><div class="s">Rung ${i + 1}. ${RUNG_TEXT[i]}</div><div class="why">${r.why}</div></div>`;
     list.appendChild(li);
   });
-  $('#ck-lstatus').innerHTML = lad.after
-    ? `<span class="win-c">Every rung holds.</span> Now the round-${lad.k} argument works, and both robots step forward on round ${lad.k}.`.replace('both robots', lad.k === 2 ? 'both robots' : 'all three robots')
-    : `Before the announcement the ladder stops at rung ${lad.k - 1}. The round-${lad.k} argument needs rung ${lad.k}, so nobody ever moves.`;
+  if (lad.after) turn('#ck-rungs', 'win', `Every rung holds. Now the round-${lad.k} argument works, and ${lad.k === 2 ? 'both' : 'all three'} robots step forward on round ${lad.k}. ${lad.k === 2 ? 'Now try <b>3 muddy</b>.' : 'Press <b>Before the announcement</b> to see which rung was missing.'}`, 'After');
+  else turn('#ck-rungs', 'math', `Before the announcement the ladder stops at rung ${lad.k - 1}. The round-${lad.k} argument needs rung ${lad.k}, so nobody ever moves. Press <b>After</b> to let the teacher speak.`, 'Before');
 }
 seg($('#ck-lk'), v => { lad.k = +v; renderLadder(); });
 seg($('#ck-lwhen'), v => { lad.after = v === 'after'; renderLadder(); });
@@ -285,43 +289,51 @@ function roboPicks(mode){
   const L = +mode;
   return MIXED_LEVELS.map(() => ({ n: L === 0 ? rand(101) : LEVEL_PICK(L), who: 'level ' + L }));
 }
+const AGAIN = 'Change your number or the crowd, and press <b>Play the round</b> again.';
+/* The ten number chips. Before the first round they wait, face down, so the board is never an empty shell. */
+function renderChips(picks, robos, winners){
+  const host = $('#ck-chips'); host.innerHTML = '';
+  for (let i = 0; i < 10; i++){
+    const d = document.createElement('div');
+    d.className = 'ck-chip ' + (i === 0 ? 'you' : 'robo') + (picks ? '' : ' wait') + (winners && winners.includes(i) ? ' winner' : '');
+    d.innerHTML = `<span class="n">${picks ? picks[i] : '?'}</span><span class="who">${i === 0 ? 'you' : roboName(i) + (robos ? ', ' + robos[i - 1].who : '')}</span>`;
+    host.appendChild(d);
+  }
+}
 function playGuess(){
   const you = clamp(Math.round(+$('#ck-guess').value) || 0, 0, 100); $('#ck-guess').value = you;
   const robos = roboPicks(tg.mode);
   const picks = [you].concat(robos.map(r => r.n));
   const res = resolveGuess(picks);
-  const host = $('#ck-chips'); host.innerHTML = '';
-  picks.forEach((p, i) => {
-    const d = document.createElement('div');
-    d.className = 'ck-chip ' + (i === 0 ? 'you' : 'robo') + (res.winners.includes(i) ? ' winner' : '');
-    d.innerHTML = `<span class="n">${p}</span><span class="who">${i === 0 ? 'you' : roboName(i) + ', ' + robos[i - 1].who}</span>`;
-    host.appendChild(d);
-  });
+  renderChips(picks, robos, res.winners);
   $('#ck-avg').textContent = res.avg.toFixed(1);
   $('#ck-target').textContent = res.target.toFixed(1);
   const youWin = res.winners.includes(0), sole = youWin && res.winners.length === 1;
   $('#ck-winner').textContent = sole ? 'You' : youWin ? 'You (tie)' : res.winners.length === 1 ? roboName(res.winners[0]) : `${res.winners.length}-way tie`;
   let h;
-  if (sole) h = `<span class="win-c">You win!</span> Two thirds of the average was ${res.target.toFixed(1)}, and ${you} was closest.`;
-  else if (youWin) h = `<span class="win-c">You tied for closest</span> at ${res.dist[0].toFixed(1)} away. A shared prize.`;
+  if (sole) h = `You win! Two thirds of the average was ${res.target.toFixed(1)}, and ${you} was closest.`;
+  else if (youWin) h = `You tied for closest, ${res.dist[0].toFixed(1)} away from the target of ${res.target.toFixed(1)}. A shared prize.`;
   else {
     const w = res.winners[0];
-    h = `<span class="robo">${res.winners.length === 1 ? roboName(w) : 'Several Robos'} win${res.winners.length === 1 ? 's' : ''}</span> with ${picks[w]}, only ${res.dist[w].toFixed(1)} from the target. You were ${res.dist[0].toFixed(1)} away.`;
+    h = `${res.winners.length === 1 ? roboName(w) : 'Several Robos'} win${res.winners.length === 1 ? 's' : ''} with ${picks[w]}, only ${res.dist[w].toFixed(1)} from the target of ${res.target.toFixed(1)}. You were ${res.dist[0].toFixed(1)} away.`;
   }
   if (tg.mode === 'perfect' && !youWin) h += ' Against nine zeros, your number is the only thing pulling the average up, and two thirds of it is still below you.';
   if (tg.mode === 'mixed' && sole) earn('ck-average');
-  $('#ck-gstatus').innerHTML = h;
+  turn('#ck-chips', youWin ? 'win' : 'lose', `${h} ${AGAIN}`, sole ? 'You win' : youWin ? 'A tie' : 'Robo wins');
   tg.rounds++;
   $('#ck-glog').innerHTML = `Round ${tg.rounds}: you ${you}, Robos ${robos.map(r => r.n).join(', ')}. Average ${res.avg.toFixed(1)}, target ${res.target.toFixed(1)}.`;
 }
 $('#ck-play').addEventListener('click', playGuess);
 $('#ck-guess').addEventListener('keydown', e => { if (e.key === 'Enter') playGuess(); });
-seg($('#ck-mode'), v => { tg.mode = v; $('#ck-modenote').textContent = MODE_NOTE[v]; });
+seg($('#ck-mode'), (v, b) => {
+  tg.mode = v; $('#ck-modenote').textContent = MODE_NOTE[v];
+  turn('#ck-chips', 'you', `The crowd is now <b>${b.textContent}</b>. Type a whole number from 0 to 100, then press <b>Play the round</b>.`);
+});
 $('#ck-modenote').textContent = MODE_NOTE[tg.mode];
-$('#ck-gstatus').textContent = 'Type a number from 0 to 100 and play the round.';
+renderChips(null, null, null);
 
 /* ---- cross it out ---- */
-const co = { step: 0 };
+const co = { step: 0, solved: false };
 const MAX_STEPS = 10;
 function renderCross(){
   const c = ceilingAfter(co.step), prev = ceilingAfter(Math.max(0, co.step - 1));
@@ -335,20 +347,28 @@ function renderCross(){
   $('#ck-steps').innerHTML = h;
   $('#ck-cross').disabled = co.step >= MAX_STEPS;
 }
-$('#ck-cross').addEventListener('click', () => { if (co.step < MAX_STEPS){ co.step++; renderCross(); } });
-$('#ck-cross-reset').addEventListener('click', () => { co.step = 0; renderCross(); });
+const CROSS_HELP = 'Press <b>Cross out the next step</b> to cross out the numbers that can never be a best pick, one step at a time.';
+const ZERO_ASK = 'Which number is under every ceiling? Type it in the box at the bottom and press <b>Check</b>.';
+function crossSay(){
+  const c = ceilingAfter(co.step).toFixed(1);
+  if (co.step === 0) turn('#ck-steps', 'math', CROSS_HELP);
+  else if (co.step < MAX_STEPS) turn('#ck-steps', 'math', `Everything above ${c} is crossed out. Press <b>Cross out the next step</b> again${co.solved ? '. Your 0 is still in' : co.step >= 3 ? ', or answer the question at the bottom' : ''}.`, `Step ${co.step}`);
+  else turn('#ck-steps', 'math', `The ceiling is down to ${c} and it never stops dropping. ${co.solved ? 'Your 0 is still under it, and always will be.' : ZERO_ASK}`, `Step ${co.step}`);
+}
+$('#ck-cross').addEventListener('click', () => { if (co.step < MAX_STEPS){ co.step++; renderCross(); crossSay(); } });
+$('#ck-cross-reset').addEventListener('click', () => { co.step = 0; renderCross(); crossSay(); });
 renderCross();
 function checkZero(){
   const raw = $('#ck-zero').value.trim();
-  const st = $('#ck-zstatus');
-  if (raw === ''){ st.textContent = 'Type a number first.'; return; }
+  const say = (who, html, tag) => turn('#ck-steps', who, html, tag);
+  if (raw === ''){ say('you', 'Type a number in the box at the bottom first, then press <b>Check</b>.', 'Not yet'); return; }
   const v = Number(raw);
   if (v === 0){
-    st.innerHTML = '<span class="win-c">Yes: 0.</span> It is the only number under every ceiling, and if everyone picks 0, the average is 0, two thirds of it is 0, and everyone ties. Nobody can do better by switching alone.';
-    earn('ck-zero');
-  } else if (v === 1) st.innerHTML = 'Close, but the ceiling gets below 1 too: after 12 steps it is 0.8. Keep going.';
-  else if (v > 0 && v <= 100) st.innerHTML = `Not yet. ${v} gets crossed out at step ${Math.max(1, Math.ceil(Math.log(v / 100) / Math.log(2 / 3)))}. Which number never does?`;
-  else st.textContent = 'The numbers in this game run from 0 to 100.';
+    say('win', 'Yes: 0. It is the only number under every ceiling, and if everyone picks 0, the average is 0, two thirds of it is 0, and everyone ties. Nobody can do better by switching alone.', 'Solved');
+    co.solved = true; earn('ck-zero');
+  } else if (v === 1) say('you', 'Close, but the ceiling gets below 1 too: after 12 steps it is 0.8. Keep going, then check again.', 'Not yet');
+  else if (v > 0 && v <= 100) say('you', `${v} gets crossed out at step ${Math.max(1, Math.ceil(Math.log(v / 100) / Math.log(2 / 3)))}. Which number never does? Type it and check again.`, 'Not yet');
+  else say('you', 'The numbers in this game run from 0 to 100. Type one of those and check again.', 'Not yet');
 }
 $('#ck-zero-check').addEventListener('click', checkZero);
 $('#ck-zero').addEventListener('keydown', e => { if (e.key === 'Enter') checkZero(); });
@@ -357,13 +377,13 @@ $('#ck-zero').addEventListener('keydown', e => { if (e.key === 'Enter') checkZer
 const COLOR = ['red', 'blue'];
 const colorHTML = c => `<span class="ck-${COLOR[c]}">${COLOR[c]}</span>`;
 const hg = { hats: [0, 0, 0], done: false, tally: { one: [0, 0], clever: [0, 0] } };   // tally: [games, wins]
-const hStatus = html => { $('#ck-hstatus').innerHTML = html; };
+const hSay = (who, html, tag) => turn('#ck-hatrow', who, html, tag);
 function hatSays(g){ return g === null ? 'passes' : 'guesses ' + colorHTML(g); }
 function renderHats(guesses, win){
   const host = $('#ck-hatrow'); host.innerHTML = '';
   const advice = cleverGuess(hg.hats[1], hg.hats[2]);
   const cards = [
-    { cls: 'you', name: 'You', hat: hg.done ? hg.hats[0] : 'q', says: hg.done ? `You ${hatSays(guesses[0])}. The plan said: ${advice === null ? 'pass' : 'guess ' + colorHTML(advice)}.` : `You see ${colorHTML(hg.hats[1])} and ${colorHTML(hg.hats[2])}.` },
+    { cls: 'you', name: 'You', hat: hg.done ? hg.hats[0] : 'q', says: hg.done ? `You ${guesses[0] === null ? 'pass' : 'guess ' + colorHTML(guesses[0])}. The plan said: ${advice === null ? 'pass' : 'guess ' + colorHTML(advice)}.` : `You see ${colorHTML(hg.hats[1])} and ${colorHTML(hg.hats[2])}.` },
     { cls: 'robo', name: 'Robo 1', hat: hg.hats[1], says: hg.done ? `Sees ${colorHTML(hg.hats[0])} and ${colorHTML(hg.hats[2])}, so it ${hatSays(guesses[1])}.` : 'Sees your hat and Robo 2\'s hat.' },
     { cls: 'robo', name: 'Robo 2', hat: hg.hats[2], says: hg.done ? `Sees ${colorHTML(hg.hats[0])} and ${colorHTML(hg.hats[1])}, so it ${hatSays(guesses[2])}.` : 'Sees your hat and Robo 1\'s hat.' }
   ];
@@ -378,7 +398,7 @@ function renderHats(guesses, win){
 function dealHats(){
   hg.hats = [rand(2), rand(2), rand(2)]; hg.done = false;
   renderHats();
-  hStatus('Your hat is hidden. Guess red, guess blue, or pass. The Robos decide at the same moment.');
+  hSay('you', `Your hat is hidden. You see ${colorHTML(hg.hats[1])} and ${colorHTML(hg.hats[2])}. Press <b>Guess red</b>, <b>Guess blue</b> or <b>Pass</b>. The Robos decide at the same moment.`);
 }
 function youSay(g){
   if (hg.done) return;
@@ -388,7 +408,7 @@ function youSay(g){
   renderHats(guesses, win);
   const yours = g === null ? 'You passed.' : g === hg.hats[0] ? `You guessed ${colorHTML(g)}, and your hat is ${colorHTML(hg.hats[0])}: right.` : `You guessed ${colorHTML(g)}, but your hat is ${colorHTML(hg.hats[0])}: wrong.`;
   const guessed = guesses.filter(x => x !== null).length;
-  hStatus(`${yours} ${win ? '<span class="win-c">The team wins.</span>' : '<span class="you">The team loses.</span>'} ${guessed === 0 ? 'Nobody guessed, and a team that only passes cannot win.' : ''}`);
+  hSay(win ? 'win' : 'lose', `${yours} ${win ? 'The team wins.' : 'The team loses.'} ${guessed === 0 ? 'Nobody guessed, and a team that only passes cannot win. ' : ''}Press <b>New hats</b> to play again.`, win ? 'Team wins' : 'Team loses');
 }
 $('#ck-say-red').addEventListener('click', () => youSay(0));
 $('#ck-say-blue').addEventListener('click', () => youSay(1));
@@ -396,7 +416,7 @@ $('#ck-say-pass').addEventListener('click', () => youSay(null));
 $('#ck-deal').addEventListener('click', dealHats);
 dealHats();
 
-function runGames(plan, games){
+function runGames(plan, games, quiet){
   let wins = 0;
   for (let t = 0; t < games; t++){
     const hats = [rand(2), rand(2), rand(2)];
@@ -405,6 +425,7 @@ function runGames(plan, games){
   }
   hg.tally[plan][0] += games; hg.tally[plan][1] += wins;
   renderTally();
+  if (!quiet) hSay('math', `${games} games of ${plan === 'one' ? 'one guesser, two pass' : 'the clever plan'}: the team won ${wins} (${(100 * wins / games).toFixed(1)}%). ${hg.done ? 'Press <b>New hats</b> to play a hand yourself.' : 'Your own hat is still waiting: guess or pass.'}`, 'Result');
 }
 function renderTally(){
   for (const plan of ['one', 'clever']){
@@ -415,8 +436,11 @@ function renderTally(){
 }
 $('#ck-run-one').addEventListener('click', () => runGames('one', 1000));
 $('#ck-run-clever').addEventListener('click', () => runGames('clever', 1000));
-$('#ck-run-reset').addEventListener('click', () => { hg.tally = { one: [0, 0], clever: [0, 0] }; renderTally(); });
-runGames('one', 1000); runGames('clever', 1000);
+$('#ck-run-reset').addEventListener('click', () => {
+  hg.tally = { one: [0, 0], clever: [0, 0] }; renderTally();
+  hSay('math', `Tallies cleared. Press a <b>Run</b> button for a thousand games, or ${hg.done ? 'press <b>New hats</b>' : 'guess your own hat'}.`, 'Reset');
+});
+runGames('one', 1000, true); runGames('clever', 1000, true);   // a real resting result at load, without taking over the strip
 
 (function hatTable(){
   const sq = c => `<span class="h${c}" title="${COLOR[c]}"></span>`;

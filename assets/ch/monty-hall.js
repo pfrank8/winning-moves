@@ -1,7 +1,7 @@
 /* Chapter 17: The three doors. Monty Hall by hand and by the thousand, the hundred-door version, and the guessing host. */
 (function(){
 'use strict';
-const { $, $$, wait, earn, seg, fmtNum } = WM;
+const { $, $$, wait, earn, seg, fmtNum, turn, cue, reveal } = WM;
 
 /* PURE:BEGIN
    No DOM, no WM in here. scripts can slice this block out and unit-test it with node. */
@@ -34,7 +34,7 @@ function playBig(n, strategy){
 }
 /* PURE:END */
 
-const chapter = { guessRounds: 0, quizRight: false, quizMissed: false };
+const chapter = { guessRounds: 0, quizRight: false, quizMissed: false, quizDone: false };
 const pct = (w, n) => n ? Math.round(1000 * w / n) / 10 : 0;
 const newTally = () => ({ stay: { w: 0, n: 0 }, sw: { w: 0, n: 0 }, spoiled: 0 });
 
@@ -83,7 +83,7 @@ function tallyHTML(t, showSpoiled){
   let h = row('Stayed', t.stay) + row('Switched', t.sw);
   if (showSpoiled){
     const all = t.stay.n + t.sw.n + t.spoiled;
-    h += `<div class="mh-trow spoiled"><div class="mh-th"><span class="mh-lab">Spoiled</span><span class="mh-num">${all ? `${fmtNum(t.spoiled)} of ${fmtNum(all)} rounds, ${pct(t.spoiled, all)}%: Robo opened the bicycle by accident` : 'no rounds yet'}</span></div><div class="bar"><i style="width:${all ? 100 * t.spoiled / all : 0}%"></i></div></div>`;
+    h += `<div class="mh-trow spoiled"><div class="mh-th"><span class="mh-lab">Spoiled</span><span class="mh-num">${all ? `${fmtNum(t.spoiled)} of ${fmtNum(all)} rounds, ${pct(t.spoiled, all)}%` : 'no rounds yet'}</span></div><div class="bar"><i style="width:${all ? 100 * t.spoiled / all : 0}%"></i></div></div>`;
   }
   return h;
 }
@@ -108,10 +108,14 @@ async function runAuto(s, strategy, play, N, onStep){
 function makeSim(rootId, cfg){
   const R = $('#' + rootId);
   const q = r => R.querySelector(`[data-r="${r}"]`);
-  const s = { mode: cfg.mode, phase: 'pick', pick: -1, prize: -1, open: -1, final: -1, id: 0, busy: false, running: false, t: newTally(), log: [], pred: null, round: 0 };
+  const s = { mode: cfg.mode, phase: 'pick', pick: -1, prize: -1, open: -1, final: -1, id: 0, busy: false, running: false, t: newTally(), log: [], pred: null, round: 0, ran: { stay: false, switch: false } };
   const knows = () => s.mode === 'knows';
   const other = () => 3 - s.pick - s.open;
-  const status = html => { q('status').innerHTML = html; };
+  /* The strip is the narrator: what to click now, what Robo is doing, what just happened and how to go again. */
+  const say = (who, html, tag) => turn(R, who, html, tag);
+  const pickHelp = () => knows() ? 'Click a door. Robo will open a goat door, and then <b>Stay</b> and <b>Switch</b> light up.'
+                                 : 'Click a door. Robo opens another door at random, then you press <b>Stay</b> or <b>Switch</b>.';
+  const again = () => 'Click a door to play again' + (cfg.predict && s.pred === null ? ', or make your prediction in the yellow box to unlock the 1000-round buttons.' : '.');
   const showSpoiled = () => !knows() || s.t.spoiled > 0;
   const canAuto = () => !s.running && !s.busy && (!cfg.predict || s.pred !== null);
 
@@ -124,8 +128,8 @@ function makeSim(rootId, cfg){
       if (done || d === s.open) state = d === s.prize ? 'prize' : 'goat';
       let tag = '';
       if (d === s.pick){ b.classList.add('picked'); tag = 'your pick'; }
-      if (d === s.open){ b.classList.add('robo'); tag = s.phase === 'spoiled' ? 'Robo opened: oops' : 'Robo opened'; }
-      if (s.phase === 'done' && d === s.final && d !== s.pick){ tag = 'you switched here'; }
+      if (d === s.open){ b.classList.add('robo'); tag = s.phase === 'spoiled' ? 'Robo: oops' : 'Robo opened'; }
+      if (s.phase === 'done' && d === s.final && d !== s.pick){ tag = 'you switched'; }
       if (s.phase === 'done' && d === s.final && d === s.prize){ b.classList.add('won'); }
       b.innerHTML = doorSVG(d + 1, state) + `<span class="mh-tag">${tag}</span>`;
       b.setAttribute('aria-label', `Door ${d + 1}`);
@@ -142,13 +146,13 @@ function makeSim(rootId, cfg){
     q('auto-stay').disabled = !canAuto(); q('auto-switch').disabled = !canAuto();
     q('reset').disabled = s.running;
     q('tally').innerHTML = tallyHTML(s.t, showSpoiled());
-    q('log').innerHTML = s.log.slice(-4).join('<br>');
+    q('log').innerHTML = s.log.slice(-3).join('<br>');
   }
   function newRound(){
     s.id++; s.busy = false; s.running = false;
     s.phase = 'pick'; s.pick = s.prize = s.open = s.final = -1;
     render();
-    status('Pick a door.');
+    say('you', pickHelp());
   }
   async function pickDoor(d){
     if (s.busy || s.running) return;
@@ -156,7 +160,7 @@ function makeSim(rootId, cfg){
     if (s.phase !== 'pick') newRound();
     s.round++;
     s.pick = d; s.prize = ri(3); s.phase = 'robo'; s.busy = true; render();
-    status(`You picked door ${d + 1}. Robo is ${knows() ? 'opening a goat door' : 'opening one of the other doors at random'}...`);
+    say('robo', `You picked door ${d + 1}. Robo is ${knows() ? 'opening a goat door' : 'opening one of the other doors at random'}...`);
     const id = s.id;
     await wait(700);
     if (id !== s.id) return;
@@ -164,13 +168,13 @@ function makeSim(rootId, cfg){
     s.busy = false;
     if (s.open === s.prize){
       s.phase = 'spoiled'; s.t.spoiled++; chapter.guessRounds++;
-      s.log.push(`Round ${s.round}: picked ${s.pick + 1}, Robo opened ${s.open + 1} by accident: the bicycle. Spoiled.`);
+      s.log.push(`Round ${s.round}: door ${s.pick + 1}, Robo opened ${s.open + 1}: bicycle. Spoiled.`);
       render();
-      status(`<span class="robo">Robo opened door ${s.open + 1}: the bicycle.</span> Robo did not know either. This round is spoiled. Pick a door to play again.`);
+      say('robo', `Robo opened door ${s.open + 1}: the bicycle. Robo did not know either, so this round counts for neither tally. Click a door to play again.`, 'Spoiled');
       return;
     }
     s.phase = 'choose'; render();
-    status(`Robo opened door ${s.open + 1}: a goat. Stay with door ${s.pick + 1}, or switch to door ${other() + 1}?`);
+    say('you', `Robo opened door ${s.open + 1}: a goat. Press <b>Stay</b> to keep door ${s.pick + 1}, or <b>Switch</b> to take door ${other() + 1}.`);
   }
   function choose(strategy){
     if (s.phase !== 'choose' || s.running) return;
@@ -180,9 +184,9 @@ function makeSim(rootId, cfg){
     if (!knows()) chapter.guessRounds++;
     s.phase = 'done'; render();
     const verb = strategy === 'stay' ? `stayed with door ${s.pick + 1}` : `switched to door ${s.final + 1}`;
-    s.log.push(`Round ${s.round}: picked ${s.pick + 1}, Robo opened ${s.open + 1}, ${verb}: ${win ? 'bicycle' : 'goat'}.`);
-    status(win ? `<span class="win-c">You ${verb}. The bicycle!</span> Pick a door to play again.`
-               : `You ${verb}. A goat. The bicycle was behind door ${s.prize + 1}. Pick a door to play again.`);
+    s.log.push(`Round ${s.round}: door ${s.pick + 1}, Robo opened ${s.open + 1}, ${strategy}: ${win ? 'bicycle' : 'goat'}.`);
+    if (win) say('win', `You ${verb}. The bicycle! ${again()}`, 'Bicycle');
+    else say('lose', `You ${verb}. A goat. The bicycle was behind door ${s.prize + 1}. ${again()}`, 'Goat');
     checkStars();
   }
   async function auto(strategy){
@@ -193,34 +197,47 @@ function makeSim(rootId, cfg){
     const res = await runAuto(s, strategy, st => playRound(k, st), 1000, done => {
       if (!k) chapter.guessRounds += 1000 / 25;
       q('tally').innerHTML = tallyHTML(s.t, showSpoiled());
-      status(`Robo is playing ${word} rounds... ${fmtNum(done)}`);
+      say('robo', `Robo is playing ${word} rounds... ${fmtNum(done)}`, 'Robo plays');
     });
     if (!res) return;
-    s.running = false; s.round += 1000; render();
-    if (k) status(`1000 rounds of ${word}: <b>${fmtNum(res.w)}</b> wins, ${pct(res.w, res.n)}%.`);
-    else status(`1000 rounds of ${word} against a guessing Robo: ${fmtNum(res.sp)} spoiled. Of the ${fmtNum(res.n)} that survived, ${word} won <b>${fmtNum(res.w)}</b>, ${pct(res.w, res.n)}%.`);
-    s.log.push(`Auto: 1000 rounds of ${word}${k ? '' : ' (Robo guessing)'}: ${res.w} of ${res.n} won${res.sp ? `, ${res.sp} spoiled` : ''}.`);
-    checkStars();
+    s.running = false; s.round += 1000;
+    s.log.push(`1000 x ${strategy}: ${res.w} of ${res.n} won${res.sp ? `, ${res.sp} spoiled` : ''}.`);
+    s.ran[strategy] = true;
+    render();
+    const otherDone = s.ran[strategy === 'stay' ? 'switch' : 'stay'];
+    let next = 'Compare the two bars. Click a door to play by hand again.';
+    if (!otherDone) next = `Now press <b>${strategy === 'stay' ? 'Switch, 1000 rounds' : 'Stay, 1000 rounds'}</b> and compare the two bars.`;
+    else if (cfg.quiz && !k && !chapter.quizDone) next = 'Compare the two bars, then answer the question at the bottom of the board.';
+    if (cfg.quiz && !k && !chapter.quizDone && chapter.guessRounds >= 1000){ q('quiz').open = true; if (otherDone) reveal(q('quiz')); }
+    const called = checkStars();   // '' unless the reader's prediction has just been put to the test
+    const head = k ? `1000 rounds of ${word}: <b>${fmtNum(res.w)}</b> wins, ${pct(res.w, res.n)}%.`
+                   : `1000 rounds of ${word} against a guessing Robo: ${fmtNum(res.sp)} spoiled. Of the ${fmtNum(res.n)} that survived, ${word} won <b>${fmtNum(res.w)}</b>, ${pct(res.w, res.n)}%.`;
+    if (called && strategy === 'switch') say(s.pred === '2/3' ? 'win' : 'math', `${head} ${called} ${next}`, s.pred === '2/3' ? 'Called it' : 'Result');
+    else say('math', `${head} ${next}`, 'Result');
   }
   function checkStars(){
+    let called = '';
     if (cfg.predict && s.pred !== null && knows() && s.t.sw.n >= 1000){
       if (s.pred === '2/3'){
-        q('pmsg').innerHTML = `<b class="win-c">You predicted 2/3, and the tally agrees.</b>`;
+        called = 'You predicted 2/3, and the tally agrees.';
+        q('pmsg').innerHTML = `<b class="win-c">${called}</b>`;
         earn('mh-predict');
       } else {
-        q('pmsg').innerHTML = `You predicted ${s.pred}. The tally says about 2/3. No star this time, but you are in good company: nearly everyone predicts 1/2 the first time.`;
+        called = `You predicted ${s.pred}. The tally says about 2/3.`;
+        q('pmsg').innerHTML = `${called} No star this time, but you are in good company: nearly everyone predicts 1/2 the first time.`;
       }
     }
     if (chapter.guessRounds >= 1000 && chapter.quizRight) earn('mh-host');
+    return called;
   }
   function resetTallies(){
     if (s.running) return;
-    s.t = newTally(); s.log = []; s.round = 0; newRound();
-    status('Tallies cleared. Pick a door.');
+    s.t = newTally(); s.log = []; s.round = 0; s.ran = { stay: false, switch: false }; newRound();
+    say('you', 'Tallies cleared. Click a door.');
   }
   seg(q('mode'), v => {
     s.mode = v; resetTallies();
-    status(v === 'knows' ? 'Robo knows where the bicycle is again. Tallies cleared. Pick a door.' : 'Robo is guessing now. Tallies cleared. Pick a door.');
+    say('you', v === 'knows' ? 'Robo knows where the bicycle is again. Tallies cleared. Click a door.' : 'Robo is guessing now, and may open the bicycle by accident. Tallies cleared. Click a door.');
   });
   q('new').addEventListener('click', newRound);
   q('reset').addEventListener('click', resetTallies);
@@ -236,14 +253,17 @@ function makeSim(rootId, cfg){
       buttons.forEach(x => { x.disabled = true; x.classList.toggle('chosen', x === b); });
       q('pmsg').innerHTML = `Prediction noted: <b>${s.pred}</b>. Now press "Switch, 1000 rounds" and see.`;
       render();
+      /* Mid-round the strip is still asking Stay or Switch; leave it alone then. */
+      if (s.phase !== 'robo' && s.phase !== 'choose') say('you', `Prediction noted: <b>${s.pred}</b>. The 1000-round buttons are unlocked. Press <b>Switch, 1000 rounds</b> and see.`);
     }));
   }
   newRound();
+  if (cfg.cue) cue($$('.mh-door', R));
   return { s, checkStars };
 }
 
-const sim1 = makeSim('mh-sim', { mode: 'knows', predict: true });
-const sim2 = makeSim('mh-sim2', { mode: 'guesses', predict: false });
+const sim1 = makeSim('mh-sim', { mode: 'knows', predict: true, cue: true });
+const sim2 = makeSim('mh-sim2', { mode: 'guesses', predict: false, quiz: true });
 
 /* ================= the quiz on the guessing-host board ================= */
 (function quiz(){
@@ -265,14 +285,15 @@ const sim2 = makeSim('mh-sim2', { mode: 'guesses', predict: false });
     b.addEventListener('click', () => {
       if (answered) return;
       if (o.ok){
-        answered = true; b.classList.add('right'); $$('button', host).forEach(x => { x.disabled = true; });
+        answered = true; chapter.quizDone = true; b.classList.add('right'); $$('button', host).forEach(x => { x.disabled = true; });
         chapter.quizRight = !chapter.quizMissed;
-        if (chapter.quizMissed) q('qmsg').innerHTML = o.why + ' (No star for this one: it was not your first answer.)';
-        else if (chapter.guessRounds >= 1000){ q('qmsg').innerHTML = o.why; earn('mh-host'); }
-        else q('qmsg').innerHTML = o.why + ' Now run at least 1000 rounds with a guessing Robo (an auto button on this board) and the star is yours.';
+        if (chapter.quizMissed){ q('qmsg').innerHTML = o.why + ' (No star for this one: it was not your first answer.)'; turn(R, 'win', 'That is the reason. The why is under the answers.', 'Solved'); }
+        else if (chapter.guessRounds >= 1000){ q('qmsg').innerHTML = o.why; turn(R, 'win', 'That is the reason, first try. The why is under the answers.', 'Solved'); earn('mh-host'); }
+        else { q('qmsg').innerHTML = o.why + ' Now run at least 1000 rounds with a guessing Robo (an auto button on this board) and the star is yours.'; turn(R, 'you', 'That is the reason. Now press <b>Switch, 1000 rounds</b> with Robo guessing, and the star is yours.', 'Right'); }
       } else {
         chapter.quizMissed = true; b.classList.add('wrong'); b.disabled = true;
         q('qmsg').innerHTML = `<span class="you">Not that one.</span> ${o.why}`;
+        turn(R, 'you', 'Not that one. Read why under the answers, then pick another.', 'Not yet');
       }
     });
     host.appendChild(b);
@@ -284,15 +305,15 @@ const sim2 = makeSim('mh-sim2', { mode: 'guesses', predict: false });
   const R = $('#mh-big');
   const q = r => R.querySelector(`[data-r="${r}"]`);
   const s = { n: 100, phase: 'pick', pick: -1, prize: -1, other: -1, opened: new Set(), final: -1, id: 0, busy: false, running: false, t: newTally(), round: 0 };
-  const status = html => { q('status').innerHTML = html; };
+  const say = (who, html, tag) => turn(R, who, html, tag);
+  const pickHelp = () => `Click any one of the ${s.n} doors. Robo will open ${s.n - 2} goat door${s.n === 3 ? '' : 's'}, and then <b>Stay</b> and <b>Switch</b> light up.`;
   function readN(){
     const inp = q('n'); s.n = Math.min(100, Math.max(3, Math.round(+inp.value) || 100)); inp.value = s.n;
   }
   function renderGrid(){
     const host = q('grid'); host.innerHTML = '';
-    const cols = Math.min(10, s.n);
-    host.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
-    host.style.maxWidth = `${Math.min(480, cols * 48)}px`;
+    host.style.setProperty('--mh-cols', String(Math.min(20, s.n)));      // laptop: five rows of twenty
+    host.style.setProperty('--mh-cols-sm', String(Math.min(10, s.n)));   // phone: ten rows of ten
     const done = s.phase === 'done';
     for (let d = 0; d < s.n; d++){
       const b = document.createElement('button'); b.type = 'button';
@@ -320,7 +341,7 @@ const sim2 = makeSim('mh-sim2', { mode: 'guesses', predict: false });
     s.id++; s.busy = false; s.running = false;
     s.phase = 'pick'; s.pick = s.prize = s.other = s.final = -1; s.opened = new Set();
     render();
-    status(`Pick one of the ${s.n} doors.`);
+    say('you', pickHelp());
   }
   async function pickDoor(d){
     if (s.busy || s.running || s.phase === 'choose') return;
@@ -330,7 +351,7 @@ const sim2 = makeSim('mh-sim2', { mode: 'guesses', predict: false });
     s.phase = 'robo'; s.busy = true; render();
     const toOpen = []; for (let x = 0; x < s.n; x++) if (x !== s.pick && x !== s.other) toOpen.push(x);
     for (let i = toOpen.length - 1; i > 0; i--){ const j = ri(i + 1); [toOpen[i], toOpen[j]] = [toOpen[j], toOpen[i]]; }
-    status(`You picked door ${d + 1}. Robo is opening ${toOpen.length} goat door${toOpen.length === 1 ? '' : 's'}...`);
+    say('robo', `You picked door ${d + 1}. Robo is opening ${toOpen.length} goat door${toOpen.length === 1 ? '' : 's'}...`);
     const id = s.id;
     await wait(650);
     if (id !== s.id) return;
@@ -342,7 +363,7 @@ const sim2 = makeSim('mh-sim2', { mode: 'guesses', predict: false });
       if (id !== s.id) return;
     }
     s.busy = false; s.phase = 'choose'; render();
-    status(`Robo opened ${toOpen.length} goat doors and left door ${s.other + 1} closed. Stay with door ${s.pick + 1}, or switch to door ${s.other + 1}?`);
+    say('you', `Robo opened ${toOpen.length} goat door${toOpen.length === 1 ? '' : 's'} and left door ${s.other + 1} closed. Press <b>Stay</b> to keep door ${s.pick + 1}, or <b>Switch</b> to take door ${s.other + 1}.`);
   }
   function choose(strategy){
     if (s.phase !== 'choose' || s.running) return;
@@ -351,8 +372,8 @@ const sim2 = makeSim('mh-sim2', { mode: 'guesses', predict: false });
     const t = strategy === 'stay' ? s.t.stay : s.t.sw; t.n++; if (win) t.w++;
     s.phase = 'done'; render();
     const verb = strategy === 'stay' ? `stayed with door ${s.pick + 1}` : `switched to door ${s.other + 1}`;
-    status(win ? `<span class="win-c">You ${verb}. The bicycle!</span> Pick a door to play again.`
-               : `You ${verb}. A goat. The bicycle was behind door ${s.prize + 1}. Pick a door to play again.`);
+    if (win) say('win', `You ${verb}. The bicycle! Click a door to play again.`, 'Bicycle');
+    else say('lose', `You ${verb}. A goat. The bicycle was behind door ${s.prize + 1}. Click a door to play again.`, 'Goat');
   }
   async function auto(strategy){
     if (s.running || s.busy) return;
@@ -360,18 +381,18 @@ const sim2 = makeSim('mh-sim2', { mode: 'guesses', predict: false });
     const n = s.n, word = strategy === 'stay' ? 'staying' : 'switching';
     const res = await runAuto(s, strategy, st => playBig(n, st), 1000, done => {
       q('tally').innerHTML = tallyHTML(s.t, false);
-      status(`Robo is playing ${word} rounds with ${n} doors... ${fmtNum(done)}`);
+      say('robo', `Robo is playing ${word} rounds with ${n} doors... ${fmtNum(done)}`, 'Robo plays');
     });
     if (!res) return;
     s.running = false; s.round += 1000; render();
-    status(`1000 rounds of ${word} with ${n} doors: <b>${fmtNum(res.w)}</b> wins, ${pct(res.w, res.n)}%. The formula says ${strategy === 'stay' ? `1/${n}` : `${n - 1}/${n}`} = ${(100 * (strategy === 'stay' ? 1 : n - 1) / n).toFixed(1)}%.`);
+    say('math', `1000 rounds of ${word} with ${n} doors: <b>${fmtNum(res.w)}</b> wins, ${pct(res.w, res.n)}%. The formula says ${strategy === 'stay' ? `1/${n}` : `${n - 1}/${n}`} = ${(100 * (strategy === 'stay' ? 1 : n - 1) / n).toFixed(1)}%. Click a door to play by hand, or change the number of doors.`, 'Result');
   }
-  function resetTallies(){ if (s.running) return; s.t = newTally(); s.round = 0; newRound(); status('Tallies cleared. Pick a door.'); }
+  function resetTallies(){ if (s.running) return; s.t = newTally(); s.round = 0; newRound(); say('you', 'Tallies cleared. Click a door.'); }
   q('n').addEventListener('change', () => {
     if (s.running) return;
     const before = s.n; readN();
     if (s.n === before) return;
-    resetTallies(); status(`${s.n} doors now. Tallies cleared. Pick a door.`);
+    resetTallies(); say('you', `${s.n} doors now. Tallies cleared. Click a door.`);
   });
   q('new').addEventListener('click', newRound);
   q('reset').addEventListener('click', resetTallies);
