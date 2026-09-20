@@ -3,6 +3,14 @@
   publish = "docs"
   command = ""
 
+# The site is served under a sub-path (east11ventures.com/gametheory/ proxies here), so every
+# link must stay relative. Netlify's "pretty URLs" post-processing rewrites ./hex.html into the
+# root-relative /hex, which breaks that. Keep all post-processing off.
+[build.processing]
+  skip_processing = true
+[build.processing.html]
+  pretty_urls = false
+
 [[headers]]
   for = "/*"
   [headers.values]
