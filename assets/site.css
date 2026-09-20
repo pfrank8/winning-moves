@@ -211,6 +211,7 @@ input[type=text],select{ width:auto; max-width:100% }
   position:sticky; top:60px; z-index:3; display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
   margin:0 0 16px; padding:9px 14px; border:2px solid var(--line); border-left-width:8px; border-radius:12px;
   background:var(--surface-2); font:600 1.02rem var(--f-display); line-height:1.35;
+  min-height:calc(2.7em + 22px); align-content:center;   /* room for two lines, so the play area never jumps when the message wraps */
 }
 .turn .turn-tag{ font:600 .72rem var(--f-mono); letter-spacing:.09em; text-transform:uppercase; white-space:nowrap; color:var(--ink-soft) }
 .turn .turn-text{ flex:1 1 16ch; min-width:0 }
