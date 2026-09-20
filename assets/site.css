@@ -242,8 +242,8 @@ input[type=text],select{ width:auto; max-width:100% }
 .pay.pick-rows.locked tr.pickable th.rh{ box-shadow:none; opacity:.55 }
 
 /* A gentle "this is the thing you click" cue. WM.cue() removes it on the first interaction. */
-@keyframes wm-pulse{ 0%{ box-shadow:0 0 0 0 color-mix(in srgb, var(--you) 55%, transparent) } 100%{ box-shadow:0 0 0 12px transparent } }
-.cue{ animation:wm-pulse 1.4s ease-out infinite; border-radius:12px }
+@keyframes wm-pulse{ 0%{ outline-color:color-mix(in srgb, var(--you) 75%, transparent); outline-offset:1px } 100%{ outline-color:transparent; outline-offset:11px } }
+.cue{ outline:3px solid transparent; animation:wm-pulse 1.4s ease-out infinite }   /* an outline ring, so a button keeps its drop shadow while it pulses */
 @media (prefers-reduced-motion: reduce){ .cue{ outline:3px dashed var(--you); outline-offset:3px } }
 
 /* ---------- payoff tables ---------- */
